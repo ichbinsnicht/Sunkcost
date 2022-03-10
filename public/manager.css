@@ -2,7 +2,10 @@
     font: 5vmin monospace;
     text-align: center;
 }
-#startupDiv {
+#interfaceDiv {
     display: block;
     margin-top: 10vh;
+}
+button {
+    margin-bottom: 5vh;
 }

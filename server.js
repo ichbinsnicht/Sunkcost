@@ -9,6 +9,14 @@ var numSubjects = 0                             // camel caps vs init caps
 var treatment   = 1                             // object is data!! functions are called
 var state       = "startup"                     // $ in R is like . in JS
 
+// server states vs client states, server states are global (forall clients) while client states may vary at the same time
+// here: individual decision making, simultaenous, server states only
+// state 0: startup
+// state 1: instructions
+// state 2: investment 1
+// state 3: investment 2
+// state 4: outcome and payment
+
 // variable for current dir: __dirname, server only shares stuff from public
 // express builts server based on public folder 
 app.use(express.static(__dirname + "/public"))
