@@ -1,0 +1,8 @@
+* {
+    font: 5vmin monospace;
+    text-align: center;
+}
+#startupDiv {
+    display: block;
+    margin-top: 10vh;
+}
