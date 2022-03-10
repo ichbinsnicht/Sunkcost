@@ -1,2 +1,2 @@
 # Sunkcost
-This is an experiment.
+This is an experiment on sunk costs.
