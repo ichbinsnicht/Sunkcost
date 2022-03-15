@@ -42,6 +42,10 @@ io.on("connection",function(socket){
     console.log(`client click ${msg.x}, ${msg.y}`)
     socket.emit("clicked",msg)
   }) 
+  socket.on("showInstructions", function(msg){  // callback function
+    console.log(`showInstructions`)
+    if(state == "startup") state = "instructions"
+  })
 }) 
 
 // start the server

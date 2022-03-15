@@ -1,3 +1,4 @@
+console.log("client.js")
 var startupDiv = document.getElementById("startupDiv")
 
 socket = io()       // browser based socket
