@@ -12,7 +12,7 @@ var state       = "startup"                     // $ in R is like . in JS
 // server states vs client states, server states are global (forall clients) while client states may vary at the same time
 // here: individual decision making, simultaenous, server states only
 // state 0: startup
-// state 1: instructions
+// state 1: instructions, done
 // state 2: investment 1
 // state 3: investment 2
 // state 4: outcome and payment
@@ -38,18 +38,35 @@ app.get("/manager",function(req,res){
 // listener - similar to continuous if statement
 // connection is an event
 io.on("connection",function(socket){
-  socket.on("clientClick",function(msg){
-    console.log(`client click ${msg.x}, ${msg.y}`)
-    socket.emit("clicked",msg)
-  }) 
-  socket.on("showInstructions", function(msg){  // callback function
+  socket.emit("connected")
+  socket.on("showInstructions", function(msg){  // callback function; msg from manager, change state on server
     console.log(`showInstructions`)
     if(state == "startup") state = "instructions"
   })
-}) 
+  socket.on("clientUpdate", function(msg){ // callback function; msg from client, send msg to client
+//    console.log(`client updating`)
+    msg = {state}
+    socket.emit("serverUpdateClient",msg)
+  })
+  socket.on("joinGame", function(msg){
+    createSubject(msg.id)
+    socket.emit("clientJoined",{id : msg.id})     // connected happens initialy, joins happens when id is entered
+  })
+})
 
 // start the server
 http.listen(3000,function(msg){ 
   var port = http.address().port
   console.log(`listening on port ${port}`)
 })
+
+// subject append (socket-id characteristics are getting appended to list)
+createSubject = function(id){
+  numSubjects += 1            // add 1 to the number of subjects
+  subjects[id] = {            // add subject at a particular id
+    id: id,
+    investment1: 0,
+    investment2: 0,      
+  }
+  console.log(`subject ${id} connected`)
+}

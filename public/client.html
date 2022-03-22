@@ -5,10 +5,24 @@
     </head>
     <body>
         <div id="startupDiv">
-            Client
+            Enter Client ID:<br><br>
+
+            <input id="idInput" type="text" value=""><br><br>
+            <button id="idSubmit" onclick="joinGame()">Submit</button>
         </div>
         <div id="instructionsDiv">
-            Instructions
+            <div id="instructionsTitleDiv">Instructions</div><br><br>
+
+            This is an experiment about individual decision making. If you pay attention to these instructions, you can earn a significant amount of money. If you have any questions, raise your hand and we will come to assist you. Your earnings will depend on the decisions you make during the experiment.<br><br>
+
+            At the beginning of the experiment, you receive an endowment of X  dollars. At the end of the experiment, you may win a prize. This experiment will consist of two periods:<br><br>
+
+            In period 1, you choose the probability of receiving ticket 1. Your period 1 cost will depend on the probability you choose.<br>
+            In period 2, you choose the probability of receiving ticket 2. Your period 2 cost will depend on the probability you choose. <br><br>
+            
+            At the end of both periods, you will find out whether you received each ticket. If you received both tickets, you win the prize. You will also receive your endowment minus period 1 cost minus period 2 cost in cash.<br><br>
+
+            The probability of winning the prize is equal to the probability of getting ticket 1 multiplied by the probability of getting ticket 2. For example: You might choose a 50% probability in period 1 and an 80% probability in period 2. In this case, your probability of winning the prize would be 40%.
         </div>        
         <script src="https://cdn.socket.io/4.2.0/socket.io.min.js" type="text/javascript"></script>
         <script src="client.js" type="text/javascript"></script>

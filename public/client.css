@@ -1,11 +1,25 @@
-* {
-    font: 5vmin monospace;
-    text-align: center;
-}
 #startupDiv {
     display: block;
+    text-align: center;
+    font: 5vmin monospace;
     margin-top: 10vh;
 }
 #instructionsDiv {
     display: none;
+    text-align: justify;      
+    font: 2vmin monospace;    
+    margin-top: 10vh;
+    margin-right: 5vw;
+    margin-left: 5vw;
+}
+#instructionsTitleDiv{
+    text-align: center;
+}
+#idInput{
+    font: 10vmin monospace;
+    text-align: center;
+}
+#idSubmit{
+    font: 10vmin monospace;
+    text-align: center;
 }
