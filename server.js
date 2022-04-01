@@ -43,14 +43,19 @@ io.on("connection",function(socket){
     console.log(`showInstructions`)
     if(state == "startup") state = "instructions"
   })
+  socket.on("managerUpdate", function(msg){
+    var msg = {numSubjects}
+    socket.emit("serverUpdateManager",msg)
+  })
   socket.on("clientUpdate", function(msg){ // callback function; msg from client, send msg to client
 //    console.log(`client updating`)
-    msg = {state}
+    var msg = {state}
     socket.emit("serverUpdateClient",msg)
   })
   socket.on("joinGame", function(msg){
-    createSubject(msg.id)
+    createSubject(msg.id,socket)
     socket.emit("clientJoined",{id : msg.id})     // connected happens initialy, joins happens when id is entered
+    console.log(subjects)
   })
 })
 
@@ -61,10 +66,11 @@ http.listen(3000,function(msg){
 })
 
 // subject append (socket-id characteristics are getting appended to list)
-createSubject = function(id){
+createSubject = function(id, socket){
   numSubjects += 1            // add 1 to the number of subjects
   subjects[id] = {            // add subject at a particular id
     id: id,
+    socket: socket,
     investment1: 0,
     investment2: 0,      
   }

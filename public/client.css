@@ -4,6 +4,12 @@
     font: 5vmin monospace;
     margin-top: 10vh;
 }
+#pleaseWaitDiv {
+    display: none;
+    text-align: center;
+    font: 5vmin monospace;
+    margin-top: 10vh;
+}
 #instructionsDiv {
     display: none;
     text-align: justify;      

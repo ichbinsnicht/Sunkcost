@@ -1,10 +1,13 @@
 var startupDiv = document.getElementById("startupDiv")
 var instructionsDiv = document.getElementById("instructionsDiv")
 var idInput = document.getElementById("idInput")
+var pleaseWaitDiv = document.getElementById("pleaseWaitDiv")
+
 socket = io()       // browser based socket
 
 var state   = "startup"
 var id      = null
+var joined  = false
 
 document.onmousedown = function(event){
     msg = {
@@ -22,6 +25,7 @@ socket.on("connected", function(msg){
 })
 socket.on("clientJoined",function(msg){
     console.log(`client ${msg.id} joined`)
+    joined = true
     setInterval(update, 100)    
 })
 socket.on("serverUpdateClient", function(msg){
@@ -36,9 +40,17 @@ socket.on("clicked",function(msg){
 update = function(){
     msg = {}                                        // empty object {}
     socket.emit("clientUpdate",msg)
-    if(state=="instructions"){
+    startupDiv.style.display = "none"
+    instructionsDiv.style.display = "none"
+    pleaseWaitDiv.style.display = "none"
+    if(!joined){
+        startupDiv.style.display = "block"
+    }
+    if(joined&&state=="startup"){
+        pleaseWaitDiv.style.display = "block"
+    }   
+    if(joined&&state=="instructions"){
         instructionsDiv.style.display = "block"
-        startupDiv.style.display = "none"
     }
 }
 joinGame = function(){
