@@ -9,3 +9,10 @@
 button {
     margin-bottom: 5vh;
 }
+#subjectsTable {
+    display: block;
+    text-align: center;
+    font: 5vmin monospace;
+    margin-top: 10vh;
+    float: left;
+}

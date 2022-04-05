@@ -29,3 +29,30 @@
     font: 10vmin monospace;
     text-align: center;
 }
+#investment1Div {
+    display: none;
+    text-align: center;      
+    font: 4vmin monospace;    
+    margin-top: 10vh;
+    margin-right: 5vw;
+    margin-left: 5vw;
+}
+#investment2Div {
+    display: none;
+    text-align: center;      
+    font: 4vmin monospace;    
+    margin-top: 10vh;
+    margin-right: 5vw;
+    margin-left: 5vw;
+}
+#outcomeDiv {
+    display: none;
+    text-align: center;      
+    font: 4vmin monospace;    
+    margin-top: 10vh;
+    margin-right: 5vw;
+    margin-left: 5vw;
+}
+#investment1Canvas {
+    border-style: solid;
+}

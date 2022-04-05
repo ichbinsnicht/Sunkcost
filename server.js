@@ -9,6 +9,10 @@ var numSubjects = 0                             // camel caps vs init caps
 var treatment   = 1                             // object is data!! functions are called
 var state       = "startup"                     // $ in R is like . in JS
 
+// todo next: 
+// convert from mouse pos to canvas pos
+// select investments on canvas and display actions from mouse to canvas
+
 // server states vs client states, server states are global (forall clients) while client states may vary at the same time
 // here: individual decision making, simultaenous, server states only
 // state 0: startup
@@ -43,19 +47,23 @@ io.on("connection",function(socket){
     console.log(`showInstructions`)
     if(state == "startup") state = "instructions"
   })
+  socket.on("startExperiment", function(msg){
+    console.log(`startExperiment`)
+    if(state == "instructions") state = "investment1"
+  })
   socket.on("managerUpdate", function(msg){
-    var msg = {numSubjects}
+    var ids = subjects.map(subject => subject.id)
+    ids = ids.filter(id => id>0)
+    var msg = {numSubjects, ids, state}
     socket.emit("serverUpdateManager",msg)
   })
   socket.on("clientUpdate", function(msg){ // callback function; msg from client, send msg to client
-//    console.log(`client updating`)
     var msg = {state}
     socket.emit("serverUpdateClient",msg)
   })
   socket.on("joinGame", function(msg){
     createSubject(msg.id,socket)
     socket.emit("clientJoined",{id : msg.id})     // connected happens initialy, joins happens when id is entered
-    console.log(subjects)
   })
 })
 

@@ -2,6 +2,11 @@ var startupDiv = document.getElementById("startupDiv")
 var instructionsDiv = document.getElementById("instructionsDiv")
 var idInput = document.getElementById("idInput")
 var pleaseWaitDiv = document.getElementById("pleaseWaitDiv")
+var investment1Div = document.getElementById("investment1Div")
+var investment2Div = document.getElementById("investment2Div")
+var outcomeDiv = document.getElementById("outcomeDiv")
+var investment1Canvas = document.getElementById("investment1Canvas")
+var context1 = investment1Canvas.getContext("2d")
 
 socket = io()       // browser based socket
 
@@ -43,6 +48,9 @@ update = function(){
     startupDiv.style.display = "none"
     instructionsDiv.style.display = "none"
     pleaseWaitDiv.style.display = "none"
+    investment1Div.style.display = "none"
+    investment2Div.style.display = "none"
+    outcomeDiv.style.display = "none"       
     if(!joined){
         startupDiv.style.display = "block"
     }
@@ -52,11 +60,34 @@ update = function(){
     if(joined&&state=="instructions"){
         instructionsDiv.style.display = "block"
     }
+    if(joined&&state=="investment1"){
+        investment1Div.style.display = "block"
+    }
+    if(joined&&state=="investment2"){
+        investment2Div.style.display = "block"
+    }
+    if(joined&&state=="outcome"){
+        outcomeDiv.style.display = "block"
+    }
 }
 joinGame = function(){
-    console.log(`joinGame`)
     id = parseInt(idInput.value)
-    console.log(`subjectId`, id)
-    msg = {id}
-    socket.emit("joinGame",msg)
+    if (id>0) {
+        console.log(`joinGame`)
+        console.log(`subjectId`, id)
+        msg = {id}
+        socket.emit("joinGame",msg)
+    } else {
+        alert("Please enter subject id.")
+    }
 }
+draw = function(){
+    requestAnimationFrame(draw)
+    if(state=="investment1"){
+        context1.clearRect(0,0,investment1Canvas.width,investment1Canvas.height)
+        context1.fillStyle = "blue"
+        context1.rect(100,100,50,100)
+        context1.fill()
+    }
+}
+draw()
