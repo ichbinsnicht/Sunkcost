@@ -5,14 +5,23 @@ var pleaseWaitDiv = document.getElementById("pleaseWaitDiv")
 var investment1Div = document.getElementById("investment1Div")
 var investment2Div = document.getElementById("investment2Div")
 var outcomeDiv = document.getElementById("outcomeDiv")
-var investment1Canvas = document.getElementById("investment1Canvas")
-var context1 = investment1Canvas.getContext("2d")
+var canvas1 = document.getElementById("canvas1")
+var context1 = canvas1.getContext("2d")
 
 socket = io()       // browser based socket
 
 var state   = "startup"
 var id      = null
 var joined  = false
+var scale   = 1
+var scaleX  = 1
+var scaleY  = 1
+var mouseX  = 50
+var mouseY  = 50
+var cost1   = 10        // marginal cost of the probability in period 1
+var cost2   = 15        // cost2 = sunk cost in period 2
+
+range = n => [...Array(n).keys()]      // spread operator ...
 
 document.onmousedown = function(event){
     msg = {
@@ -81,13 +90,58 @@ joinGame = function(){
         alert("Please enter subject id.")
     }
 }
+canvas1.onmousemove = function(e){                                  // e - mouse-event
+    mouseX = e.offsetX*100/scale                                    // save mouse pos
+    mouseY = (scale - e.offsetY)*100/scale                                      // offsetY diff of pos of mouse and canvas in pixels
+}
+canvas1.onmousedown = function(e){                                  // debug log
+    console.log(mouseX,mouseY)
+}
+setupCanvas = function(){                                           // square canvas in %
+    scaleX = window.innerWidth
+    scaleY = window.innerHeight
+    scale = 0.95*Math.min(scaleX,scaleY)                             // Classes are capitalized. Math is a unique class.
+    canvas1.width = scale
+    canvas1.height = scale
+    var xTranslate = 0
+    var yTranslate = scale                                          // movement down
+    var xScale = scale/100
+    var yScale = scale/100                                         // number of pixels per unit (1 => 1 unit = 1 pixel)
+    context1.setTransform(xScale,0,0,yScale,xTranslate,yTranslate)
+}
 draw = function(){
+    setupCanvas()
     requestAnimationFrame(draw)
     if(state=="investment1"){
-        context1.clearRect(0,0,investment1Canvas.width,investment1Canvas.height)
+        context1.clearRect(0,0,canvas1.width,canvas1.height)
         context1.fillStyle = "blue"
-        context1.rect(100,100,50,100)
-        context1.fill()
+        context1.fillRect(mouseX,-mouseY,5,5)
+        context1.strokeStyle = "black"
+        context1.lineWidth = 0.25
+        var graphWidth = 80
+        var graphHeight = -80
+        var graphX = 10
+        var graphY = -10
+        context1.beginPath()
+        context1.moveTo(graphX,graphY+graphHeight)
+        context1.lineTo(graphX,graphY)
+        context1.lineTo(graphX+graphWidth,graphY)
+        context1.lineTo(graphX+graphWidth,graphY+graphHeight)
+        context1.stroke()
+        var numTicks = 11
+        var tickSpace = graphWidth/(numTicks-1)
+        var tickLength = 3
+        context1.font = "2pt monospace"
+        context1.textAlign = "center"
+        context1.textBaseline = "top"
+        context1.fillStyle = "black"                
+        range(numTicks).forEach(i => {
+            context1.beginPath()
+            context1.moveTo(graphX+i*tickSpace,graphY)
+            context1.lineTo(graphX+i*tickSpace,graphY+tickLength)
+            context1.stroke()
+            context1.fillText(i,graphX+i*tickSpace,graphY+tickLength+1)     
+        })
     }
 }
 draw()
