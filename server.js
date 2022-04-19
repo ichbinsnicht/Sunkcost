@@ -1,3 +1,4 @@
+const { timeStamp } = require("console")
 var express     = require("express")              // server building package
 var app         = express()
 var http        = require("http").Server(app)     // server-side socket (socket is for communication)
@@ -8,7 +9,8 @@ var subjects    = []
 var numSubjects = 0                             // camel caps vs init caps
 var treatment   = 1                             // object is data!! functions are called
 var state       = "startup"                     // $ in R is like . in JS
-
+var countdown   = 60
+var timestep    = 1
 // todo next: 
 // convert from mouse pos to canvas pos
 // select investments on canvas and display actions from mouse to canvas
@@ -49,16 +51,17 @@ io.on("connection",function(socket){
   })
   socket.on("startExperiment", function(msg){
     console.log(`startExperiment`)
+    setInterval(update, 1000*timestep)
     if(state == "instructions") state = "investment1"
   })
   socket.on("managerUpdate", function(msg){
     var ids = subjects.map(subject => subject.id)
     ids = ids.filter(id => id>0)
-    var msg = {numSubjects, ids, state}
+    var msg = {numSubjects, ids, state, countdown}
     socket.emit("serverUpdateManager",msg)
   })
   socket.on("clientUpdate", function(msg){ // callback function; msg from client, send msg to client
-    var msg = {state}
+    var msg = {state, countdown}
     socket.emit("serverUpdateClient",msg)
   })
   socket.on("joinGame", function(msg){
@@ -83,4 +86,8 @@ createSubject = function(id, socket){
     investment2: 0,      
   }
   console.log(`subject ${id} connected`)
+}
+
+update = function(){
+  countdown = countdown - 1
 }
