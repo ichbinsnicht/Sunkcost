@@ -9,7 +9,7 @@ var subjects    = []
 var numSubjects = 0                             // camel caps vs init caps
 var treatment   = 1                             // object is data!! functions are called
 var state       = "startup"                     // $ in R is like . in JS
-var countdown   = 60
+var countdown   = 10
 var timestep    = 1
 // todo next: 
 // convert from mouse pos to canvas pos
@@ -65,7 +65,7 @@ io.on("connection",function(socket){
     socket.emit("serverUpdateClient",msg)
   })
   socket.on("joinGame", function(msg){
-    createSubject(msg.id,socket)
+    if(!subjects[msg.id]) createSubject(msg.id,socket)
     socket.emit("clientJoined",{id : msg.id})     // connected happens initialy, joins happens when id is entered
   })
 })
@@ -90,4 +90,5 @@ createSubject = function(id, socket){
 
 update = function(){
   countdown = countdown - 1
+  //if(state == "investment1"&&countdown <= 0) state = "investment2"
 }
