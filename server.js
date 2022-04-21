@@ -1,4 +1,3 @@
-const { timeStamp } = require("console")
 var express     = require("express")              // server building package
 var app         = express()
 var http        = require("http").Server(app)     // server-side socket (socket is for communication)
@@ -11,9 +10,8 @@ var treatment   = 1                             // object is data!! functions ar
 var state       = "startup"                     // $ in R is like . in JS
 var countdown   = 10
 var timestep    = 1
-// todo next: 
-// convert from mouse pos to canvas pos
-// select investments on canvas and display actions from mouse to canvas
+
+var arange = x => [...Array(x).keys()]      
 
 // server states vs client states, server states are global (forall clients) while client states may vary at the same time
 // here: individual decision making, simultaenous, server states only
@@ -51,6 +49,7 @@ io.on("connection",function(socket){
   })
   socket.on("startExperiment", function(msg){
     console.log(`startExperiment`)
+    assignTreatments()
     setInterval(update, 1000*timestep)
     if(state == "instructions") state = "investment1"
   })
@@ -61,8 +60,10 @@ io.on("connection",function(socket){
     socket.emit("serverUpdateManager",msg)
   })
   socket.on("clientUpdate", function(msg){ // callback function; msg from client, send msg to client
-    var msg = {state, countdown}
-    socket.emit("serverUpdateClient",msg)
+    if(subjects[msg.id]){
+      var reply = {state, countdown, treatment: subjects[msg.id].treatment}
+      socket.emit("serverUpdateClient",reply)
+    }
   })
   socket.on("joinGame", function(msg){
     if(!subjects[msg.id]) createSubject(msg.id,socket)
@@ -83,12 +84,24 @@ createSubject = function(id, socket){
     id: id,
     socket: socket,
     investment1: 0,
-    investment2: 0,      
+    investment2: 0, 
+    treatment: 0,     
   }
   console.log(`subject ${id} connected`)
 }
-
+shuffle = function(array){
+  var shuffled = array
+    .map(x => ({value: x, priority: Math.random()}))
+    .sort((a,b) => a.priority-b.priority)
+    .map(x => x.value)
+  return shuffled
+}
+assignTreatments = function(){
+  var treatments = arange(numSubjects).map(i => i%2)
+  treatment = shuffle(treatments)
+  arange(numSubjects).forEach(i => subjects[i+1].treatment = treatment[i])
+}
 update = function(){
   countdown = countdown - 1
-  //if(state == "investment1"&&countdown <= 0) state = "investment2"
+  if(state == "investment1"&&countdown <= 0) state = "investment2"
 }

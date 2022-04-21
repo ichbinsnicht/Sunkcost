@@ -7,27 +7,37 @@ var investment2Div = document.getElementById("investment2Div")
 var outcomeDiv = document.getElementById("outcomeDiv")
 var canvas1 = document.getElementById("canvas1")
 var context1 = canvas1.getContext("2d")
+var canvas2 = document.getElementById("canvas2")
+var context2 = canvas2.getContext("2d")
 
 socket = io()       // browser based socket
 
+// parameters
+var maxCost1 = 10                           // marginal cost of the probability in period 1
+var maxCost2High = 15                       // cost2 = sunk cost in period 2 (high cost shock)
+var maxCost2Low = 10                        // calibrate the high costs!
+var maxCost2 = maxCost2Low
+var yMax = Math.max(maxCost1,maxCost2High,maxCost2Low)    // Math is a singleton class (capitalize!)
+var graphWidth = 80
+var graphHeight = 70
+var graphX = 13
+var graphY = -20    
+
+// variables
 var state   = "startup"
 var id      = null
 var joined  = false
+var cost = [0, 0]
+var prob = [0, 0]
 var xScale  = 1
 var yScale  = 1
 var mouseX  = 50
 var mouseY  = 50
 var mouseDown = false
-var cost1 = 0
-var cost2 = 0
-var prob1 = 0
-var prob2 = 0
-var maxCost1 = 10        // marginal cost of the probability in period 1
-var maxCost2High = 15    // cost2 = sunk cost in period 2 (high cost shock)
-var maxCost2Low = 10    // calibrate the high costs!
 var countdown = 60      // seconds
+var treatment = 0
 
-range = n => [...Array(n).keys()]      // spread operator ...
+var arange = n => [...Array(n).keys()]      // spread operator ...
 
 document.onmousedown = function(event){
     msg = {
@@ -51,6 +61,9 @@ socket.on("clientJoined",function(msg){
 socket.on("serverUpdateClient", function(msg){
     state   = msg.state
     countdown = msg.countdown
+    treatment = msg.treatment
+    if(treatment==0) maxCost2 = maxCost2Low
+    if(treatment==1) maxCost2 = maxCost2High    
 })
 socket.on("clicked",function(msg){
     console.log(`The server says: clicked`, msg)
@@ -59,7 +72,7 @@ socket.on("clicked",function(msg){
 
 
 update = function(){
-    msg = {}                                        // empty object {}
+    var msg = {id}                                        // empty object {}
     socket.emit("clientUpdate",msg)
     startupDiv.style.display = "none"
     instructionsDiv.style.display = "none"
@@ -97,103 +110,116 @@ joinGame = function(){
         alert("Please enter subject id.")
     }
 }
-canvas1.onmousemove = function(e){                                  // e - mouse-event
+window.onmousemove = function(e){                                  // e - mouse-event
     mouseX = (e.offsetX-yScale/2)*100/yScale                                    // save mouse pos
     mouseY = (yScale - e.offsetY)*100/yScale                         // offsetY diff of pos of mouse and canvas in pixels
 }
-canvas1.onmousedown = function(e){                                  // debug log
+window.onmousedown = function(e){                                  // debug log
     console.log(mouseX,mouseY)
     mouseDown = true
 }
 window.onmouseup = function(e){
     mouseDown = false
 }
-setupCanvas = function(){                                           // square canvas in %
+setupCanvas = function(canvas,context){                                           // square canvas in %
     xScale = 0.95*window.innerWidth
     yScale = 0.95*window.innerHeight                                        // Classes are capitalized. Math is a unique class.
-    canvas1.width = xScale
-    canvas1.height = yScale
+    canvas.width = xScale
+    canvas.height = yScale
     var xTranslate = yScale/2
     var yTranslate = yScale                                         // movement down                                        
-    context1.setTransform(yScale/100,0,0,yScale/100,xTranslate,yTranslate) // number of pixels per unit (1 => 1 unit = 1 pixel)
+    context.setTransform(yScale/100,0,0,yScale/100,xTranslate,yTranslate) // number of pixels per unit (1 => 1 unit = 1 pixel)
 }
 draw = function(){
-    setupCanvas()
     requestAnimationFrame(draw)
     if(state=="investment1") draw1()
+    if(state=="investment2") draw2()    
 }
 draw1 = function(){
+    setupCanvas(canvas1,context1)    
     context1.clearRect(0,0,canvas1.width,canvas1.height)
-    context1.strokeStyle = "black"
-    context1.lineWidth = 0.25
-    var graphWidth = 80
-    var graphHeight = 70
-    var graphX = 13
-    var graphY = -20
-    context1.beginPath()
-    context1.moveTo(graphX,graphY-graphHeight)
-    context1.lineTo(graphX,graphY)
-    context1.lineTo(graphX+graphWidth,graphY)
-    context1.lineTo(graphX+graphWidth,graphY-graphHeight)
-    context1.stroke()
+    drawGraph(context1)
+    drawLines(context1,maxCost1,1)
+    drawAxisLabels(context1,1)
+    context1.fillText(`Countdown: ${countdown}`, graphX+graphWidth/2, graphY+15)       // `` backquote
+}
+draw2 = function(){
+    setupCanvas(canvas2,context2)    
+    context2.clearRect(0,0,canvas2.width,canvas2.height)
+    drawGraph(context2)
+    drawLines(context2,maxCost2,2)
+    drawAxisLabels(context2,2)
+    context2.fillText(`Countdown: ${countdown}`, graphX+graphWidth/2, graphY+15)       // `` backquote
+}
+drawGraph = function(context){
+    context.strokeStyle = "black"
+    context.lineWidth = 0.25
+    context.beginPath()
+    context.moveTo(graphX,graphY-graphHeight)
+    context.lineTo(graphX,graphY)
+    context.lineTo(graphX+graphWidth,graphY)
+    context.lineTo(graphX+graphWidth,graphY-graphHeight)
+    context.stroke()
     var numTicks = 11
     var tickSpaceX = graphWidth/(numTicks-1)
     var tickLength = 3
-    context1.font = "2pt monospace"
-    context1.textAlign = "center"
-    context1.textBaseline = "top"
-    context1.fillStyle = "black"                
-    range(numTicks).forEach(i => {
-        context1.beginPath()
-        context1.moveTo(graphX+i*tickSpaceX,graphY)
-        context1.lineTo(graphX+i*tickSpaceX,graphY+tickLength)
-        context1.stroke()
+    context.font = "2pt monospace"
+    context.textAlign = "center"
+    context.textBaseline = "top"
+    context.fillStyle = "black"                
+    arange(numTicks).forEach(i => {
+        context.beginPath()
+        context.moveTo(graphX+i*tickSpaceX,graphY)
+        context.lineTo(graphX+i*tickSpaceX,graphY+tickLength)
+        context.stroke()
         var xlabel = (i/10).toFixed(1)
-        context1.fillText(xlabel,graphX+i*tickSpaceX,graphY+tickLength+1)     
+        context.fillText(xlabel,graphX+i*tickSpaceX,graphY+tickLength+1)     
     })
-    context1.textAlign = "right" 
-    context1.textBaseline = "middle"
-    var yMax = Math.max(maxCost1,maxCost2High,maxCost2Low)    // Math is a singleton class (capitalize!)
+    context.textAlign = "right" 
+    context.textBaseline = "middle"
     var tickSpaceY = graphHeight/(yMax)
-    range(yMax+1).forEach(i => {
-        context1.beginPath()
-        context1.moveTo(graphX,graphY-i*tickSpaceY)
-        context1.lineTo(graphX-tickLength,graphY-i*tickSpaceY)
-        context1.stroke()
-        context1.fillText(i,graphX-tickLength-1,graphY-i*tickSpaceY)     
+    arange(yMax+1).forEach(i => {
+        context.beginPath()
+        context.moveTo(graphX,graphY-i*tickSpaceY)
+        context.lineTo(graphX-tickLength,graphY-i*tickSpaceY)
+        context.stroke()
+        context.fillText(i,graphX-tickLength-1,graphY-i*tickSpaceY)     
     })
-    context1.textAlign = "left" 
-    range(yMax+1).forEach(i => {
-        context1.beginPath()
-        context1.moveTo(graphX+graphWidth,graphY-i*tickSpaceY)
-        context1.lineTo(graphX+graphWidth+tickLength,graphY-i*tickSpaceY)
-        context1.stroke()
-        context1.fillText(i,graphX+graphWidth+tickLength+1,graphY-i*tickSpaceY)     
+    context.textAlign = "left" 
+    arange(yMax+1).forEach(i => {
+        context.beginPath()
+        context.moveTo(graphX+graphWidth,graphY-i*tickSpaceY)
+        context.lineTo(graphX+graphWidth+tickLength,graphY-i*tickSpaceY)
+        context.stroke()
+        context.fillText(i,graphX+graphWidth+tickLength+1,graphY-i*tickSpaceY)     
     })
-    context1.lineWidth = 1
-    context1.lineCap = "round"
-    context1.strokeStyle = "blue"     
-    context1.beginPath()        
-    context1.moveTo(graphX,graphY)
-    context1.lineTo(graphX+graphWidth,graphY-maxCost1*graphHeight/yMax)
-    context1.stroke()
+}
+drawLines = function(context,maxCost,stage){
+    context.lineWidth = 1
+    context.lineCap = "round"
+    context.strokeStyle = "blue"     
+    context.beginPath()        
+    context.moveTo(graphX,graphY)
+    context.lineTo(graphX+graphWidth,graphY-maxCost*graphHeight/yMax)
+    context.stroke()
     if(mouseDown){
-        prob1 = Math.max(0,Math.min(1,(mouseX - graphX)/graphWidth))
-        cost1 = prob1*maxCost1
+        prob[stage-1] = Math.max(0,Math.min(1,(mouseX - graphX)/graphWidth))
+        cost[stage-1] = prob[stage-1]*maxCost
     }
-    context1.lineWidth = 2        
-    context1.strokeStyle = "red"
-    context1.beginPath()
-    context1.moveTo(graphX+prob1*graphWidth,graphY) 
-    context1.lineTo(graphX+prob1*graphWidth,graphY-cost1*graphHeight/yMax)
-    context1.stroke()
-    context1.textAlign = "center"
-    context1.save()
-    context1.translate(graphX-10,graphY-graphHeight/2)
-    context1.rotate(-Math.PI/2)
-    context1.fillText("Cost 1",0,0)
-    context1.restore()
-    context1.fillText("Probability of Receiving Ticket 1", graphX+graphWidth/2, graphY+10)
-    context1.fillText(`Countdown: ${countdown}`, graphX+graphWidth/2, graphY+15)       // `` backquote
+    context.lineWidth = 2        
+    context.strokeStyle = "red"
+    context.beginPath()
+    context.moveTo(graphX+prob[stage-1]*graphWidth,graphY) 
+    context.lineTo(graphX+prob[stage-1]*graphWidth,graphY-cost[stage-1]*graphHeight/yMax)
+    context.stroke()
+}
+drawAxisLabels = function(context,stage){
+    context.textAlign = "center"
+    context.save()
+    context.translate(graphX-10,graphY-graphHeight/2)
+    context.rotate(-Math.PI/2)
+    context.fillText(`Cost ${stage}`,0,0)
+    context.restore()
+    context.fillText(`Probability of Receiving Ticket ${stage}`, graphX+graphWidth/2, graphY+10)
 }
 draw()
