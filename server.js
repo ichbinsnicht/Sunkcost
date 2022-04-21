@@ -13,13 +13,14 @@ var timestep    = 1
 
 var arange = x => [...Array(x).keys()]      
 
-// server states vs client states, server states are global (forall clients) while client states may vary at the same time
-// here: individual decision making, simultaenous, server states only
-// state 0: startup
-// state 1: instructions, done
-// state 2: investment 1
-// state 3: investment 2
-// state 4: outcome and payment
+// TODO
+// - transition stage from investment 1 to 2
+// - record data
+// - make payment screen and file
+// - improve instructions
+// - add additional interface information for investment 1 and 2 screen 
+// --> tell subjects about possible current actions
+// --> remind subjects about past actions
 
 // variable for current dir: __dirname, server only shares stuff from public
 // express builts server based on public folder 
