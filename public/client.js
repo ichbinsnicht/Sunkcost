@@ -21,7 +21,8 @@ var yMax = Math.max(maxCost1,maxCost2High,maxCost2Low)    // Math is a singleton
 var graphWidth = 80
 var graphHeight = 70
 var graphX = 13
-var graphY = -20    
+var graphY = -20 
+var potMinProb1 = 0.5
 
 // variables
 var state   = "startup"
@@ -35,7 +36,9 @@ var mouseX  = 50
 var mouseY  = 50
 var mouseDown = false
 var countdown = 60      // seconds
-var treatment = 0
+var shock = 0
+var treatment = -1
+var minProb1 = 0                             // floor in t=1
 
 var arange = n => [...Array(n).keys()]      // spread operator ...
 
@@ -59,11 +62,19 @@ socket.on("clientJoined",function(msg){
     setInterval(update, 10)    
 })
 socket.on("serverUpdateClient", function(msg){
+    treatment = msg.treatment
     state   = msg.state
     countdown = msg.countdown
-    treatment = msg.treatment
-    if(treatment==0) maxCost2 = maxCost2Low
-    if(treatment==1) maxCost2 = maxCost2High    
+    shock = msg.shock
+    if(shock==0) maxCost2 = maxCost2Low
+    if(shock==1) maxCost2 = maxCost2High       
+    if(treatment==1) {
+        minProb1 = potMinProb1        
+        if(state=="startup"){
+            prob = [potMinProb1,0]
+            cost = [minProb1*maxCost1,0]
+        }
+    }
 })
 socket.on("clicked",function(msg){
     console.log(`The server says: clicked`, msg)
@@ -115,7 +126,6 @@ window.onmousemove = function(e){                                  // e - mouse-
     mouseY = (yScale - e.offsetY)*100/yScale                         // offsetY diff of pos of mouse and canvas in pixels
 }
 window.onmousedown = function(e){                                  // debug log
-    console.log(mouseX,mouseY)
     mouseDown = true
 }
 window.onmouseup = function(e){
@@ -138,20 +148,20 @@ draw = function(){
 draw1 = function(){
     setupCanvas(canvas1,context1)    
     context1.clearRect(0,0,canvas1.width,canvas1.height)
-    drawGraph(context1)
-    drawLines(context1,maxCost1,1)
-    drawAxisLabels(context1,1)
+    drawGraph(context1,minProb1)
+    drawLines(context1,maxCost1,1,minProb1)
+    drawAxisLabels(context1,1,minProb1)
     context1.fillText(`Countdown: ${countdown}`, graphX+graphWidth/2, graphY+15)       // `` backquote
 }
 draw2 = function(){
     setupCanvas(canvas2,context2)    
     context2.clearRect(0,0,canvas2.width,canvas2.height)
-    drawGraph(context2)
-    drawLines(context2,maxCost2,2)
-    drawAxisLabels(context2,2)
+    drawGraph(context2,0)
+    drawLines(context2,maxCost2,2,0)
+    drawAxisLabels(context2,2,0)
     context2.fillText(`Countdown: ${countdown}`, graphX+graphWidth/2, graphY+15)       // `` backquote
 }
-drawGraph = function(context){
+drawGraph = function(context,minProb){
     context.strokeStyle = "black"
     context.lineWidth = 0.25
     context.beginPath()
@@ -172,7 +182,7 @@ drawGraph = function(context){
         context.moveTo(graphX+i*tickSpaceX,graphY)
         context.lineTo(graphX+i*tickSpaceX,graphY+tickLength)
         context.stroke()
-        var xlabel = (i/10).toFixed(1)
+        var xlabel = (minProb+i/10*(1-minProb)).toFixed(2)
         context.fillText(xlabel,graphX+i*tickSpaceX,graphY+tickLength+1)     
     })
     context.textAlign = "right" 
@@ -194,26 +204,28 @@ drawGraph = function(context){
         context.fillText(i,graphX+graphWidth+tickLength+1,graphY-i*tickSpaceY)     
     })
 }
-drawLines = function(context,maxCost,stage){
+drawLines = function(context,maxCost,stage,minProb){
     context.lineWidth = 1
     context.lineCap = "round"
     context.strokeStyle = "blue"     
     context.beginPath()        
-    context.moveTo(graphX,graphY)
-    context.lineTo(graphX+graphWidth,graphY-maxCost*graphHeight/yMax)
+    context.moveTo(graphX,graphY-minProb*maxCost/yMax*graphHeight)
+    context.lineTo(graphX+graphWidth,graphY-maxCost/yMax*graphHeight)
     context.stroke()
     if(mouseDown){
-        prob[stage-1] = Math.max(0,Math.min(1,(mouseX - graphX)/graphWidth))
-        cost[stage-1] = prob[stage-1]*maxCost
+        var xRatio = Math.max(0,Math.min(1,(mouseX - graphX)/graphWidth))
+        prob[stage-1] = minProb + xRatio*(1-minProb)
+        cost[stage-1] = prob[stage-1]*maxCost  
     }
     context.lineWidth = 2        
     context.strokeStyle = "red"
     context.beginPath()
-    context.moveTo(graphX+prob[stage-1]*graphWidth,graphY) 
-    context.lineTo(graphX+prob[stage-1]*graphWidth,graphY-cost[stage-1]*graphHeight/yMax)
+    var xRatio = (prob[stage-1]-minProb)/(1-minProb)
+    context.moveTo(graphX+xRatio*graphWidth,graphY) 
+    context.lineTo(graphX+xRatio*graphWidth,graphY-cost[stage-1]*graphHeight/yMax)
     context.stroke()
 }
-drawAxisLabels = function(context,stage){
+drawAxisLabels = function(context,stage,minProb){
     context.textAlign = "center"
     context.save()
     context.translate(graphX-10,graphY-graphHeight/2)

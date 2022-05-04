@@ -6,14 +6,17 @@ var fs          = require("fs")                   // filesystem (to save stuff)
 
 var subjects    = []
 var numSubjects = 0                             // camel caps vs init caps
-var treatment   = 1                             // object is data!! functions are called
+var shock       = 1                             // object is data!! functions are called
 var state       = "startup"                     // $ in R is like . in JS
-var countdown   = 10
+var periodLength = 10000
+var countdown = periodLength
 var timestep    = 1
+var treatment   = -1                           // on session level
 
 var arange = x => [...Array(x).keys()]      
 
 // TODO
+// - setup treatment variable, constrained space vs unconstrained space (link: manager-server-client)
 // - transition stage from investment 1 to 2
 // - record data
 // - make payment screen and file
@@ -50,19 +53,20 @@ io.on("connection",function(socket){
   })
   socket.on("startExperiment", function(msg){
     console.log(`startExperiment`)
-    assignTreatments()
+    assignShocks()
     setInterval(update, 1000*timestep)
     if(state == "instructions") state = "investment1"
   })
   socket.on("managerUpdate", function(msg){
+    treatment = msg.treatment
     var ids = subjects.map(subject => subject.id)
     ids = ids.filter(id => id>0)
-    var msg = {numSubjects, ids, state, countdown}
-    socket.emit("serverUpdateManager",msg)
+    var reply = {numSubjects, ids, state, countdown}
+    socket.emit("serverUpdateManager",reply)
   })
   socket.on("clientUpdate", function(msg){ // callback function; msg from client, send msg to client
     if(subjects[msg.id]){
-      var reply = {state, countdown, treatment: subjects[msg.id].treatment}
+      var reply = {state, countdown, shock: subjects[msg.id].shock, treatment}
       socket.emit("serverUpdateClient",reply)
     }
   })
@@ -86,7 +90,7 @@ createSubject = function(id, socket){
     socket: socket,
     investment1: 0,
     investment2: 0, 
-    treatment: 0,     
+    shock: 0,     
   }
   console.log(`subject ${id} connected`)
 }
@@ -97,12 +101,15 @@ shuffle = function(array){
     .map(x => x.value)
   return shuffled
 }
-assignTreatments = function(){
-  var treatments = arange(numSubjects).map(i => i%2)
-  treatment = shuffle(treatments)
-  arange(numSubjects).forEach(i => subjects[i+1].treatment = treatment[i])
+assignShocks = function(){
+  var shocks = arange(numSubjects).map(i => i%2)
+  shocks = shuffle(shocks)
+  arange(numSubjects).forEach(i => subjects[i+1].shock = shocks[i])
 }
 update = function(){
   countdown = countdown - 1
-  if(state == "investment1"&&countdown <= 0) state = "investment2"
+  if(state == "investment1"&&countdown <= 0) {
+    state = "investment2"
+    countdown = periodLength
+  }
 }

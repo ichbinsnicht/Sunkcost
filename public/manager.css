@@ -2,17 +2,42 @@
     font: 5vmin monospace;
     text-align: center;
 }
-#interfaceDiv {
-    display: block;
-    margin-top: 10vh;
-}
 button {
     margin-bottom: 5vh;
 }
+#interfaceDiv {
+    display: table;
+    margin-top: 0vh;
+}
+#rowDiv {
+    display: table-row;
+    margin-top: 0vh;
+}
+#infoDiv {
+    display: table-cell;
+    width: fit-content;
+    border-collapse: 0;
+}
+#subjectsDiv {
+    display: table-cell;
+    margin-top: 0vh;
+    width: fit-content;
+}
 #subjectsTable {
-    display: block;
-    text-align: center;
     font: 5vmin monospace;
-    margin-top: 10vh;
+    margin-top: 0vh;
+    width: 10vw;
     float: left;
+}
+#parametersDiv {
+    display: table-cell;
+    margin-top: 0vh;
+    width: 50vw;
+}
+#treatmentDiv {
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 0;
+    text-align: left;
+    width: fit-content;
 }
