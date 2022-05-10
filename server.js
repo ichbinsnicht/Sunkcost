@@ -8,15 +8,17 @@ var subjects    = []
 var numSubjects = 0                             // camel caps vs init caps
 var shock       = 1                             // object is data!! functions are called
 var state       = "startup"                     // $ in R is like . in JS
-var periodLength = 10000
-var countdown = periodLength
+var stageLength = 100050
+var feedbackLength = 1030
+var countdown = stageLength
 var timestep    = 1
 var treatment   = -1                           // on session level
 
 var arange = x => [...Array(x).keys()]      
 
 // TODO
-// - setup treatment variable, constrained space vs unconstrained space (link: manager-server-client)
+// fix mouse position on client to correct red bar position!
+//
 // - transition stage from investment 1 to 2
 // - record data
 // - make payment screen and file
@@ -109,7 +111,11 @@ assignShocks = function(){
 update = function(){
   countdown = countdown - 1
   if(state == "investment1"&&countdown <= 0) {
+    state = "feedback1"
+    countdown = feedbackLength
+  }
+  if(state == "feedback1"&&countdown <= 0) {
     state = "investment2"
-    countdown = periodLength
+    countdown = stageLength
   }
 }

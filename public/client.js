@@ -3,6 +3,7 @@ var instructionsDiv = document.getElementById("instructionsDiv")
 var idInput = document.getElementById("idInput")
 var pleaseWaitDiv = document.getElementById("pleaseWaitDiv")
 var investment1Div = document.getElementById("investment1Div")
+var feedback1Div = document.getElementById("feedback1Div")
 var investment2Div = document.getElementById("investment2Div")
 var outcomeDiv = document.getElementById("outcomeDiv")
 var canvas1 = document.getElementById("canvas1")
@@ -20,7 +21,7 @@ var maxCost2 = maxCost2Low
 var yMax = Math.max(maxCost1,maxCost2High,maxCost2Low)    // Math is a singleton class (capitalize!)
 var graphWidth = 80
 var graphHeight = 70
-var graphX = 13
+var graphX = 0.5*(100-graphWidth)
 var graphY = -20 
 var potMinProb1 = 0.5
 
@@ -89,6 +90,7 @@ update = function(){
     instructionsDiv.style.display = "none"
     pleaseWaitDiv.style.display = "none"
     investment1Div.style.display = "none"
+    feedback1Div.style.display = "none"
     investment2Div.style.display = "none"
     outcomeDiv.style.display = "none"       
     if(!joined){
@@ -103,6 +105,9 @@ update = function(){
     if(joined&&state=="investment1"){
         investment1Div.style.display = "block"
     }
+    if(joined&&state=="feedback1"){
+        feedback1Div.style.display = "block"
+    }    
     if(joined&&state=="investment2"){
         investment2Div.style.display = "block"
     }
@@ -121,23 +126,24 @@ joinGame = function(){
         alert("Please enter subject id.")
     }
 }
-window.onmousemove = function(e){                                  // e - mouse-event
-    mouseX = (e.offsetX-yScale/2)*100/yScale                                    // save mouse pos
-    mouseY = (yScale - e.offsetY)*100/yScale                         // offsetY diff of pos of mouse and canvas in pixels
+window.onmousemove = function(e){                                  
+    mouseX = (e.X-xScale/2)*100/yScale                       // save mouse pos
+    mouseY = (yScale - e.offsetY)*100/yScale                       // offsetY diff of pos of mouse and canvas in pixels
 }
 window.onmousedown = function(e){                                  // debug log
     mouseDown = true
+    console.log(e.offsetX,mouseX)
 }
 window.onmouseup = function(e){
     mouseDown = false
 }
-setupCanvas = function(canvas,context){                                           // square canvas in %
-    xScale = 0.95*window.innerWidth
-    yScale = 0.95*window.innerHeight                                        // Classes are capitalized. Math is a unique class.
+setupCanvas = function(canvas,context){
+    xScale = 1*window.innerWidth
+    yScale = 1*window.innerHeight                                  // Classes are capitalized. Math is a unique class.
     canvas.width = xScale
     canvas.height = yScale
-    var xTranslate = yScale/2
-    var yTranslate = yScale                                         // movement down                                        
+    var xTranslate = xScale/2 - yScale/2
+    var yTranslate = yScale                                                                          
     context.setTransform(yScale/100,0,0,yScale/100,xTranslate,yTranslate) // number of pixels per unit (1 => 1 unit = 1 pixel)
 }
 draw = function(){
@@ -148,6 +154,10 @@ draw = function(){
 draw1 = function(){
     setupCanvas(canvas1,context1)    
     context1.clearRect(0,0,canvas1.width,canvas1.height)
+    context1.strokeStyle = "green"
+    context1.lineWidth = 0.25    
+    context1.rect(mouseX,50,100,-100)    
+    context1.stroke()
     drawGraph(context1,minProb1)
     drawLines(context1,maxCost1,1,minProb1)
     drawAxisLabels(context1,1,minProb1)
