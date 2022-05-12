@@ -19,11 +19,13 @@ var maxCost2High = 15                       // cost2 = sunk cost in period 2 (hi
 var maxCost2Low = 10                        // calibrate the high costs!
 var maxCost2 = maxCost2Low
 var yMax = Math.max(maxCost1,maxCost2High,maxCost2Low)    // Math is a singleton class (capitalize!)
-var graphWidth = 80
-var graphHeight = 70
+var graphWidth = 70
+var graphHeight = 60
 var graphX = 0.5*(100-graphWidth)
-var graphY = -20 
+var graphY = -35 
 var potMinProb1 = 0.5
+var tickFont = "1.5pt monospace"
+var feedbackFont = "1.5pt monospace"
 
 // variables
 var state   = "startup"
@@ -69,13 +71,9 @@ socket.on("serverUpdateClient", function(msg){
     shock = msg.shock
     if(shock==0) maxCost2 = maxCost2Low
     if(shock==1) maxCost2 = maxCost2High       
-    if(treatment==1) {
-        minProb1 = potMinProb1        
-        if(state=="startup"){
-            prob = [potMinProb1,0]
-            cost = [minProb1*maxCost1,0]
-        }
-    }
+    if(treatment==1) minProb1 = potMinProb1
+    prob[0] = Math.max(prob[0],minProb1)
+    cost[0] = prob[0]*maxCost1    
 })
 socket.on("clicked",function(msg){
     console.log(`The server says: clicked`, msg)
@@ -106,6 +104,12 @@ update = function(){
         investment1Div.style.display = "block"
     }
     if(joined&&state=="feedback1"){
+        var text = ""
+        text += `In the previous stage, you chose: <br><br>`
+        text += `&nbsp; Your probability of receiving ticket 1: <font color="green">${prob[0].toFixed(2)}</font> <br><br>`
+        text += `&nbsp; Your cost in stage 1: <font color="red">${cost[0].toFixed(2)}</font><br><br><br><br>`
+        text += `Stage 2 will begin in ${countdown} seconds.`
+        feedback1Div.innerHTML = text
         feedback1Div.style.display = "block"
     }    
     if(joined&&state=="investment2"){
@@ -126,13 +130,16 @@ joinGame = function(){
         alert("Please enter subject id.")
     }
 }
-window.onmousemove = function(e){                                  
-    mouseX = (e.X-xScale/2)*100/yScale                       // save mouse pos
-    mouseY = (yScale - e.offsetY)*100/yScale                       // offsetY diff of pos of mouse and canvas in pixels
+window.onmousemove = function(e){
+    const canvas = state == "investment1" ? canvas1 : canvas2
+    const x0 = canvas.width/2-canvas.height/2
+    const y0 = canvas.height
+    mouseX = (e.offsetX-x0)*100/canvas.height
+    mouseY = (y0 - e.offsetY)*100/canvas.height
 }
 window.onmousedown = function(e){                                  // debug log
     mouseDown = true
-    console.log(e.offsetX,mouseX)
+    console.log(e.offsetX,e.offsetY,mouseX,mouseY)
 }
 window.onmouseup = function(e){
     mouseDown = false
@@ -153,11 +160,14 @@ draw = function(){
 }
 draw1 = function(){
     setupCanvas(canvas1,context1)    
-    context1.clearRect(0,0,canvas1.width,canvas1.height)
+    context1.clearRect(0,0,canvas1.width,canvas1.height)    
+    /*
     context1.strokeStyle = "green"
     context1.lineWidth = 0.25    
-    context1.rect(mouseX,50,100,-100)    
-    context1.stroke()
+    context1.rect(mouseX,-mouseY,1,1) 
+    context1.rect(0,-0,100,-100)        
+    context1.stroke() 
+    */
     drawGraph(context1,minProb1)
     drawLines(context1,maxCost1,1,minProb1)
     drawAxisLabels(context1,1,minProb1)
@@ -165,11 +175,47 @@ draw1 = function(){
 }
 draw2 = function(){
     setupCanvas(canvas2,context2)    
+    context2.clearRect(0,0,canvas1.width,canvas1.height)
+    /*
+    context2.strokeStyle = "green"
+    context2.lineWidth = 0.25    
+    context2.rect(mouseX,-mouseY,1,1) 
+    context2.rect(0,-0,100,-100)        
+    context2.stroke()
+    */
     context2.clearRect(0,0,canvas2.width,canvas2.height)
     drawGraph(context2,0)
     drawLines(context2,maxCost2,2,0)
     drawAxisLabels(context2,2,0)
-    context2.fillText(`Countdown: ${countdown}`, graphX+graphWidth/2, graphY+15)       // `` backquote
+    context2.textAlign = "left"
+    context2.font = feedbackFont
+    //context2.fillText(`In the previous stage, you chose:`, 5, graphY+17)
+    context2.fillText(`Your probability of receiving ticket 1: `, graphX, graphY+15)   
+    context2.fillStyle = "green" 
+    context2.fillText(`${prob[0].toFixed(2)}`, graphX+graphWidth*0.65, graphY+15) 
+    context2.fillStyle = "black"    
+    context2.fillText(`Your probability of receiving ticket 2: `, graphX, graphY+17.5)
+    context2.fillStyle = "green" 
+    context2.fillText(`${prob[1].toFixed(2)}`,  graphX+graphWidth*0.65, graphY+17.5) 
+    context2.fillStyle = "black"        
+    context2.fillText(`Your probability of receiving the prize: `, graphX, graphY+20)
+    context2.fillStyle = "green" 
+    context2.fillText(`${(prob[0]*prob[1]).toFixed(2)}`,  graphX+graphWidth*0.65, graphY+20)     
+    context2.fillStyle = "black"    
+    context2.fillText(`Your cost in stage 1: `, graphX, graphY+22.5)
+    context2.fillStyle = "red"      
+    context2.fillText(`${cost[0].toFixed(2)}`,  graphX+graphWidth*0.35, graphY+22.5)
+    context2.fillStyle = "black"    
+    context2.fillText(`Your cost in stage 2: `, graphX, graphY+25)
+    context2.fillStyle = "red"
+    context2.fillText(`${cost[1].toFixed(2)}`,  graphX+graphWidth*0.35, graphY+25)
+    context2.fillStyle = "black"    
+    context2.fillText(`Your total cost is: `, graphX, graphY+27.5)
+    context2.fillStyle = "red"      
+    context2.fillText(`${(cost[0]+cost[1]).toFixed(2)}`,  graphX+graphWidth*0.35, graphY+27.5)             
+    context2.textAlign = "center"
+    context2.fillStyle = "black"        
+    context2.fillText(`Countdown: ${countdown}`, graphX+graphWidth/2, graphY+32)       // `` backquote
 }
 drawGraph = function(context,minProb){
     context.strokeStyle = "black"
@@ -183,7 +229,7 @@ drawGraph = function(context,minProb){
     var numTicks = 11
     var tickSpaceX = graphWidth/(numTicks-1)
     var tickLength = 3
-    context.font = "2pt monospace"
+    context.font = tickFont
     context.textAlign = "center"
     context.textBaseline = "top"
     context.fillStyle = "black"                

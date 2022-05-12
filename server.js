@@ -8,24 +8,21 @@ var subjects    = []
 var numSubjects = 0                             // camel caps vs init caps
 var shock       = 1                             // object is data!! functions are called
 var state       = "startup"                     // $ in R is like . in JS
-var stageLength = 100050
-var feedbackLength = 1030
-var countdown = stageLength
+var stage1Length = 30
+var stage2Length = 1000
+var feedbackLength = 5
+var countdown = stage1Length
 var timestep    = 1
 var treatment   = -1                           // on session level
 
 var arange = x => [...Array(x).keys()]      
 
 // TODO
-// fix mouse position on client to correct red bar position!
-//
-// - transition stage from investment 1 to 2
-// - record data
-// - make payment screen and file
+// - feedback in stage 1
+// - make payment screen
+// - add multiple periods
+// - record data and file
 // - improve instructions
-// - add additional interface information for investment 1 and 2 screen 
-// --> tell subjects about possible current actions
-// --> remind subjects about past actions
 
 // variable for current dir: __dirname, server only shares stuff from public
 // express builts server based on public folder 
@@ -116,6 +113,6 @@ update = function(){
   }
   if(state == "feedback1"&&countdown <= 0) {
     state = "investment2"
-    countdown = stageLength
+    countdown = stage2Length
   }
 }
