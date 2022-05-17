@@ -51,9 +51,9 @@ body {
 #feedback1Div {
     display: none;
     text-align: left;      
-    font: 4vmin monospace; 
+    font: 3.5vmin monospace; 
     border: 0;
-    padding-top: 20vh;
+    padding-top: 10vh;
     width: 100vh;
     margin-left: auto;
     margin-right: auto;
@@ -67,14 +67,25 @@ body {
     margin: 0;
     float: right;  
 }
+#feedback2Div {
+    display: none;
+    text-align: left;      
+    font: 3.5vmin monospace; 
+    border: 0;
+    padding-top: 10vh;
+    width: 100vh;
+    margin-left: auto;
+    margin-right: auto;
+}
 #outcomeDiv {
     display: none;
-    text-align: center;      
-    font: 4vmin monospace;    
+    text-align: left;      
+    font: 3.5vmin monospace; 
     border: 0;
-    padding: 0;
-    margin: 0;
-    float: right;  
+    padding-top: 10vh;
+    width: 100vh;
+    margin-left: auto;
+    margin-right: auto; 
 }
 #canvas1 {
     border-style: none;

@@ -4,23 +4,31 @@ var http        = require("http").Server(app)     // server-side socket (socket 
 var io          = require("socket.io")(http)      // io - input output
 var fs          = require("fs")                   // filesystem (to save stuff)
 
-var subjects    = []
-var numSubjects = 0                             // camel caps vs init caps
-var shock       = 1                             // object is data!! functions are called
-var state       = "startup"                     // $ in R is like . in JS
-var stage1Length = 30
-var stage2Length = 1000
-var feedbackLength = 5
-var countdown = stage1Length
-var timestep    = 1
-var treatment   = -1                           // on session level
+var arange = x => [...Array(x).keys()] 
+var choose = x => x[Math.floor(Math.random()*x.length)]
 
-var arange = x => [...Array(x).keys()]      
+// parameters
+var numPeriods  = 2
+var stage1Length = 5
+var stage2Length = 5
+var feedback1Length = 1
+var feedback2Length = 1
+var timestep    = 1
+
+// variables
+var treatment   = -1
+var subjects    = []
+var numSubjects = 0
+var state       = "startup"
+var period      = 1
+var countdown = stage1Length
+var history = {}
+
 
 // TODO
-// - feedback in stage 1
-// - make payment screen
-// - add multiple periods
+// - debug period 2 stage 1 counter duration
+// - pass only current history from client to server
+// - calculate outcome on server and pass to client
 // - record data and file
 // - improve instructions
 
@@ -64,8 +72,17 @@ io.on("connection",function(socket){
     socket.emit("serverUpdateManager",reply)
   })
   socket.on("clientUpdate", function(msg){ // callback function; msg from client, send msg to client
+    history[msg.id] = msg.history
     if(subjects[msg.id]){
-      var reply = {state, countdown, shock: subjects[msg.id].shock, treatment}
+      var reply = {
+        treatment, 
+        period,
+        state, 
+        countdown, 
+        shock: subjects[msg.id].shock, 
+        outcomePeriod: subjects[msg.id].outcomePeriod,
+        outcomeRandom: subjects[msg.id].outcomeRandom,        
+      }
       socket.emit("serverUpdateClient",reply)
     }
   })
@@ -89,7 +106,9 @@ createSubject = function(id, socket){
     socket: socket,
     investment1: 0,
     investment2: 0, 
-    shock: 0,     
+    shock: 0, 
+    outcomePeriod: 1,
+    outcomeRandom: [0,0],      
   }
   console.log(`subject ${id} connected`)
 }
@@ -109,10 +128,26 @@ update = function(){
   countdown = countdown - 1
   if(state == "investment1"&&countdown <= 0) {
     state = "feedback1"
-    countdown = feedbackLength
+    countdown = feedback1Length
   }
   if(state == "feedback1"&&countdown <= 0) {
     state = "investment2"
     countdown = stage2Length
   }
+  if(state == "investment2"&&countdown <= 0) {
+    state = "feedback2"
+    countdown = feedback2Length
+  }  
+  if(state == "feedback2"&&countdown <= 0) {
+    if(period>=numPeriods){
+      state = "outcome" 
+      arange(numSubjects).forEach(i => {
+        subjects[i+1].outcomePeriod = choose(arange(numPeriods))+1 
+        subjects[i+1].outcomeRandom = [Math.random(),Math.random()]
+      })
+    } else{
+      period += 1
+      state = "investment1"
+    } 
+  }  
 }

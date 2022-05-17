@@ -5,6 +5,7 @@ var pleaseWaitDiv = document.getElementById("pleaseWaitDiv")
 var investment1Div = document.getElementById("investment1Div")
 var feedback1Div = document.getElementById("feedback1Div")
 var investment2Div = document.getElementById("investment2Div")
+var feedback2Div = document.getElementById("feedback2Div")
 var outcomeDiv = document.getElementById("outcomeDiv")
 var canvas1 = document.getElementById("canvas1")
 var context1 = canvas1.getContext("2d")
@@ -12,12 +13,13 @@ var canvas2 = document.getElementById("canvas2")
 var context2 = canvas2.getContext("2d")
 
 socket = io()       // browser based socket
+var arange = n => [...Array(n).keys()]
 
 // parameters
+var numPeriods = 2
 var maxCost1 = 10                           // marginal cost of the probability in period 1
 var maxCost2High = 15                       // cost2 = sunk cost in period 2 (high cost shock)
 var maxCost2Low = 10                        // calibrate the high costs!
-var maxCost2 = maxCost2Low
 var yMax = Math.max(maxCost1,maxCost2High,maxCost2Low)    // Math is a singleton class (capitalize!)
 var graphWidth = 70
 var graphHeight = 60
@@ -26,13 +28,12 @@ var graphY = -35
 var potMinProb1 = 0.5
 var tickFont = "1.5pt monospace"
 var feedbackFont = "1.5pt monospace"
+var titleFont = "3pt monospace"
 
 // variables
 var state   = "startup"
 var id      = null
 var joined  = false
-var cost = [0, 0]
-var prob = [0, 0]
 var xScale  = 1
 var yScale  = 1
 var mouseX  = 50
@@ -41,9 +42,16 @@ var mouseDown = false
 var countdown = 60      // seconds
 var shock = 0
 var treatment = -1
-var minProb1 = 0                             // floor in t=1
-
-var arange = n => [...Array(n).keys()]      // spread operator ...
+var outcomePeriod = 1
+var outcomeRandom = [0,0]
+var period = 1
+var history = {}
+arange(numPeriods).forEach(i => history[i+1] = {
+    cost: [0,0],
+    prob: [0,0],
+    maxCost2: maxCost2Low,
+    minProb1: 0,
+})
 
 document.onmousedown = function(event){
     msg = {
@@ -69,11 +77,14 @@ socket.on("serverUpdateClient", function(msg){
     state   = msg.state
     countdown = msg.countdown
     shock = msg.shock
-    if(shock==0) maxCost2 = maxCost2Low
-    if(shock==1) maxCost2 = maxCost2High       
-    if(treatment==1) minProb1 = potMinProb1
-    prob[0] = Math.max(prob[0],minProb1)
-    cost[0] = prob[0]*maxCost1    
+    period = msg.period
+    outcomePeriod = msg.outcomePeriod
+    outcomeRandom = msg.outcomeRandom
+    if(shock==0) history[period].maxCost2 = maxCost2Low
+    if(shock==1) history[period].maxCost2 = maxCost2High       
+    if(treatment==1) history[period].minProb1 = potMinProb1
+    history[period].prob[0] = Math.max(history[period].prob[0],history[period].minProb1)
+    history[period].cost[0] = history[period].prob[0]*maxCost1    
 })
 socket.on("clicked",function(msg){
     console.log(`The server says: clicked`, msg)
@@ -82,7 +93,7 @@ socket.on("clicked",function(msg){
 
 
 update = function(){
-    var msg = {id}                                        // empty object {}
+    var msg = {id,history}
     socket.emit("clientUpdate",msg)
     startupDiv.style.display = "none"
     instructionsDiv.style.display = "none"
@@ -90,6 +101,7 @@ update = function(){
     investment1Div.style.display = "none"
     feedback1Div.style.display = "none"
     investment2Div.style.display = "none"
+    feedback2Div.style.display = "none"    
     outcomeDiv.style.display = "none"       
     if(!joined){
         startupDiv.style.display = "block"
@@ -105,17 +117,47 @@ update = function(){
     }
     if(joined&&state=="feedback1"){
         var text = ""
-        text += `In the previous stage, you chose: <br><br>`
-        text += `&nbsp; Your probability of receiving ticket 1: <font color="green">${prob[0].toFixed(2)}</font> <br><br>`
-        text += `&nbsp; Your cost in stage 1: <font color="red">${cost[0].toFixed(2)}</font><br><br><br><br>`
+        text += `<b>Period ${period} - Stage 1 Feedback</b><br><br><br><br>`
+        text += `&nbsp; Your probability of receiving ticket 1: <font color="green">${history[period].prob[0].toFixed(2)}</font> <br><br>`
+        text += `&nbsp; Your cost in stage 1: <font color="red">${history[period].cost[0].toFixed(2)}</font><br><br>`
+        text += `&nbsp; Your probability of winning the prize:<br><br>`
+        text += `&nbsp; &nbsp; <font color="green">${history[period].prob[0].toFixed(2)} × Your probability of receiving ticket 2</font><br><br>`
+        text += `&nbsp; Your total cost:<br><br>`
+        text += `&nbsp; &nbsp; <font color="red">${history[period].cost[0].toFixed(2)} + Your cost in stage 2</font><br><br><br><br>`
         text += `Stage 2 will begin in ${countdown} seconds.`
         feedback1Div.innerHTML = text
-        feedback1Div.style.display = "block"
+        feedback1Div.style.display = "block"        
     }    
     if(joined&&state=="investment2"){
         investment2Div.style.display = "block"
     }
+    if(joined&&state=="feedback2"){
+        var text = ""
+        text += `<b>Period ${period} - Stage 2 Feedback</b><br><br><br><br>`
+        text += `&nbsp; Your probability of receiving ticket 1: <font color="green">${history[period].prob[0].toFixed(2)}</font> <br><br>`
+        text += `&nbsp; Your cost in stage 1: <font color="red">${history[period].cost[0].toFixed(2)}</font><br><br>`
+        text += `&nbsp; Your probability of winning the prize: <font color="green">${(history[period].prob[0]*history[period].prob[1]).toFixed(2)}</font><br><br>`
+        text += `&nbsp; Your total cost: <font color="red">${(history[period].cost[0]+history[period].cost[1]).toFixed(2)}</font><br><br><br><br>`
+        text += `The next round will begin in ${countdown} seconds.`
+        feedback2Div.innerHTML = text
+        feedback2Div.style.display = "block"
+    }        
     if(joined&&state=="outcome"){
+        var selectedHist = history[outcomePeriod]
+        var ticket1Message = outcomeRandom[0] <= selectedHist.prob[0] ? "received" : "did not receive" 
+        var ticket2Message = outcomeRandom[1] <= selectedHist.prob[1] ? "received" : "did not receive"
+        var winPrize = outcomeRandom[0] <= selectedHist.prob[0] && outcomeRandom[1] <= selectedHist.prob[1]
+        var prizeMessage = winPrize ? "will" : "will not"  
+        var totalCost = selectedHist.cost[0]+selectedHist.cost[1]
+        var text = ""
+        text += `Period ${outcomePeriod} was randomly selected. <br><br><br><br>`
+        text += `&nbsp; You ${ticket1Message} ticket 1.<br><br>`
+        text += `&nbsp; You ${ticket2Message} ticket 2.<br><br>`
+        text += `&nbsp; You <b>${prizeMessage}</b> receive the prize.<br><br>`
+        text += `&nbsp; Your total cost was <font color="red">${totalCost.toFixed(2)}</font><br><br>`
+        text += `&nbsp; Your final payment will be <b>${(20-totalCost).toFixed(2)}</b>.<br><br><br><br>`
+        text += `Please wait while we prepare your payment.` 
+        outcomeDiv.innerHTML = text
         outcomeDiv.style.display = "block"
     }
 }
@@ -137,9 +179,10 @@ window.onmousemove = function(e){
     mouseX = (e.offsetX-x0)*100/canvas.height
     mouseY = (y0 - e.offsetY)*100/canvas.height
 }
-window.onmousedown = function(e){                                  // debug log
+window.onmousedown = function(e){
+    console.log(history)
+    console.log(outcomeRandom, outcomePeriod)
     mouseDown = true
-    console.log(e.offsetX,e.offsetY,mouseX,mouseY)
 }
 window.onmouseup = function(e){
     mouseDown = false
@@ -159,6 +202,9 @@ draw = function(){
     if(state=="investment2") draw2()    
 }
 draw1 = function(){
+    var cost = history[period].cost
+    var prob = history[period].prob
+    var minProb1 = history[period].minProb1
     setupCanvas(canvas1,context1)    
     context1.clearRect(0,0,canvas1.width,canvas1.height)    
     /*
@@ -168,14 +214,49 @@ draw1 = function(){
     context1.rect(0,-0,100,-100)        
     context1.stroke() 
     */
+    context1.textAlign = "center"
+    context1.textBaseline = "bottom"
+    context1.font = titleFont   
+    context1.fillText(`Period ${period} - Stage 1`, graphX+0.5*graphWidth, graphY-graphHeight)      
     drawGraph(context1,minProb1)
     drawLines(context1,maxCost1,1,minProb1)
-    drawAxisLabels(context1,1,minProb1)
-    context1.fillText(`Countdown: ${countdown}`, graphX+graphWidth/2, graphY+15)       // `` backquote
+    drawAxisLabels(context1,1) 
+    context1.textAlign = "left"
+    context1.textBaseline = "middle"
+    context1.font = feedbackFont
+    context1.fillText(`Your probability of receiving ticket 1: `, graphX, graphY+15)   
+    context1.fillStyle = "green" 
+    context1.fillText(`${prob[0].toFixed(2)}`, graphX+graphWidth*0.65, graphY+15) 
+    context1.fillStyle = "black"    
+    context1.fillText(`Your probability of receiving ticket 2: `, graphX, graphY+17.5)
+    context1.fillStyle = "green" 
+    context1.fillText(`P2`,  graphX+graphWidth*0.65, graphY+17.5) 
+    context1.fillStyle = "black"        
+    context1.fillText(`Your probability of receiving the prize: `, graphX, graphY+20)
+    context1.fillStyle = "green" 
+    context1.fillText(`${(prob[0]).toFixed(2)} × P2`,  graphX+graphWidth*0.65, graphY+20)     
+    context1.fillStyle = "black"    
+    context1.fillText(`Your cost in stage 1: `, graphX, graphY+22.5)
+    context1.fillStyle = "red"      
+    context1.fillText(`${cost[0].toFixed(2)}`,  graphX+graphWidth*0.35, graphY+22.5)
+    context1.fillStyle = "black"    
+    context1.fillText(`Your cost in stage 2: `, graphX, graphY+25)
+    context1.fillStyle = "red"
+    context1.fillText(`C2`,  graphX+graphWidth*0.35, graphY+25)
+    context1.fillStyle = "black"    
+    context1.fillText(`Your total cost: `, graphX, graphY+27.5)
+    context1.fillStyle = "red"      
+    context1.fillText(`${(cost[0]).toFixed(2)} + C2`,  graphX+graphWidth*0.35, graphY+27.5)             
+    context1.textAlign = "center"
+    context1.fillStyle = "black"
+    context1.fillText(`Countdown: ${countdown}`, graphX+graphWidth/2, graphY+32)
 }
 draw2 = function(){
+    var cost = history[period].cost
+    var prob = history[period].prob
+    var maxCost2 = history[period].maxCost2
     setupCanvas(canvas2,context2)    
-    context2.clearRect(0,0,canvas1.width,canvas1.height)
+    context2.clearRect(0,0,canvas2.width,canvas2.height)
     /*
     context2.strokeStyle = "green"
     context2.lineWidth = 0.25    
@@ -183,13 +264,16 @@ draw2 = function(){
     context2.rect(0,-0,100,-100)        
     context2.stroke()
     */
-    context2.clearRect(0,0,canvas2.width,canvas2.height)
+    context2.textAlign = "center"
+    context2.textBaseline = "bottom"
+    context2.font = titleFont   
+    context2.fillText(`Period ${period} - Stage 2`, graphX+0.5*graphWidth, graphY-graphHeight)      
     drawGraph(context2,0)
     drawLines(context2,maxCost2,2,0)
-    drawAxisLabels(context2,2,0)
+    drawAxisLabels(context2,2)
     context2.textAlign = "left"
+    context2.textBaseline = "middle"
     context2.font = feedbackFont
-    //context2.fillText(`In the previous stage, you chose:`, 5, graphY+17)
     context2.fillText(`Your probability of receiving ticket 1: `, graphX, graphY+15)   
     context2.fillStyle = "green" 
     context2.fillText(`${prob[0].toFixed(2)}`, graphX+graphWidth*0.65, graphY+15) 
@@ -210,12 +294,12 @@ draw2 = function(){
     context2.fillStyle = "red"
     context2.fillText(`${cost[1].toFixed(2)}`,  graphX+graphWidth*0.35, graphY+25)
     context2.fillStyle = "black"    
-    context2.fillText(`Your total cost is: `, graphX, graphY+27.5)
+    context2.fillText(`Your total cost: `, graphX, graphY+27.5)
     context2.fillStyle = "red"      
     context2.fillText(`${(cost[0]+cost[1]).toFixed(2)}`,  graphX+graphWidth*0.35, graphY+27.5)             
     context2.textAlign = "center"
     context2.fillStyle = "black"        
-    context2.fillText(`Countdown: ${countdown}`, graphX+graphWidth/2, graphY+32)       // `` backquote
+    context2.fillText(`Countdown: ${countdown}`, graphX+graphWidth/2, graphY+32)
 }
 drawGraph = function(context,minProb){
     context.strokeStyle = "black"
@@ -261,6 +345,8 @@ drawGraph = function(context,minProb){
     })
 }
 drawLines = function(context,maxCost,stage,minProb){
+    var cost = history[period].cost
+    var prob = history[period].prob
     context.lineWidth = 1
     context.lineCap = "round"
     context.strokeStyle = "blue"     
@@ -281,7 +367,7 @@ drawLines = function(context,maxCost,stage,minProb){
     context.lineTo(graphX+xRatio*graphWidth,graphY-cost[stage-1]*graphHeight/yMax)
     context.stroke()
 }
-drawAxisLabels = function(context,stage,minProb){
+drawAxisLabels = function(context,stage){
     context.textAlign = "center"
     context.save()
     context.translate(graphX-10,graphY-graphHeight/2)
