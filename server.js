@@ -9,25 +9,22 @@ var choose = x => x[Math.floor(Math.random()*x.length)]
 
 // parameters
 var numPeriods  = 2
-var stage1Length = 5
-var stage2Length = 5
+var stage1Length = 10
+var stage2Length = 10
 var feedback1Length = 1
 var feedback2Length = 1
 var timestep    = 1
 
 // variables
 var treatment   = -1
-var subjects    = []
+var subjects    = {}
 var numSubjects = 0
 var state       = "startup"
 var period      = 1
+var stage       = 1
 var countdown = stage1Length
-var history = {}
-
 
 // TODO
-// - debug period 2 stage 1 counter duration
-// - pass only current history from client to server
 // - calculate outcome on server and pass to client
 // - record data and file
 // - improve instructions
@@ -66,22 +63,28 @@ io.on("connection",function(socket){
   })
   socket.on("managerUpdate", function(msg){
     treatment = msg.treatment
-    var ids = subjects.map(subject => subject.id)
-    ids = ids.filter(id => id>0)
+    var ids = Object.keys(subjects)
     var reply = {numSubjects, ids, state, countdown}
     socket.emit("serverUpdateManager",reply)
   })
   socket.on("clientUpdate", function(msg){ // callback function; msg from client, send msg to client
-    history[msg.id] = msg.history
+    if(period == msg.period && stage == msg.stage) {
+      subjects[msg.id].hist[msg.period].cost[msg.stage] = msg.currentCost
+      subjects[msg.id].hist[msg.period].prob[msg.stage] = msg.currentProb
+      subjects[msg.id].hist[msg.period].maxCost2 = msg.maxCost2
+      subjects[msg.id].hist[msg.period].minProb1 = msg.minProb1
+    }
     if(subjects[msg.id]){
       var reply = {
         treatment, 
         period,
-        state, 
+        state,
+        stage,
         countdown, 
         shock: subjects[msg.id].shock, 
         outcomePeriod: subjects[msg.id].outcomePeriod,
-        outcomeRandom: subjects[msg.id].outcomeRandom,        
+        outcomeRandom: subjects[msg.id].outcomeRandom, 
+        hist: subjects[msg.id].hist,   
       }
       socket.emit("serverUpdateClient",reply)
     }
@@ -108,8 +111,17 @@ createSubject = function(id, socket){
     investment2: 0, 
     shock: 0, 
     outcomePeriod: 1,
-    outcomeRandom: [0,0],      
+    outcomeRandom: [0,0], 
+    hist: {},     
   }
+  arange(numPeriods).forEach(i => {
+    subjects[id].hist[i+1] = {
+      cost: {1:0,2:0},
+      prob: {1:0,2:0},
+      maxCost2: 0,
+      minProb1: 0,
+    }
+  })
   console.log(`subject ${id} connected`)
 }
 shuffle = function(array){
@@ -131,7 +143,9 @@ update = function(){
     countdown = feedback1Length
   }
   if(state == "feedback1"&&countdown <= 0) {
+    console.log(subjects[1].hist[1].cost,subjects[1].hist[2].cost)
     state = "investment2"
+    stage = 2
     countdown = stage2Length
   }
   if(state == "investment2"&&countdown <= 0) {
@@ -148,6 +162,9 @@ update = function(){
     } else{
       period += 1
       state = "investment1"
+      stage = 1
+      countdown = stage1Length
+      console.log(subjects[1].hist[1].cost,subjects[1].hist[2].cost)
     } 
   }  
 }
