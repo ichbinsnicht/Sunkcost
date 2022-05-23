@@ -11,9 +11,10 @@ var choose = x => x[Math.floor(Math.random()*x.length)]
 var numPeriods  = 2
 var stage1Length = 10
 var stage2Length = 10
-var feedback1Length = 1
-var feedback2Length = 1
+var feedback1Length = 5
+var feedback2Length = 5
 var timestep    = 1
+var endowment = 20
 
 // variables
 var treatment   = -1
@@ -25,9 +26,11 @@ var stage       = 1
 var countdown = stage1Length
 
 // TODO
-// - calculate outcome on server and pass to client
-// - record data and file
-// - improve instructions
+// 1) sample size (power) ==> cost (funding from Harvard)
+// 2) record data file and payment file
+// 3) improve instructions (e.g. $20 endowment in introduction)
+// 4) schedule (flight) time/funding (funding from VCU) for experiment at VCU or do it Harvard
+// 5) test coding in lab
 
 // variable for current dir: __dirname, server only shares stuff from public
 // express builts server based on public folder 
@@ -81,7 +84,13 @@ io.on("connection",function(socket){
         state,
         stage,
         countdown, 
-        shock: subjects[msg.id].shock, 
+        endowment,
+        winTicket1: subjects[msg.id].winTicket1,
+        winTicket2: subjects[msg.id].winTicket2,
+        winPrize: subjects[msg.id].winPrize,
+        totalCost: subjects[msg.id].totalCost,
+        earnings: subjects[msg.id].earnings,
+        shock: subjects[msg.id].hist[period].shock, 
         outcomePeriod: subjects[msg.id].outcomePeriod,
         outcomeRandom: subjects[msg.id].outcomeRandom, 
         hist: subjects[msg.id].hist,   
@@ -108,11 +117,15 @@ createSubject = function(id, socket){
     id: id,
     socket: socket,
     investment1: 0,
-    investment2: 0, 
-    shock: 0, 
+    investment2: 0,
     outcomePeriod: 1,
-    outcomeRandom: [0,0], 
-    hist: {},     
+    outcomeRandom: {1:0,2:0}, 
+    winTicket1: 0,
+    winTicket2: 0,
+    winPrize: 0,
+    totalCost: 0,
+    earnings: 0,
+    hist: {},
   }
   arange(numPeriods).forEach(i => {
     subjects[id].hist[i+1] = {
@@ -120,6 +133,7 @@ createSubject = function(id, socket){
       prob: {1:0,2:0},
       maxCost2: 0,
       minProb1: 0,
+      shock: 0,
     }
   })
   console.log(`subject ${id} connected`)
@@ -132,9 +146,13 @@ shuffle = function(array){
   return shuffled
 }
 assignShocks = function(){
-  var shocks = arange(numSubjects).map(i => i%2)
-  shocks = shuffle(shocks)
-  arange(numSubjects).forEach(i => subjects[i+1].shock = shocks[i])
+  arange(numPeriods).forEach(p => {
+    var shocks = arange(numSubjects).map(i => i%2)
+    shocks = shuffle(shocks)
+    arange(numSubjects).forEach(i => {
+      subjects[i+1].hist[p+1].shock = shocks[i]
+    })
+  })
 }
 update = function(){
   countdown = countdown - 1
@@ -143,7 +161,6 @@ update = function(){
     countdown = feedback1Length
   }
   if(state == "feedback1"&&countdown <= 0) {
-    console.log(subjects[1].hist[1].cost,subjects[1].hist[2].cost)
     state = "investment2"
     stage = 2
     countdown = stage2Length
@@ -156,15 +173,21 @@ update = function(){
     if(period>=numPeriods){
       state = "outcome" 
       arange(numSubjects).forEach(i => {
-        subjects[i+1].outcomePeriod = choose(arange(numPeriods))+1 
-        subjects[i+1].outcomeRandom = [Math.random(),Math.random()]
+        const subject = subjects[i+1]
+        subject.outcomePeriod = choose(arange(numPeriods))+1 
+        subject.outcomeRandom = {1:Math.random(),2:Math.random()}
+        const selectedHist = subject.hist[subject.outcomePeriod]
+        subject.winTicket1 = (subject.outcomeRandom[1] <= selectedHist.prob[1])*1
+        subject.winTicket2 = (subject.outcomeRandom[2] <= selectedHist.prob[2])*1
+        subject.winPrize = (subject.winTicket1 && subject.winTicket2)*1
+        subject.totalCost = selectedHist.cost[1]+selectedHist.cost[2]
+        subject.earnings = endowment - subject.totalCost
       })
     } else{
       period += 1
       state = "investment1"
       stage = 1
       countdown = stage1Length
-      console.log(subjects[1].hist[1].cost,subjects[1].hist[2].cost)
-    } 
+     } 
   }  
 }
