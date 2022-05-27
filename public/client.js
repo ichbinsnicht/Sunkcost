@@ -29,6 +29,7 @@ var potMinProb1 = 0.5
 var tickFont = "1.5pt monospace"
 var feedbackFont = "1.5pt monospace"
 var titleFont = "3pt monospace"
+var fullRange = true
 
 // variables
 var state   = "startup"
@@ -52,6 +53,7 @@ var maxCost2 = maxCost2Low
 var minProb1 = 0
 var hist = {}
 var message = {}
+var selectProb = 0
 
 document.onmousedown = function(event){
     msg = {
@@ -73,10 +75,11 @@ socket.on("clientJoined",function(msg){
     setInterval(update, 10)    
 })
 socket.on("serverUpdateClient", function(msg){
-    if(period != msg.period){
+    if(period != msg.period || stage != msg.stage){
         console.log(period,msg.period)
         cost = {1:0, 2:0}
-        prob = {1:0, 2:0}        
+        prob = {1:0, 2:0}
+        selectProb = 0
     }
     message = msg
     treatment = msg.treatment
@@ -99,7 +102,8 @@ socket.on("serverUpdateClient", function(msg){
     if(treatment==0) minProb1 = 0    
     if(treatment==1) minProb1 = potMinProb1
     prob[1] = Math.max(prob[1],minProb1)
-    cost[1] = prob[1]*maxCost1
+    selectProb = stage == 1 && !fullRange ? Math.max(selectProb,minProb1) : selectProb
+    cost[1] = prob[1]*maxCost1    
 })
 socket.on("clicked",function(msg){
     console.log(`The server says: clicked`, msg)
@@ -338,7 +342,9 @@ drawGraph = function(context,minProb){
         context.moveTo(graphX+i*tickSpaceX,graphY)
         context.lineTo(graphX+i*tickSpaceX,graphY+tickLength)
         context.stroke()
-        var xlabel = (minProb+i/10*(1-minProb)).toFixed(2)
+        const minXRange = fullRange ? 0 : minProb
+        const dig = fullRange ? 1 : 2
+        var xlabel = Math.max(minProb,(minXRange+i/10*(1-minXRange))).toFixed(dig)
         context.fillText(xlabel,graphX+i*tickSpaceX,graphY+tickLength+1)     
     })
     context.textAlign = "right" 
@@ -361,22 +367,34 @@ drawGraph = function(context,minProb){
     })
 }
 drawLines = function(context,maxCost,stage,minProb){
+    const minXRange = fullRange ? 0 : minProb
     context.lineWidth = 1
     context.lineCap = "round"
-    context.strokeStyle = "blue"     
-    context.beginPath()        
-    context.moveTo(graphX,graphY-minProb*maxCost/yMax*graphHeight)
-    context.lineTo(graphX+graphWidth,graphY-maxCost/yMax*graphHeight)
-    context.stroke()
+    context.strokeStyle = "blue"
+    if(fullRange){
+        context.beginPath()
+        context.moveTo(graphX,graphY-minProb*maxCost*graphHeight/yMax)
+        context.lineTo(graphX+minProb*graphWidth,graphY-minProb*maxCost/yMax*graphHeight)
+        context.lineTo(graphX+graphWidth,graphY-maxCost/yMax*graphHeight)
+        context.stroke()    
+    }else{
+        context.beginPath()
+        context.moveTo(graphX,graphY-minXRange*maxCost/yMax*graphHeight)
+        context.lineTo(graphX+graphWidth,graphY-maxCost/yMax*graphHeight)
+        context.stroke()            
+    }
     if(mouseDown){
         var xRatio = Math.max(0,Math.min(1,(mouseX - graphX)/graphWidth))
-        prob[stage] = minProb + xRatio*(1-minProb)
-        cost[stage] = prob[stage]*maxCost  
+        prob[stage] = minXRange + xRatio*(1-minXRange)
+        cost[stage] = prob[stage]*maxCost 
+        selectProb = prob[stage]
+        prob[1] = Math.max(prob[1],minProb1)
+        cost[1] = prob[1]*maxCost1         
     }
     context.lineWidth = 2        
     context.strokeStyle = "red"
     context.beginPath()
-    var xRatio = (prob[stage]-minProb)/(1-minProb)
+    var xRatio = (selectProb-minXRange)/(1-minXRange)
     context.moveTo(graphX+xRatio*graphWidth,graphY) 
     context.lineTo(graphX+xRatio*graphWidth,graphY-cost[stage]*graphHeight/yMax)
     context.stroke()

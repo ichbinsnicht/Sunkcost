@@ -24,13 +24,14 @@ var state       = "startup"
 var period      = 1
 var stage       = 1
 var countdown = stage1Length
+var dataStream = {}
+var dateString = ""
 
 // TODO
-// 1) sample size (power) ==> cost (funding from Harvard)
-// 2) record data file and payment file
-// 3) improve instructions (e.g. $20 endowment in introduction)
-// 4) schedule (flight) time/funding (funding from VCU) for experiment at VCU or do it Harvard
-// 5) test coding in lab
+// 1) record data file and payment file
+// 2) improve instructions (e.g. $20 endowment in introduction)
+// 3) schedule (flight) time/funding (funding from VCU) for experiment at VCU or do it Harvard
+// 4) test coding in lab
 
 // variable for current dir: __dirname, server only shares stuff from public
 // express builts server based on public folder 
@@ -49,6 +50,24 @@ app.get("/manager",function(req,res){
   res.sendFile(__dirname + "/public/manager.html")
 })
 
+formatTwo = function(x){
+  var y = x.toFixed(0)
+  if(y<10) y = "0" + y
+  return y
+}
+getDateString = function(){
+  const d = new Date()
+  const year = d.getFullYear()
+  const month = formatTwo(d.getMonth()+1)
+  const day = formatTwo(d.getDate())
+  const hours = formatTwo(d.getHours())
+  const minutes = formatTwo(d.getMinutes())
+  const seconds = formatTwo(d.getSeconds())  
+  const dateString = year+"-"+month+"-"+day+"-"+hours+minutes+seconds
+  return dateString
+}
+
+
 // socket - line of communication between client and server
 // listener - similar to continuous if statement
 // connection is an event
@@ -60,6 +79,11 @@ io.on("connection",function(socket){
   })
   socket.on("startExperiment", function(msg){
     console.log(`startExperiment`)
+    dateString = getDateString()
+    dataStream = fs.createWriteStream(`data/data-${dateString}.csv`)
+    var csvString = "1,2,3\n"
+    csvString += "4,5,6\n"
+    dataStream.write(csvString)
     assignShocks()
     setInterval(update, 1000*timestep)
     if(state == "instructions") state = "investment1"
