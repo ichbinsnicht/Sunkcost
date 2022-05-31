@@ -9,8 +9,8 @@ var choose = x => x[Math.floor(Math.random()*x.length)]
 
 // parameters
 var numPeriods  = 2
-var stage1Length = 10
-var stage2Length = 10
+var stage1Length = 5
+var stage2Length = 5
 var feedback1Length = 5
 var feedback2Length = 5
 var timestep    = 1
@@ -28,10 +28,11 @@ var dataStream = {}
 var dateString = ""
 
 // TODO
-// 1) record data file and payment file
-// 2) improve instructions (e.g. $20 endowment in introduction)
-// 3) schedule (flight) time/funding (funding from VCU) for experiment at VCU or do it Harvard
-// 4) test coding in lab
+// - pick endowment/cost levels to ensure minimum payment
+// - improve instructions (e.g. $20 endowment in introduction)
+// - select prize (e.g. book with signature from popular person)
+// - schedule (flight) time/funding (funding from VCU) for experiment at VCU or do it Harvard (MH)
+// - test coding in lab @Harvard and VCU
 
 // variable for current dir: __dirname, server only shares stuff from public
 // express builts server based on public folder 
@@ -67,6 +68,35 @@ getDateString = function(){
   return dateString
 }
 
+// within-period data
+createDataFile = function(){
+  dateString = getDateString()
+  dataStream = fs.createWriteStream(`data/data-${dateString}.csv`)
+  var csvString = "session,treatment,period,id,shock,prob1,prob2,cost1,cost2,endowment,"
+  csvString += "minProb1,maxCost2\n"
+  dataStream.write(csvString)
+}
+updateDataFile = function(){
+  var csvString = ""
+  Object.values(subjects).forEach(subject => {
+    csvString += `${dateString},${treatment},${period},${subject.id},${subject.hist[period].shock},`
+    csvString += `${subject.hist[period].prob[1]},${subject.hist[period].prob[2]},`
+    csvString += `${subject.hist[period].cost[1]},${subject.hist[period].cost[2]},${endowment},`
+    csvString += `${subject.hist[period].minProb1},${subject.hist[period].maxCost2}\n`
+  })
+  dataStream.write(csvString)
+}
+
+// selected period data
+writePaymentFile = function(){
+  var csvString = "id,earnings,winPrize,outcomePeriod,winTicket1,winTicket2,totalCost,endowment\n"
+  Object.values(subjects).forEach(subject => {
+    csvString += `${subject.id},${subject.earnings},${subject.winPrize},${subject.outcomePeriod},` 
+    csvString += `${subject.winTicket1},${subject.winTicket2},${subject.totalCost},${endowment}\n`
+  })
+  var logError = (ERR) => { if(ERR) console.log(ERR)}
+  fs.writeFile(`data/payment-${dateString}.csv`,csvString,logError)
+}
 
 // socket - line of communication between client and server
 // listener - similar to continuous if statement
@@ -79,11 +109,7 @@ io.on("connection",function(socket){
   })
   socket.on("startExperiment", function(msg){
     console.log(`startExperiment`)
-    dateString = getDateString()
-    dataStream = fs.createWriteStream(`data/data-${dateString}.csv`)
-    var csvString = "1,2,3\n"
-    csvString += "4,5,6\n"
-    dataStream.write(csvString)
+    createDataFile()
     assignShocks()
     setInterval(update, 1000*timestep)
     if(state == "instructions") state = "investment1"
@@ -155,8 +181,8 @@ createSubject = function(id, socket){
     subjects[id].hist[i+1] = {
       cost: {1:0,2:0},
       prob: {1:0,2:0},
-      maxCost2: 0,
       minProb1: 0,
+      maxCost2: 0,
       shock: 0,
     }
   })
@@ -192,13 +218,14 @@ update = function(){
   if(state == "investment2"&&countdown <= 0) {
     state = "feedback2"
     countdown = feedback2Length
+    updateDataFile()
   }  
   if(state == "feedback2"&&countdown <= 0) {
     if(period>=numPeriods){
       state = "outcome" 
       arange(numSubjects).forEach(i => {
         const subject = subjects[i+1]
-        subject.outcomePeriod = choose(arange(numPeriods))+1 
+        subject.outcomePeriod = choose(arange(numPeriods))+1
         subject.outcomeRandom = {1:Math.random(),2:Math.random()}
         const selectedHist = subject.hist[subject.outcomePeriod]
         subject.winTicket1 = (subject.outcomeRandom[1] <= selectedHist.prob[1])*1
@@ -207,6 +234,8 @@ update = function(){
         subject.totalCost = selectedHist.cost[1]+selectedHist.cost[2]
         subject.earnings = endowment - subject.totalCost
       })
+      writePaymentFile()
+      console.log("Session Complete")
     } else{
       period += 1
       state = "investment1"

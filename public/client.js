@@ -103,7 +103,7 @@ socket.on("serverUpdateClient", function(msg){
     if(treatment==1) minProb1 = potMinProb1
     prob[1] = Math.max(prob[1],minProb1)
     selectProb = stage == 1 && !fullRange ? Math.max(selectProb,minProb1) : selectProb
-    cost[1] = prob[1]*maxCost1    
+    cost[1] = prob[1]*maxCost1
 })
 socket.on("clicked",function(msg){
     console.log(`The server says: clicked`, msg)
@@ -144,7 +144,7 @@ update = function(){
     }
     if(joined&&state=="feedback1"){
         var text = ""
-        text += `<b>Period ${period} - Stage 1 Feedback</b><br><br><br><br>`
+        text += `<b>Period ${period} - Stage 1 Feedback</b><br><br><br>`
         text += `&nbsp; Your probability of receiving ticket 1: <font color="green">${prob[1].toFixed(2)}</font> <br><br>`
         text += `&nbsp; Your cost in stage 1: <font color="red">${cost[1].toFixed(2)}</font><br><br>`
         text += `&nbsp; Your probability of winning the prize:<br><br>`
@@ -152,7 +152,7 @@ update = function(){
         text += `&nbsp; Your total cost:<br><br>`
         text += `&nbsp; &nbsp; <font color="red">${cost[1].toFixed(2)} + Your cost in stage 2</font><br><br>`
         text += `&nbsp; Your earnings for this period:<br><br>`
-        text += `&nbsp; &nbsp; ${endowment.toFixed(2)} - <font color="red">${cost[1].toFixed(2)} - Your cost in stage 2</font><br><br><br><br>`
+        text += `&nbsp; &nbsp; ${endowment.toFixed(2)} - <font color="red">${cost[1].toFixed(2)} - Your cost in stage 2</font><br><br><br>`
         text += `Stage 2 will begin in ${countdown} seconds.`
         feedback1Div.innerHTML = text
         feedback1Div.style.display = "block"        
@@ -163,13 +163,14 @@ update = function(){
     if(joined&&state=="feedback2"){
         const periodEarnings = endowment-cost[1] -cost[2]       
         var text = ""
-        text += `<b>Period ${period} - Stage 2 Feedback</b><br><br><br><br>`
+        text += `<b>Period ${period} - Stage 2 Feedback</b><br><br><br>`
         text += `&nbsp; Your probability of receiving ticket 1: <font color="green">${prob[1].toFixed(2)}</font> <br><br>`
         text += `&nbsp; Your cost in stage 1: <font color="red">${cost[1].toFixed(2)}</font><br><br>`
         text += `&nbsp; Your probability of winning the prize: <font color="green">${(prob[1]*prob[2]).toFixed(2)}</font><br><br>`
         text += `&nbsp; Your total cost: <font color="red">${(cost[1]+cost[2]).toFixed(2)}</font><br><br>`
-        text += `&nbsp; Your earnings for this period: ${periodEarnings.toFixed(2)}<br><br><br><br>`        
-        text += `The next round will begin in ${countdown} seconds.`
+        text += `&nbsp; Your earnings for this period: ${periodEarnings.toFixed(2)}<br><br><br>`  
+        if(period!=numPeriods) text += `The next period will begin in ${countdown} seconds.`
+        else text += `Payment will begin in ${countdown} seconds.`
         feedback2Div.innerHTML = text
         feedback2Div.style.display = "block"
     }        
