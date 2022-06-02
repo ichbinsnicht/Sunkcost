@@ -8,7 +8,7 @@ var arange = x => [...Array(x).keys()]
 var choose = x => x[Math.floor(Math.random()*x.length)]
 
 // parameters
-var numPeriods  = 2
+var numPeriods  = 20
 var stage1Length = 5
 var stage2Length = 5
 var feedback1Length = 5
@@ -28,14 +28,14 @@ var dataStream = {}
 var dateString = ""
 
 // TODO
-// - pick endowment/cost levels to ensure minimum payment
-// - improve instructions (e.g. $20 endowment in introduction)
-// - select prize (e.g. book with signature from popular person)
+// - generate audio-file for instructions (at the end)
+// ------------------------------------------------------------------------------
 // - schedule (flight) time/funding (funding from VCU) for experiment at VCU or do it Harvard (MH)
 // - test coding in lab @Harvard and VCU
 
 // variable for current dir: __dirname, server only shares stuff from public
 // express builts server based on public folder 
+
 app.use(express.static(__dirname + "/public"))
 
 // get has a call back (take function and pass it on to another program)
