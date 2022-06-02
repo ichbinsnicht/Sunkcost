@@ -6,6 +6,14 @@ PRIZES with subjective values:
 - signature from a football player on a ball!
 - signature from an author for a book!
 - John List's book for economists! (or Freakonomics)
+- book with signature from popular person
+- * 20 dollar gift card from Starbucks (in-kind transfer reduction in value)
 
 prizes need to relate to students
 problem: gender-specific values
+
+// - pick endowment/cost levels to ensure minimum payment
+// target average payment: $15 per subject 
+// $5 minimum payment, $20 maximum payment
+// endowment: $20, maximum expenditure $15
+// maxcost1 = $5 = mincost2 , maxcost2: $10 
