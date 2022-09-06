@@ -7,17 +7,29 @@ var fs          = require("fs")                   // filesystem (to save stuff)
 var arange = x => [...Array(x).keys()] 
 var choose = x => x[Math.floor(Math.random()*x.length)]
 
+// todo:
+// - no treatment variable (treatment within person-period)
+// - bound variable instead of treatment variable
+// - initiate all parameters on the server: e.g. costs need to be on the server
+// - compute p1 and then costs
+// - get computations done first, then work on gfx 
+// - create gfx without feedback stage
+
 // parameters
-var numPeriods  = 20
+var numPeriods  = 1
 var stage1Length = 5
 var stage2Length = 5
 var feedback1Length = 5
 var feedback2Length = 5
 var timestep    = 1
 var endowment = 20
+var maxCost1 = 5                           // marginal cost of the probability in period 1
+var maxCost2High = 10                       // cost2 = sunk cost in period 2 (high cost shock)
+var maxCost2Low = 5                        // calibrate the high costs!
+var potMinProb1 = 0.5
 
 // variables
-var treatment   = -1
+// var treatment   = -1
 var subjects    = {}
 var numSubjects = 0
 var state       = "startup"
@@ -110,7 +122,6 @@ io.on("connection",function(socket){
   socket.on("startExperiment", function(msg){
     console.log(`startExperiment`)
     createDataFile()
-    assignShocks()
     setInterval(update, 1000*timestep)
     if(state == "instructions") state = "investment1"
   })
@@ -160,6 +171,13 @@ http.listen(3000,function(msg){
   console.log(`listening on port ${port}`)
 })
 
+shuffle = function(array){
+  var shuffled = array
+    .map(x => ({value: x, priority: Math.random()}))
+    .sort((a,b) => a.priority-b.priority)
+    .map(x => x.value)
+  return shuffled
+}
 // subject append (socket-id characteristics are getting appended to list)
 createSubject = function(id, socket){
   numSubjects += 1            // add 1 to the number of subjects
@@ -176,33 +194,18 @@ createSubject = function(id, socket){
     totalCost: 0,
     earnings: 0,
     hist: {},
+    maxCost1,     // todo: pass to client
   }
   arange(numPeriods).forEach(i => {
     subjects[id].hist[i+1] = {
       cost: {1:0,2:0},
       prob: {1:0,2:0},
-      minProb1: 0,
-      maxCost2: 0,
-      shock: 0,
+      minProb1: shuffle([0,potMinProb1])[0],
+      maxCost2: shuffle([maxCost2Low,maxCost2High])[0],
+      // shock: 0,
     }
   })
   console.log(`subject ${id} connected`)
-}
-shuffle = function(array){
-  var shuffled = array
-    .map(x => ({value: x, priority: Math.random()}))
-    .sort((a,b) => a.priority-b.priority)
-    .map(x => x.value)
-  return shuffled
-}
-assignShocks = function(){
-  arange(numPeriods).forEach(p => {
-    var shocks = arange(numSubjects).map(i => i%2)
-    shocks = shuffle(shocks)
-    arange(numSubjects).forEach(i => {
-      subjects[i+1].hist[p+1].shock = shocks[i]
-    })
-  })
 }
 update = function(){
   countdown = countdown - 1
