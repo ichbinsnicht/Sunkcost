@@ -8,28 +8,22 @@ var arange = x => [...Array(x).keys()]
 var choose = x => x[Math.floor(Math.random()*x.length)]
 
 // todo:
-// - no treatment variable (treatment within person-period)
-// - bound variable instead of treatment variable
-// - initiate all parameters on the server: e.g. costs need to be on the server
-// - compute p1 and then costs
-// - get computations done first, then work on gfx 
 // - create gfx without feedback stage
 
 // parameters
-var numPeriods  = 1
-var stage1Length = 5
-var stage2Length = 5
-var feedback1Length = 5
-var feedback2Length = 5
-var timestep    = 1
-var endowment = 20
-var maxCost1 = 5                           // marginal cost of the probability in period 1
-var maxCost2High = 10                       // cost2 = sunk cost in period 2 (high cost shock)
-var maxCost2Low = 5                        // calibrate the high costs!
-var potMinProb1 = 0.5
+const numPeriods  = 1
+const stage1Length = 5
+const stage2Length = 5
+const feedback1Length = 5
+const feedback2Length = 5
+const timestep    = 1
+const endowment = 20
+const maxCost1 = 5                           // marginal cost of the probability in period 1
+const maxCost2High = 10                       // cost2 = sunk cost in period 2 (high cost shock)
+const maxCost2Low = 5                        // calibrate the high costs!
+const potMinProb1 = 0.5
 
 // variables
-// var treatment   = -1
 var subjects    = {}
 var numSubjects = 0
 var state       = "startup"
@@ -84,14 +78,14 @@ getDateString = function(){
 createDataFile = function(){
   dateString = getDateString()
   dataStream = fs.createWriteStream(`data/data-${dateString}.csv`)
-  var csvString = "session,treatment,period,id,shock,prob1,prob2,cost1,cost2,endowment,"
+  var csvString = "session,period,id,shock,prob1,prob2,cost1,cost2,endowment,"
   csvString += "minProb1,maxCost2\n"
   dataStream.write(csvString)
 }
 updateDataFile = function(){
   var csvString = ""
   Object.values(subjects).forEach(subject => {
-    csvString += `${dateString},${treatment},${period},${subject.id},${subject.hist[period].shock},`
+    csvString += `${dateString},${period},${subject.id},${subject.hist[period].shock},`
     csvString += `${subject.hist[period].prob[1]},${subject.hist[period].prob[2]},`
     csvString += `${subject.hist[period].cost[1]},${subject.hist[period].cost[2]},${endowment},`
     csvString += `${subject.hist[period].minProb1},${subject.hist[period].maxCost2}\n`
@@ -120,41 +114,39 @@ io.on("connection",function(socket){
     if(state == "startup") state = "instructions"
   })
   socket.on("startExperiment", function(msg){
-    console.log(`startExperiment`)
-    createDataFile()
-    setInterval(update, 1000*timestep)
-    if(state == "instructions") state = "investment1"
+    if(state == "instructions") {
+      state = "investment1"
+      console.log(`startExperiment`)
+      createDataFile()
+      setInterval(update, 1000*timestep) 
+    }   
   })
   socket.on("managerUpdate", function(msg){
-    treatment = msg.treatment
     var ids = Object.keys(subjects)
     var reply = {numSubjects, ids, state, countdown}
     socket.emit("serverUpdateManager",reply)
   })
   socket.on("clientUpdate", function(msg){ // callback function; msg from client, send msg to client
     if(period == msg.period && stage == msg.stage) {
+      subjects[msg.id].hist[msg.period].choice[msg.stage] = msg.currentChoice
+      subjects[msg.id].hist[msg.period].prob[msg.stage] = msg.currentProb      
       subjects[msg.id].hist[msg.period].cost[msg.stage] = msg.currentCost
-      subjects[msg.id].hist[msg.period].prob[msg.stage] = msg.currentProb
-      subjects[msg.id].hist[msg.period].maxCost2 = msg.maxCost2
-      subjects[msg.id].hist[msg.period].minProb1 = msg.minProb1
     }
     if(subjects[msg.id]){
       var reply = {
-        treatment, 
         period,
         state,
         stage,
         countdown, 
-        endowment,
+        endowment,      
+        outcomePeriod: subjects[msg.id].outcomePeriod,
+        outcomeRandom: subjects[msg.id].outcomeRandom,         
         winTicket1: subjects[msg.id].winTicket1,
         winTicket2: subjects[msg.id].winTicket2,
         winPrize: subjects[msg.id].winPrize,
         totalCost: subjects[msg.id].totalCost,
         earnings: subjects[msg.id].earnings,
-        shock: subjects[msg.id].hist[period].shock, 
-        outcomePeriod: subjects[msg.id].outcomePeriod,
-        outcomeRandom: subjects[msg.id].outcomeRandom, 
-        hist: subjects[msg.id].hist,   
+        hist: subjects[msg.id].hist,
       }
       socket.emit("serverUpdateClient",reply)
     }
@@ -194,15 +186,15 @@ createSubject = function(id, socket){
     totalCost: 0,
     earnings: 0,
     hist: {},
-    maxCost1,     // todo: pass to client
+    maxCost1,                 // todo: pass to client
   }
   arange(numPeriods).forEach(i => {
     subjects[id].hist[i+1] = {
+      choice: {1:0,2:0},
+      prob: {1:0,2:0},      
       cost: {1:0,2:0},
-      prob: {1:0,2:0},
-      minProb1: shuffle([0,potMinProb1])[0],
-      maxCost2: shuffle([maxCost2Low,maxCost2High])[0],
-      // shock: 0,
+      minProb: {1:choose([0,potMinProb1]),2:0},
+      maxCost: {1:maxCost1,2:choose([maxCost2Low,maxCost2High])},
     }
   })
   console.log(`subject ${id} connected`)

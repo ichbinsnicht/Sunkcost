@@ -15,25 +15,21 @@ var context2 = canvas2.getContext("2d")
 socket = io()       // browser based socket
 var arange = n => [...Array(n).keys()]
 
-// parameters
-var numPeriods = 20
-var maxCost1 = 5                           // marginal cost of the probability in period 1
-var maxCost2High = 10                       // cost2 = sunk cost in period 2 (high cost shock)
-var maxCost2Low = 5                        // calibrate the high costs!
-var yMax = Math.max(maxCost1,maxCost2High,maxCost2Low)    // Math is a singleton class (capitalize!)
-var graphWidth = 70
-var graphHeight = 60
-var graphX = 0.5*(100-graphWidth)
-var graphY = -35 
-var potMinProb1 = 0.5
-var tickFont = "1.5pt monospace"
-var feedbackFont = "1.5pt monospace"
-var titleFont = "3pt monospace"
-var fullRange = true
+// graphical parameters
+const yMax = 10
+const graphWidth = 70
+const graphX = 0.5*(100-graphWidth)
+const graphHeight = 60
+const graphY = -35
+const tickFont = "1.5pt monospace"
+const feedbackFont = "1.5pt monospace"
+const titleFont = "3pt monospace"
+const fullRange = true
 
 // variables
 var state   = "startup"
 var id      = null
+var numPeriods = 0
 var joined  = false
 var xScale  = 1
 var yScale  = 1
@@ -41,15 +37,17 @@ var mouseX  = 50
 var mouseY  = 50
 var mouseDown = false
 var countdown = 60      // seconds
-var shock = 0
-var treatment = -1
 var outcomePeriod = 1
 var outcomeRandom = [0,0]
 var period = 1
 var stage = 1
-var cost = {1:0, 2:0}
-var prob = {1:0, 2:0}
-var maxCost2 = maxCost2Low
+var choice = {1:0,2:0}
+var prob = {1:0,2:0}
+var cost = {1:0,2:0}
+var minProb = {1:0,2:0}
+var maxCost = {1:0,2:0}
+var maxCost1 = 0                           // marginal cost of the probability in period 1
+var maxCost2 = 0
 var minProb1 = 0
 var hist = {}
 var message = {}
@@ -75,18 +73,16 @@ socket.on("clientJoined",function(msg){
     setInterval(update, 10)    
 })
 socket.on("serverUpdateClient", function(msg){
-    if(period != msg.period || stage != msg.stage){
+    if(period != msg.period){
         console.log(period,msg.period)
         cost = {1:0, 2:0}
         prob = {1:0, 2:0}
         selectProb = 0
     }
     message = msg
-    treatment = msg.treatment
     state = msg.state
     stage = msg.stage
     countdown = msg.countdown
-    shock = msg.shock
     period = msg.period
     outcomePeriod = msg.outcomePeriod
     outcomeRandom = msg.outcomeRandom
@@ -97,13 +93,8 @@ socket.on("serverUpdateClient", function(msg){
     totalCost = msg.totalCost
     earnings = msg.earnings 
     hist = msg.hist
-    if(shock==0) maxCost2 = maxCost2Low
-    if(shock==1) maxCost2 = maxCost2High   
-    if(treatment==0) minProb1 = 0    
-    if(treatment==1) minProb1 = potMinProb1
-    prob[1] = Math.max(prob[1],minProb1)
-    selectProb = stage == 1 && !fullRange ? Math.max(selectProb,minProb1) : selectProb
-    cost[1] = prob[1]*maxCost1
+    maxCost = msg.hist[msg.period].maxCost
+    minProb = msg.hist[msg.period].minProb
 })
 socket.on("clicked",function(msg){
     console.log(`The server says: clicked`, msg)
@@ -116,10 +107,11 @@ update = function(){
         id,
         period,
         stage,
+        currentChoice: choice[stage],
+        currentProb: prob[stage],
         currentCost: cost[stage],
-        currentProb: prob[stage], 
         maxCost2,
-        minProb1,             
+        minProb1,                    
     }
     socket.emit("clientUpdate",msg)
     startupDiv.style.display = "none"
@@ -206,10 +198,23 @@ window.onmousemove = function(e){
 }
 window.onmousedown = function(e){
     mouseDown = true
+    var xRatio = Math.max(0,Math.min(1,e.offsetX/window.innerWidth))
+    console.log("Stage:",stage)
+    choice[stage] = xRatio
+    prob[stage] = Math.max(minProb[stage],choice[stage])
+    cost[stage] = prob[stage]*maxCost[stage]
+    console.log("Choice",choice)
+    console.log("minProb",minProb)
+    console.log("Prob:",prob)       // issue: prob not kept over stages
+    console.log("maxCost:",maxCost)  
+    console.log("cost:",cost)       
+    selectProb = prob[stage]
 }
 window.onmouseup = function(e){
     mouseDown = false
 }
+
+/*
 setupCanvas = function(canvas,context){
     xScale = 1*window.innerWidth
     yScale = 1*window.innerHeight                                  // Classes are capitalized. Math is a unique class.
@@ -227,13 +232,6 @@ draw = function(){
 draw1 = function(){
     setupCanvas(canvas1,context1)    
     context1.clearRect(0,0,canvas1.width,canvas1.height)    
-    /*
-    context1.strokeStyle = "green"
-    context1.lineWidth = 0.25    
-    context1.rect(mouseX,-mouseY,1,1) 
-    context1.rect(0,-0,100,-100)        
-    context1.stroke() 
-    */
     context1.textAlign = "center"
     context1.textBaseline = "bottom"
     context1.font = titleFont   
@@ -258,13 +256,6 @@ draw1 = function(){
 draw2 = function(){
     setupCanvas(canvas2,context2)    
     context2.clearRect(0,0,canvas2.width,canvas2.height)
-    /*
-    context2.strokeStyle = "green"
-    context2.lineWidth = 0.25    
-    context2.rect(mouseX,-mouseY,1,1) 
-    context2.rect(0,-0,100,-100)        
-    context2.stroke()
-    */
     context2.textAlign = "center"
     context2.textBaseline = "bottom"
     context2.font = titleFont   
@@ -349,30 +340,22 @@ drawGraph = function(context,minProb){
         context.fillText(ylabel,graphX+graphWidth+tickLength+1,graphY-i*tickSpaceY)     
     })
 }
-drawLines = function(context,maxCost,stage,minProb){
-    const minXRange = fullRange ? 0 : minProb
+drawLines = function(context,maxCostDraw,stage,minProbDraw){
+    const minXRange = fullRange ? 0 : minProbDraw
     context.lineWidth = 1
     context.lineCap = "round"
     context.strokeStyle = "blue"
     if(fullRange){
         context.beginPath()
-        context.moveTo(graphX,graphY-minProb*maxCost*graphHeight/yMax)
-        context.lineTo(graphX+minProb*graphWidth,graphY-minProb*maxCost/yMax*graphHeight)
-        context.lineTo(graphX+graphWidth,graphY-maxCost/yMax*graphHeight)
+        context.moveTo(graphX,graphY-minProbDraw*maxCostDraw*graphHeight/yMax)
+        context.lineTo(graphX+minProbDraw*graphWidth,graphY-minProbDraw*maxCostDraw/yMax*graphHeight)
+        context.lineTo(graphX+graphWidth,graphY-maxCostDraw/yMax*graphHeight)
         context.stroke()    
     }else{
         context.beginPath()
-        context.moveTo(graphX,graphY-minXRange*maxCost/yMax*graphHeight)
-        context.lineTo(graphX+graphWidth,graphY-maxCost/yMax*graphHeight)
+        context.moveTo(graphX,graphY-minXRange*maxCostDraw/yMax*graphHeight)
+        context.lineTo(graphX+graphWidth,graphY-maxCostDraw/yMax*graphHeight)
         context.stroke()            
-    }
-    if(mouseDown){
-        var xRatio = Math.max(0,Math.min(1,(mouseX - graphX)/graphWidth))
-        prob[stage] = minXRange + xRatio*(1-minXRange)
-        cost[stage] = prob[stage]*maxCost 
-        selectProb = prob[stage]
-        prob[1] = Math.max(prob[1],minProb1)
-        cost[1] = prob[1]*maxCost1         
     }
     context.lineWidth = 2        
     context.strokeStyle = "red"
@@ -392,3 +375,4 @@ drawAxisLabels = function(context,stage){
     context.fillText(`Probability of Receiving Ticket ${stage}`, graphX+graphWidth/2, graphY+10)
 }
 draw()
+*/
