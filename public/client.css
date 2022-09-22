@@ -39,7 +39,7 @@ body {
     font: 10vmin monospace;
     text-align: center;
 }
-#investment1Div {
+#interfaceDiv {
     display: none;
     text-align: center;      
     font: 4vmin monospace; 
@@ -47,35 +47,6 @@ body {
     padding: 0;
     margin: 0;
     float: right;    
-}
-#feedback1Div {
-    display: none;
-    text-align: left;      
-    font: 3.5vmin monospace; 
-    border: 0;
-    padding-top: 5vh;
-    width: 100vh;
-    margin-left: auto;
-    margin-right: auto;
-}
-#investment2Div {
-    display: none;
-    text-align: center;      
-    font: 4vmin monospace;    
-    border: 0;
-    padding: 0;
-    margin: 0;
-    float: right;  
-}
-#feedback2Div {
-    display: none;
-    text-align: left;      
-    font: 3.5vmin monospace; 
-    border: 0;
-    padding-top: 5vh;
-    width: 100vh;
-    margin-left: auto;
-    margin-right: auto;
 }
 #outcomeDiv {
     display: none;
@@ -87,7 +58,7 @@ body {
     margin-left: auto;
     margin-right: auto; 
 }
-#canvas1 {
+#canvas {
     border-style: none;
     width: 100vw;
     height: 100vh;

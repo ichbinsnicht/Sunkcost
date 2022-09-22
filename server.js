@@ -7,15 +7,11 @@ var fs          = require("fs")                   // filesystem (to save stuff)
 var arange = x => [...Array(x).keys()] 
 var choose = x => x[Math.floor(Math.random()*x.length)]
 
-// todo:
-// - create gfx without feedback stage
-
 // parameters
 const numPeriods  = 1
-const stage1Length = 5
+const stage1Length = 900
 const stage2Length = 5
-const feedback1Length = 5
-const feedback2Length = 5
+const outcomeLength = 5
 const timestep    = 1
 const endowment = 20
 const maxCost1 = 5                           // marginal cost of the probability in period 1
@@ -34,6 +30,7 @@ var dataStream = {}
 var dateString = ""
 
 // TODO
+// - create gfx without feedback stage
 // - generate audio-file for instructions (at the end)
 // ------------------------------------------------------------------------------
 // - schedule (flight) time/funding (funding from VCU) for experiment at VCU or do it Harvard (MH)
@@ -115,7 +112,7 @@ io.on("connection",function(socket){
   })
   socket.on("startExperiment", function(msg){
     if(state == "instructions") {
-      state = "investment1"
+      state = "interface"
       console.log(`startExperiment`)
       createDataFile()
       setInterval(update, 1000*timestep) 
@@ -127,12 +124,12 @@ io.on("connection",function(socket){
     socket.emit("serverUpdateManager",reply)
   })
   socket.on("clientUpdate", function(msg){ // callback function; msg from client, send msg to client
-    if(period == msg.period && stage == msg.stage) {
-      subjects[msg.id].hist[msg.period].choice[msg.stage] = msg.currentChoice
-      subjects[msg.id].hist[msg.period].prob[msg.stage] = msg.currentProb      
-      subjects[msg.id].hist[msg.period].cost[msg.stage] = msg.currentCost
-    }
     if(subjects[msg.id]){
+      if(period == msg.period && stage == msg.stage) {
+        subjects[msg.id].hist[msg.period].choice[msg.stage] = msg.currentChoice
+        subjects[msg.id].hist[msg.period].prob[msg.stage] = msg.currentProb      
+        subjects[msg.id].hist[msg.period].cost[msg.stage] = msg.currentCost
+      }  
       var reply = {
         period,
         state,
@@ -147,13 +144,16 @@ io.on("connection",function(socket){
         totalCost: subjects[msg.id].totalCost,
         earnings: subjects[msg.id].earnings,
         hist: subjects[msg.id].hist,
-      }
+      } 
       socket.emit("serverUpdateClient",reply)
+    } else {
+      if(!subjects[msg.id]) createSubject(msg.id,socket)
+      socket.emit("clientJoined",{id : msg.id})
     }
   })
   socket.on("joinGame", function(msg){
     if(!subjects[msg.id]) createSubject(msg.id,socket)
-    socket.emit("clientJoined",{id : msg.id})     // connected happens initialy, joins happens when id is entered
+    socket.emit("clientJoined",{id : msg.id})
   })
 })
 
@@ -176,7 +176,7 @@ createSubject = function(id, socket){
   subjects[id] = {            // add subject at a particular id
     id: id,
     socket: socket,
-    investment1: 0,
+    choice1: 0,
     investment2: 0,
     outcomePeriod: 1,
     outcomeRandom: {1:0,2:0}, 
@@ -201,23 +201,20 @@ createSubject = function(id, socket){
 }
 update = function(){
   countdown = countdown - 1
-  if(state == "investment1"&&countdown <= 0) {
-    state = "feedback1"
-    countdown = feedback1Length
-  }
-  if(state == "feedback1"&&countdown <= 0) {
-    state = "investment2"
-    stage = 2
+  if(state == "interface" && stage == 1 && countdown <= 0) {
     countdown = stage2Length
+    stage = 2
   }
-  if(state == "investment2"&&countdown <= 0) {
-    state = "feedback2"
-    countdown = feedback2Length
+  if(state == "interface" && stage == 2 && countdown <= 0) {
+    countdown = outcomeLength
+    state = "outcome"
     updateDataFile()
-  }  
-  if(state == "feedback2"&&countdown <= 0) {
+  }
+  if(state == "outcome" && countdown <= 0) {
+    countdown = outcomeLength
+    state = "outcome"
     if(period>=numPeriods){
-      state = "outcome" 
+      state = "end" 
       arange(numSubjects).forEach(i => {
         const subject = subjects[i+1]
         subject.outcomePeriod = choose(arange(numPeriods))+1
@@ -233,7 +230,7 @@ update = function(){
       console.log("Session Complete")
     } else{
       period += 1
-      state = "investment1"
+      state = "interface"
       stage = 1
       countdown = stage1Length
      } 
