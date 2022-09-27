@@ -9,7 +9,7 @@ var choose = x => x[Math.floor(Math.random()*x.length)]
 
 // parameters
 const numPeriods  = 1
-const stage1Length = 900
+const stage1Length = 10000
 const stage2Length = 5
 const outcomeLength = 5
 const timestep    = 1

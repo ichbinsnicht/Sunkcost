@@ -15,11 +15,14 @@ const yMax = 10
 const graphWidth = 70
 const graphX = 0.5*(100-graphWidth)
 const graphHeight = 60
-const graphY = -35
+const graphY = -15
+const lineY = -88
 const tickFont = "1.5pt monospace"
+const labelFont = "2pt monospace"
 const feedbackFont = "1.5pt monospace"
 const titleFont = "3pt monospace"
 const fullRange = true
+
 
 // variables
 var state   = "startup"
@@ -30,6 +33,7 @@ var xScale  = 1
 var yScale  = 1
 var mouseX  = 50
 var mouseY  = 50
+var mouseGraphX = 0.5
 var mouseDown = false
 var countdown = 60      // seconds
 var outcomePeriod = 1
@@ -38,12 +42,9 @@ var period = 1
 var stage = 1
 var choice = {1:0,2:0}
 var prob = {1:0,2:0}
-var cost = {1:0,2:0}
 var minProb = {1:0,2:0}
+var cost = {1:0,2:0}
 var maxCost = {1:0,2:0}
-var maxCost1 = 0                           // marginal cost of the probability in period 1
-var maxCost2 = 0
-var minProb1 = 0
 var hist = {}
 var message = {}
 var selectProb = 0
@@ -105,8 +106,8 @@ update = function(){
         currentChoice: choice[stage],
         currentProb: prob[stage],
         currentCost: cost[stage],
-        maxCost2,
-        minProb1,                    
+        maxCost2: maxCost[2],
+        minProb1: minProb[1],                    
     }
     socket.emit("clientUpdate",msg)
     startupDiv.style.display = "none"
@@ -160,21 +161,15 @@ window.onmousemove = function(e){
     const y0 = canvas.height
     mouseX = (e.offsetX-x0)*100/canvas.height
     mouseY = (y0 - e.offsetY)*100/canvas.height
+    const mouseGraphX = (mouseX - graphX)/graphWidth
+    choice[stage] = Math.max(0,Math.min(1,mouseGraphX))
+    prob[stage] = Math.max(minProb[stage],choice[stage])
+    cost[stage] = prob[stage]*maxCost[stage]
+    selectProb = prob[stage]    
 }
 window.onmousedown = function(e){
     mouseDown = true
-    var xRatio = Math.max(0,Math.min(1,e.offsetX/window.innerWidth))
-    console.log("State:",state)
-    console.log("Stage:",stage)
-    choice[stage] = xRatio
-    prob[stage] = Math.max(minProb[stage],choice[stage])
-    cost[stage] = prob[stage]*maxCost[stage]
-    console.log("Choice",choice)
-    console.log("minProb",minProb)
-    console.log("Prob:",prob)       // issue: prob not kept over stages
-    console.log("maxCost:",maxCost)  
-    console.log("cost:",cost)       
-    selectProb = prob[stage]
+    console.log("Choice",choice)   
 }
 window.onmouseup = function(e){
     mouseDown = false
@@ -209,28 +204,57 @@ setupCanvas = function(){
 drawInterface = function(){
     setupCanvas()
     context.clearRect(0,0,canvas.width,canvas.height)    
-    context.textAlign = "center"
-    context.textBaseline = "bottom"
-    context.font = titleFont   
-    context.fillText(`Period ${period} - Stage 1`, graphX+0.5*graphWidth, graphY-graphHeight)      
+    drawTop()
     drawGraph()
-    /*
-    drawLines(context,maxCost1,1,minProb1)
-    drawAxisLabels(context,1) 
-    context.textAlign = "left"
-    context.textBaseline = "middle"
-    context.font = feedbackFont
-    context.fillText(`Your probability of receiving ticket 1: `, graphX, graphY+15)   
-    context.fillStyle = "green" 
-    context.fillText(`${(prob[1]*100).toFixed(0)}%`, graphX+graphWidth*0.65, graphY+15) 
-    context.fillStyle = "black"    
-    context.fillText(`Your cost in stage 1: `, graphX, graphY+17.5)
-    context.fillStyle = "red"      
-    context.fillText(`$${cost[1].toFixed(2)}`,  graphX+graphWidth*0.35, graphY+17.5)
+}
+drawTop = function(){
+    context.strokeStyle = "black"
+    context.lineWidth = 0.25
+    context.beginPath()
+    context.moveTo(graphX,lineY)
+    context.lineTo(graphX+graphWidth,lineY) 
+    context.stroke()
+    const numTicks = 6
+    const tickLength = 2
+    const tickSpace = 1    
+    context.font = tickFont
     context.textAlign = "center"
-    context.fillStyle = "black"
-    context.fillText(`Countdown: ${countdown}`, graphX+graphWidth/2, graphY+32)
-    */
+    context.textBaseline = "top"
+    arange(numTicks).forEach(i => {
+        const weight = i/(numTicks-1)
+        const x = (1-weight)*graphX+weight*(graphX+graphWidth)
+        const yTop = lineY-tickLength
+        const yBottom = lineY+tickLength
+        context.beginPath()
+        context.moveTo(x,yTop)
+        context.lineTo(x,yBottom) 
+        context.stroke()  
+        const xProbLabel = weight
+        const xCostLabel = weight*maxCost[1]
+        context.textBaseline = "top"
+        context.fillText(xProbLabel,x,yBottom+tickSpace)
+        context.textBaseline = "bottom"
+        context.fillText(xCostLabel,x,yTop-tickSpace)    
+    })
+    context.font = labelFont
+    context.textBaseline = "bottom"
+    context.fillStyle = "rgb(213,94,0)"
+    context.fillText("Cost 1",graphX+graphWidth*prob[1],lineY-tickLength-tickSpace-2.5)
+    context.textBaseline = "top"
+    context.fillText("Probability 1",graphX+graphWidth*prob[1],lineY+tickLength+tickSpace+2.5)
+    context.beginPath()
+    context.arc(graphX+graphWidth*prob[1],lineY,2.5,0,2*Math.PI)
+    context.fill()
+    context.fillStyle = "rgb(0,158,115)"
+    context.fillText("Minimum Probability 1",graphX+graphWidth*minProb[1],lineY+tickLength+tickSpace+5)
+    context.beginPath()
+    context.arc(graphX+graphWidth*minProb[1],lineY,1.5,0,2*Math.PI)
+    context.fill()
+    context.fillStyle = "rgb(0,114,178)"
+    context.fillText("Choice 1",graphX+graphWidth*choice[1],lineY+tickLength+tickSpace+7.5)
+    context.beginPath()
+    context.arc(graphX+graphWidth*choice[1],lineY,1,0,2*Math.PI)
+    context.fill()
 }
 drawGraph = function(){
     context.strokeStyle = "black"
