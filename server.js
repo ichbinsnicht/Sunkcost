@@ -30,7 +30,10 @@ var dataStream = {}
 var dateString = ""
 
 // TODO
-// - create gfx without feedback stage
+// - don't track data files in Github push
+// - create stage 2 gfx
+// - separate stage 1 and stage 2 in gfx
+// - separate stage 1 and stage 2 in mouse input
 // - generate audio-file for instructions (at the end)
 // ------------------------------------------------------------------------------
 // - schedule (flight) time/funding (funding from VCU) for experiment at VCU or do it Harvard (MH)
