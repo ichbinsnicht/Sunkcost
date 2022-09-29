@@ -9,8 +9,8 @@ var choose = x => x[Math.floor(Math.random()*x.length)]
 
 // parameters
 const numPeriods  = 1
-const stage1Length = 10000
-const stage2Length = 5
+const stage1Length = 10
+const stage2Length = 100000
 const outcomeLength = 5
 const timestep    = 1
 const endowment = 20
@@ -30,7 +30,6 @@ var dataStream = {}
 var dateString = ""
 
 // TODO
-// - don't track data files in Github push
 // - create stage 2 gfx
 // - separate stage 1 and stage 2 in gfx
 // - separate stage 1 and stage 2 in mouse input
