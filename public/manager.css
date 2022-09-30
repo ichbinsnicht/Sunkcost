@@ -34,10 +34,3 @@ button {
     margin-top: 0vh;
     width: 50vw;
 }
-#treatmentDiv {
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: 0;
-    text-align: left;
-    width: fit-content;
-}

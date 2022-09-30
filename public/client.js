@@ -14,7 +14,7 @@ var arange = n => [...Array(n).keys()]
 const yMax = 10
 const graphWidth = 70
 const graphX = 0.5*(100-graphWidth)
-const graphHeight = 60
+const graphHeight = 50
 const graphY = -15
 const lineY = -90
 const tickFont = "1.5pt monospace"
@@ -65,8 +65,16 @@ socket.on("connected", function(msg){
 })
 socket.on("clientJoined",function(msg){
     console.log(`client ${msg.id} joined`)
-    joined = true
-    setInterval(update, 10)    
+    joined = true 
+    period = msg.period
+    hist = msg.hist
+    choice = hist[period].choice
+    prob = hist[period].prob
+    cost = hist[period].cost
+    minProb = hist[period].minProb
+    maxCost = hist[period].maxCost
+    console.log("hist",hist)
+    setInterval(update, 10)
 })
 socket.on("serverUpdateClient", function(msg){
     if(period != msg.period){
@@ -209,9 +217,10 @@ setupCanvas = function(){
 }
 drawInterface = function(){
     setupCanvas()
-    context.clearRect(0,0,canvas.width,canvas.height)    
+    context.clearRect(0,0,canvas.width,canvas.height)   
     drawTop()
-    drawBottom()
+    if(stage==1) drawStage1Text()
+    if(stage==2) drawBottom()
 }
 drawTop = function(){
     context.fillStyle = "rgb(0,0,0)"
@@ -227,41 +236,67 @@ drawTop = function(){
     context.font = tickFont
     context.textAlign = "center"
     context.textBaseline = "top"
+    if(stage==2){
+        arange(numTicks).forEach(i => {
+            const weight = i/(numTicks-1)
+            const x = (1-weight)*graphX+weight*(graphX+graphWidth)
+            const yTop = lineY-tickLength
+            context.beginPath()
+            context.moveTo(x,lineY)
+            context.lineTo(x,yTop) 
+            context.stroke()
+            const xCostLabel = weight*maxCost[1]
+            context.textBaseline = "bottom"
+            context.fillText(xCostLabel,x,yTop-tickSpace)    
+        })
+    }
     arange(numTicks).forEach(i => {
         const weight = i/(numTicks-1)
         const x = (1-weight)*graphX+weight*(graphX+graphWidth)
         const yTop = lineY-tickLength
         const yBottom = lineY+tickLength
         context.beginPath()
-        context.moveTo(x,yTop)
+        context.moveTo(x,lineY)
         context.lineTo(x,yBottom) 
         context.stroke()  
         const xProbLabel = weight
-        const xCostLabel = weight*maxCost[1]
         context.textBaseline = "top"
         context.fillText(xProbLabel,x,yBottom+tickSpace)
-        context.textBaseline = "bottom"
-        context.fillText(xCostLabel,x,yTop-tickSpace)    
     })
     context.font = labelFont
-    context.textBaseline = "bottom"
-    context.fillStyle = "rgb(213,94,0)"
-    context.fillText("Cost 1",graphX+graphWidth*prob[1],lineY-tickLength-tickSpace-2.5)
-    context.textBaseline = "top"
-    context.fillText("Probability 1",graphX+graphWidth*prob[1],lineY+tickLength+tickSpace+2.5)
-    context.beginPath()
-    context.arc(graphX+graphWidth*prob[1],lineY,2.5,0,2*Math.PI)
-    context.fill()
-    context.fillStyle = "rgb(0,158,115)"
-    context.fillText("Minimum Probability 1",graphX+graphWidth*minProb[1],lineY+tickLength+tickSpace+5)
-    context.beginPath()
-    context.arc(graphX+graphWidth*minProb[1],lineY,1.5,0,2*Math.PI)
-    context.fill()
+    if(stage==2){
+        context.textBaseline = "top"
+        context.fillStyle = "rgb(213,94,0)"
+        context.fillText("Bound",graphX+graphWidth*minProb[1],lineY+tickLength+tickSpace+5)
+        context.beginPath()
+        context.arc(graphX+graphWidth*minProb[1],lineY,2.5,0,2*Math.PI)
+        context.fill()        
+        context.fillStyle = "rgb(0,158,115)"
+        context.textBaseline = "bottom"
+        context.fillText("Cost 1",graphX+graphWidth*prob[1],lineY-tickLength-tickSpace-2.5)
+        context.textBaseline = "top"
+        context.fillText("Probability 1",graphX+graphWidth*prob[1],lineY+tickLength+tickSpace+2.5)
+        context.beginPath()
+        context.arc(graphX+graphWidth*prob[1],lineY,1.5,0,2*Math.PI)
+        context.fill()
+    }
     context.fillStyle = "rgb(0,114,178)"
+    context.textBaseline = "top"
     context.fillText("Choice 1",graphX+graphWidth*choice[1],lineY+tickLength+tickSpace+7.5)
     context.beginPath()
     context.arc(graphX+graphWidth*choice[1],lineY,1,0,2*Math.PI)
     context.fill()
+}
+drawStage1Text = function(){
+    context.fillStyle = "black"
+    context.textBaseline = "top"
+    context.textAlign = "center"
+    const choice1String = choice[1].toFixed(2)
+    context.fillText(`Choice 1: ${choice1String}`,graphX+0.5*graphWidth,lineY+20)
+    const line1 = "You are currently selecting Choice 1"
+    const line2 = "Your Bound will be a randomly selected number."
+    const line3 = "Probability 1 is your probability of receiving ticket 1."
+    const line4 = "Probability 1 will equal the maximum of your Choice 1 and your Bound."
 }
 drawBottom = function(){
     context.fillStyle = "rgb(0,0,0)"
@@ -277,7 +312,7 @@ drawBottom = function(){
     drawBottomLabelsLeftY()
     drawBottomLabelsRightY()
     context.fillStyle = "rgb(0,0,0)"
-    context.strokeStyle = "rgb(213,94,0)"
+    context.strokeStyle = "rgb(0,158,115)"
     context.lineWidth = 1
     context.lineCap = "round"
     context.beginPath()

@@ -9,7 +9,7 @@ var choose = x => x[Math.floor(Math.random()*x.length)]
 
 // parameters
 const numPeriods  = 1
-const stage1Length = 10
+const stage1Length = 100000
 const stage2Length = 100000
 const outcomeLength = 5
 const timestep    = 1
@@ -103,12 +103,9 @@ writePaymentFile = function(){
   fs.writeFile(`data/payment-${dateString}.csv`,csvString,logError)
 }
 
-// socket - line of communication between client and server
-// listener - similar to continuous if statement
-// connection is an event
 io.on("connection",function(socket){
   socket.emit("connected")
-  socket.on("showInstructions", function(msg){  // callback function; msg from manager, change state on server
+  socket.on("showInstructions", function(msg){
     console.log(`showInstructions`)
     if(state == "startup") state = "instructions"
   })
@@ -150,12 +147,14 @@ io.on("connection",function(socket){
       socket.emit("serverUpdateClient",reply)
     } else {
       if(!subjects[msg.id]) createSubject(msg.id,socket)
-      socket.emit("clientJoined",{id : msg.id})
+      socket.emit("clientJoined",{id: msg.id})
     }
   })
   socket.on("joinGame", function(msg){
+    console.log("joinGame",msg.id)
     if(!subjects[msg.id]) createSubject(msg.id,socket)
-    socket.emit("clientJoined",{id : msg.id})
+    console.log("subjects[msg.id].hist",subjects[msg.id].hist)
+    socket.emit("clientJoined",{id: msg.id, hist: subjects[msg.id].hist, period})
   })
 })
 
@@ -172,10 +171,10 @@ shuffle = function(array){
     .map(x => x.value)
   return shuffled
 }
-// subject append (socket-id characteristics are getting appended to list)
+
 createSubject = function(id, socket){
-  numSubjects += 1            // add 1 to the number of subjects
-  subjects[id] = {            // add subject at a particular id
+  numSubjects += 1
+  subjects[id] = {
     id: id,
     socket: socket,
     choice1: 0,
@@ -188,14 +187,14 @@ createSubject = function(id, socket){
     totalCost: 0,
     earnings: 0,
     hist: {},
-    maxCost1,                 // todo: pass to client
+    maxCost1,
   }
   arange(numPeriods).forEach(i => {
     subjects[id].hist[i+1] = {
       choice: {1:0,2:0},
       prob: {1:0,2:0},      
       cost: {1:0,2:0},
-      minProb: {1:choose([0,potMinProb1]),2:0},
+      minProb: {1:Math.random()*potMinProb1,2:0},
       maxCost: {1:maxCost1,2:choose([maxCost2Low,maxCost2High])},
     }
   })
