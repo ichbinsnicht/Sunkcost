@@ -31,7 +31,9 @@ var dataStream = {}
 var dateString = ""
 
 // TODO
+// - use Enter key for client login
 // - generate audio-file for instructions (at the end)
+// - play audio file on the manager
 // ------------------------------------------------------------------------------
 // - schedule (flight) time/funding (funding from VCU) for experiment at VCU
 // - test coding in lab @VCU
