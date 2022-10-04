@@ -9,8 +9,9 @@ var choose = x => x[Math.floor(Math.random()*x.length)]
 
 // parameters
 const numPeriods  = 1
-const stage1Length = 100000
-const stage2Length = 100000
+const stage1Length = 5
+const stage2Length = 5
+const stage3Length = 100000
 const outcomeLength = 5
 const timestep    = 1
 const endowment = 20
@@ -30,22 +31,12 @@ var dataStream = {}
 var dateString = ""
 
 // TODO
-// - create stage 2 gfx
-// - separate stage 1 and stage 2 in gfx
-// - separate stage 1 and stage 2 in mouse input
 // - generate audio-file for instructions (at the end)
 // ------------------------------------------------------------------------------
-// - schedule (flight) time/funding (funding from VCU) for experiment at VCU or do it Harvard (MH)
-// - test coding in lab @Harvard and VCU
-
-// variable for current dir: __dirname, server only shares stuff from public
-// express builts server based on public folder 
+// - schedule (flight) time/funding (funding from VCU) for experiment at VCU
+// - test coding in lab @VCU
 
 app.use(express.static(__dirname + "/public"))
-
-// get has a call back (take function and pass it on to another program)
-// req - request
-// res - result
 app.get("/",function(req,res){    // body of function
   res.sendFile(__dirname + "/public/client.html")
 })
@@ -153,7 +144,6 @@ io.on("connection",function(socket){
   socket.on("joinGame", function(msg){
     console.log("joinGame",msg.id)
     if(!subjects[msg.id]) createSubject(msg.id,socket)
-    console.log("subjects[msg.id].hist",subjects[msg.id].hist)
     socket.emit("clientJoined",{id: msg.id, hist: subjects[msg.id].hist, period})
   })
 })
@@ -187,7 +177,6 @@ createSubject = function(id, socket){
     totalCost: 0,
     earnings: 0,
     hist: {},
-    maxCost1,
   }
   arange(numPeriods).forEach(i => {
     subjects[id].hist[i+1] = {
@@ -207,15 +196,14 @@ update = function(){
     stage = 2
   }
   if(state == "interface" && stage == 2 && countdown <= 0) {
-    countdown = outcomeLength
-    state = "outcome"
-    updateDataFile()
+    countdown = stage3Length
+    stage = 3
   }
-  if(state == "outcome" && countdown <= 0) {
-    countdown = outcomeLength
-    state = "outcome"
+  if(state == "interface" && stage == 3 && countdown <= 0) {
+    updateDataFile()
     if(period>=numPeriods){
       state = "end" 
+      countdown = 0
       arange(numSubjects).forEach(i => {
         const subject = subjects[i+1]
         subject.outcomePeriod = choose(arange(numPeriods))+1
@@ -230,10 +218,10 @@ update = function(){
       writePaymentFile()
       console.log("Session Complete")
     } else{
+      countdown = stage1Length
       period += 1
       state = "interface"
       stage = 1
-      countdown = stage1Length
      } 
-  }  
+  }
 }

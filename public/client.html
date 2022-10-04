@@ -12,26 +12,17 @@
         </div>
         <div id="pleaseWaitDiv">Please Wait</div>        
         <div id="instructionsDiv">
-            <div id="instructionsTitleDiv">Instructions</div><br><br>
-
             This is an experiment about individual decision making. If you pay attention to these instructions, you can earn a significant amount of money. If you have any questions, raise your hand and we will come to assist you. Your earnings will depend on the decisions you make during the experiment.<br><br>
 
-            At the beginning of the experiment, you will receive an endowment of $20. At the end of the experiment, you may win a $12 Starbucks gift card. <br><br>
+            At the beginning of the experiment, you will receive an endowment of $20.<br> 
+            At the end of the experiment, you may win a $12 Starbucks gift card. <br><br>
             
-            This experiment will consist of several periods. Each period has two stages:<br><br>
+            This experiment will consist of several periods. Each period has two stages. In each stage you will have some probability of getting a ticket. <br><br>
             <div style="padding-left: 5vh">
-                In stage 1, you will choose your probability of receiving ticket 1. Your stage 1 cost will depend on this probability.<br>
-                In stage 2, you will choose your probability of receiving ticket 2. Your stage 2 cost will depend on this probability. <br><br>
-                Your will win the $12 Starbucks gift card in this period if you receive both tickets in this period. Your total cost for this period is equal to the sum of your stage 1 cost and your stage 2 cost in this period. <br><br>
+                In stage 1, you will choose a number from 0 to 1. Your bound will be a randomly selected number. Your bound will not be revealed until stage 1 is over. Your probability of receiving a ticket in stage 1 will be the maximum of your bound and the number you choose in stage 1. Your cost in stage 1 will be your probability of receiving a ticket in stage 1 times $5.<br><br>
+                In stage 2, you will choose another number from 0 to 1. Your probability of receiving a ticket in stage 2 will be the number you choose in stage 2. Your marginal cost in stage 2 will be a randomly selected number. Your marginal cost will be revealed at the beginning of stage 2. Your cost in stage 2 will be your probability of receiving a ticket in stage 2 times your marginal cost in stage 2.<br><br>
             </div>
-            Your probability of winning the $12 Starbucks gift card will equal to your probability of getting ticket 1 multiplied by your probability of getting ticket 2. For example: <br><br>
-            <div style="padding-left: 5vh">
-                If you choose a 50% probability in stage 1 and an 80% probability in stage 2, then your probability of winning the $12 Starbucks gift card would be 40%. <br>
-                If you choose a 60% probability in stage 1 and a 25% probability in stage 2, then your probability of winning the $12 Starbucks gift card would be 15%.<br><br> 
-            </div>
-            At the end of the experiment, one period will be randomly selected. Then you will find out whether you received ticket 1 and whether you received ticket 2 in this period. If you received both tickets, you will win the $12 Starbucks gift card. You will also receive $20 minus your total cost from the selected period in cash.<br><br>
-
-
+            At the end of the experiment one period will be randomly selected. If you receive both tickets in the randomly selected period, then you will win the $12 Starbucks giftcard. You will also receive your $20 endowment minus your total cost from both stages in the randomly selected period. <br><br>
         </div>
         <div id="interfaceDiv"><canvas id="canvas"></canvas></div>
         <div id="outcomeDiv"></div>        

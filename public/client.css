@@ -20,16 +20,13 @@ body {
 #instructionsDiv {
     display: none;
     text-align: justify;      
-    font: 2vmin monospace;    
+    font: 3vmin monospace;    
     border: 0;
-    padding-top: 10;
+    padding-top: 50;
     padding-left: 100;
     padding-right: 100;
     margin: 0;
     float: right;  
-}
-#instructionsTitleDiv{
-    text-align: center;
 }
 #idInput{
     font: 10vmin monospace;

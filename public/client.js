@@ -15,11 +15,11 @@ const yMax = 10
 const graphWidth = 70
 const graphX = 0.5*(100-graphWidth)
 const graphHeight = 50
-const graphY = -15
+const graphY = -10
 const lineY = -90
 const tickFont = "1.5pt monospace"
 const labelFont = "2pt monospace"
-const feedbackFont = "1.5pt monospace"
+const feedbackFont = "3pt monospace"
 const titleFont = "3pt monospace"
 const fullRange = true
 
@@ -57,9 +57,6 @@ document.onmousedown = function(event){
     socket.emit("clientClick",msg)
 }
 
-// 100 ms interval to send message 
-// interval should be higher than ping/latency
-// interval motivated by concepts such as  latency, ping
 socket.on("connected", function(msg){
     console.log(`connected`)
 })
@@ -186,23 +183,11 @@ window.onmouseup = function(e){
     mouseDown = false
 }
 
-/*
-state: choice1
-        stage 1 axis horizontal: choice1, cost1, minprob1, prob1
-state: choice2
-        stage 2 axis vertical: totalprob
-        stage 2 axis horizontal: totalcost
-        stage 2 label below figure: totalpayment,totalprob
-state: outcome
-        win
-        totalpayment
-*/
-
 draw = function(){
     requestAnimationFrame(draw)
     if(state=="interface"){
         drawInterface() 
-        updateChoice()
+        if(stage<3) updateChoice()
     }
 }
 setupCanvas = function(){
@@ -218,9 +203,10 @@ setupCanvas = function(){
 drawInterface = function(){
     setupCanvas()
     context.clearRect(0,0,canvas.width,canvas.height)   
-    drawTop()
+    if(stage<3) drawTop()
     if(stage==1) drawStage1Text()
     if(stage==2) drawBottom()
+    if(stage==3) drawFeedback()
 }
 drawTop = function(){
     context.fillStyle = "rgb(0,0,0)"
@@ -292,16 +278,34 @@ drawStage1Text = function(){
     context.textBaseline = "top"
     context.textAlign = "center"
     const choice1String = choice[1].toFixed(2)
+    context.fillText(`Countdown: ${countdown}`,graphX+0.5*graphWidth,lineY+14)
     context.fillText(`Choice 1: ${choice1String}`,graphX+0.5*graphWidth,lineY+20)
     const line1 = "You are currently selecting Choice 1"
-    const line2 = "Your Bound will be a randomly selected number."
-    const line3 = "Probability 1 is your probability of receiving ticket 1."
+    const line2 = "Probability 1 is your probability of receiving ticket 1."    
+    const line3 = "Your Bound will be a randomly selected number."
     const line4 = "Probability 1 will equal the maximum of your Choice 1 and your Bound."
+    const line5 = `Your Cost 1 will be equal to ${maxCost[1].toFixed(2)} times Probability 1.`
+    const line6 = "In the next stage you will choose Probability 2"
+    const line7 = "Your Marginal Cost will be a randomly selected number."
+    const line8 = `Your Cost 2 will be equal to Marginal Cost times Probability 2.`
+    const line9 = `Your Total Cost is Cost 1 plus Cost 2.`
+    const line10 = "Your probability of winning the prize will be will Probability 1 times Probability 2."
+    context.fillText(line1,graphX+0.5*graphWidth,lineY+30+4)
+    context.fillText(line2,graphX+0.5*graphWidth,lineY+34+4)
+    context.fillText(line3,graphX+0.5*graphWidth,lineY+38+4)
+    context.fillText(line4,graphX+0.5*graphWidth,lineY+42+4)
+    context.fillText(line5,graphX+0.5*graphWidth,lineY+46+4)
+    context.fillText(line6,graphX+0.5*graphWidth,lineY+50+4)
+    context.fillText(line7,graphX+0.5*graphWidth,lineY+54+4)
+    context.fillText(line8,graphX+0.5*graphWidth,lineY+58+4)
+    context.fillText(line9,graphX+0.5*graphWidth,lineY+62+4)
+    context.fillText(line10,graphX+0.5*graphWidth,lineY+66+4)
 }
 drawBottom = function(){
     context.fillStyle = "rgb(0,0,0)"
     context.strokeStyle = "black"
     context.lineWidth = 0.25
+    context.fillText(`Countdown: ${countdown}`,graphX+0.5*graphWidth,lineY+14)
     context.beginPath()
     context.moveTo(graphX,graphY-graphHeight)
     context.lineTo(graphX,graphY)
@@ -323,6 +327,10 @@ drawBottom = function(){
     context.beginPath()
     context.arc(graphX+graphWidth*prob[2],graphY-graphHeight*prob[1]*prob[2],1.5,0,2*Math.PI)
     context.fill() 
+    context.fillStyle = "rgb(0,0,0)"
+    context.textAlign = "center"
+    context.fillText(`Probability 1: ${prob[1].toFixed(2)}      Probability 2: ${prob[2].toFixed(2)}`,graphX+0.5*graphWidth,lineY+20)
+    context.fillText(`Total Cost: ${(cost[1]+cost[2]).toFixed(2)}    Winning Probability: ${(prob[1]*prob[2]).toFixed(2)}`,graphX+0.5*graphWidth,lineY+24)
 }
 drawBottomLabelsX = function(){
     const numTicks = 6
@@ -346,9 +354,9 @@ drawBottomLabelsX = function(){
         context.fillText(xProbLabel,x,yBottom+tickSpace) 
     })
     context.font = labelFont
-    context.fillStyle = "rgb(0,114,178)"
+    context.fillStyle = "rgb(0,158,115)"
     context.textBaseline = "top"
-    context.fillText("Choice 2",graphX+graphWidth*prob[2],graphY+tickLength+tickSpace+2.5)
+    context.fillText("Probability 2",graphX+graphWidth*prob[2],graphY+tickLength+tickSpace+2.5)
 }
 drawBottomLabelsLeftY = function(){
     const numTicks = 6
@@ -373,7 +381,7 @@ drawBottomLabelsLeftY = function(){
         context.fillText(yCostLabel,graphX-tickLength-tickSpace,y) 
     })
     context.font = labelFont
-    context.fillStyle = "rgb(0,114,178)"
+    context.fillStyle = "rgb(0,158,115)"
     context.textBaseline = "middle"
     context.textAlign = "right"
     context.fillText("Total Cost",graphX-tickLength-tickSpace-6,graphY-graphHeight*prob[1]*prob[2])
@@ -401,9 +409,22 @@ drawBottomLabelsRightY = function(){
         context.fillText(yCostLabel,graphX+graphWidth+tickLength+tickSpace,y) 
     })
     context.font = labelFont
-    context.fillStyle = "rgb(0,114,178)"
+    context.fillStyle = "rgb(0,158,115)"
     context.textBaseline = "middle"
     context.textAlign = "left"
     context.fillText("Winning Probability",graphX+graphWidth+tickLength+tickSpace+6,graphY-graphHeight*prob[1]*prob[2])
+}
+drawFeedback = function(){
+    context.fillStyle = "rgb(0,0,0)"
+    context.textAlign = "center"
+    context.strokeStyle = "black"
+    context.font = feedbackFont
+    context.lineWidth = 0.25
+    const line1 = "If this stage is randomly selected at the end of the experiment: "
+    const line2 = `You will have a ${(prob[1]*prob[2]*100).toFixed(0)}% chance of winning the prize.`
+    const line3 = `You will pay a total cost of $${(cost[1]+cost[2]).toFixed(2)} out of your endowment.`
+    context.fillText(line1,graphX+0.5*graphWidth,lineY+24)
+    context.fillText(line2,graphX+0.5*graphWidth,lineY+34)
+    context.fillText(line3,graphX+0.5*graphWidth,lineY+42)
 }
 draw()
