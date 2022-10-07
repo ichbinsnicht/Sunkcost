@@ -8,16 +8,15 @@ var arange = x => [...Array(x).keys()]
 var choose = x => x[Math.floor(Math.random()*x.length)]
 
 // parameters
-const numPeriods  = 1
+const numPeriods  = 3   // 10 periods
 const stage1Length = 5
 const stage2Length = 5
-const stage3Length = 100000
-const outcomeLength = 5
-const timestep    = 1
+const stage3Length = 3
+const timestep = 1
 const endowment = 20
-const maxCost1 = 5                           // marginal cost of the probability in period 1
-const maxCost2High = 10                       // cost2 = sunk cost in period 2 (high cost shock)
-const maxCost2Low = 5                        // calibrate the high costs!
+const maxCost1 = 5      // marginal cost of the probability in period 1
+const maxCost2Low = 1   // calibrate the high costs!
+const maxCost2High = 5  // cost2 = sunk cost in period 2 (high cost shock)
 const potMinProb1 = 0.5
 
 // variables
@@ -31,9 +30,10 @@ var dataStream = {}
 var dateString = ""
 
 // TODO
-// - use Enter key for client login
-// - generate audio-file for instructions (at the end)
-// - play audio file on the manager
+// - $12 gift certificate. How can we get it? Bulk discount feasible?
+// - What is the value of a $12 gift card? Literature?
+// - check data recording
+// - greying out the choice 1 interval below the bound in stage 2
 // ------------------------------------------------------------------------------
 // - schedule (flight) time/funding (funding from VCU) for experiment at VCU
 // - test coding in lab @VCU

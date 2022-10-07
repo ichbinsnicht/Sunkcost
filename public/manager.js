@@ -1,6 +1,7 @@
 var infoDiv = document.getElementById("infoDiv")
 var subjectsTable = document.getElementById("subjectsTable")
-socket = io()                   //client IO
+var audio = new Audio("instructions.mp3")               // new instance of Audio class
+socket = io()
 
 var numSubjects = 0
 var ids = []
@@ -27,11 +28,23 @@ showInstructions = function() {
     msg = {}
     socket.emit("showInstructions",msg)
 }
+playAudio = function(){
+    if (state=="instructions") audio.play()
+    else alert("Show instructions first!")
+}
+stopAudio = function(){
+    if (state=="instructions") {
+         audio.pause()
+        audio.currentTime = 0
+    } else {
+        alert("Show instructions first!")
+    }
+}
 startExperiment = function(){
-    if(state=="instructions"){
+    if (state=="instructions"){
         console.log("Start experiment")
         socket.emit("startExperiment")    
-    }else{
+    } else {
         alert("Show instructions first!")
     }
 }

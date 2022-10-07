@@ -4,6 +4,7 @@ var idInput = document.getElementById("idInput")
 var pleaseWaitDiv = document.getElementById("pleaseWaitDiv")
 var interfaceDiv = document.getElementById("interfaceDiv")
 var outcomeDiv = document.getElementById("outcomeDiv")
+var idInput = document.getElementById("idInput")
 var canvas = document.getElementById("canvas")
 var context = canvas.getContext("2d")
 
@@ -48,6 +49,8 @@ var hist = {}
 var message = {}
 var selectProb = 0
 var mouseEvent = {x:0,y:0}
+var earnings = 0
+var winPrize = 0
 
 document.onmousedown = function(event){
     msg = {
@@ -132,29 +135,15 @@ update = function(){
     if(joined&&state=="interface"){
         interfaceDiv.style.display = "block"
     }
-    if(joined&&state=="outcome"){
-        var ticket1Message = winTicket1 ? "received" : "did not receive" 
-        var ticket2Message = winTicket2 ? "received" : "did not receive"
-        var prizeMessage = winPrize ? "will" : "will not"  
-        var text = ""
-        text += `Period ${outcomePeriod} was randomly selected. <br><br><br><br>`
-        text += `&nbsp; You ${ticket1Message} ticket 1.<br><br>`
-        text += `&nbsp; You ${ticket2Message} ticket 2.<br><br>`
-        text += `&nbsp; You <b>${prizeMessage}</b> receive the prize.<br><br><br><br>`
-        //text += `&nbsp; Your total cost was <font color="red">${totalCost.toFixed(2)}</font><br><br>`
-        text += `&nbsp; Your final payment will be <b>$${earnings.toFixed(2)}</b>.<br><br><br><br>`
-        text += `Please wait while we prepare your payment.` 
-        outcomeDiv.innerHTML = text
-        outcomeDiv.style.display = "block"
-    }    
     if(joined&&state=="end"){
+        interfaceDiv.style.display = "block"
     }
 }
 joinGame = function(){
     id = parseInt(idInput.value)
+    console.log(`subjectId`, id)
     if (id>0) {
         console.log(`joinGame`)
-        console.log(`subjectId`, id)
         msg = {id}
         socket.emit("joinGame",msg)
     } else {
@@ -182,13 +171,19 @@ window.onmousedown = function(e){
 window.onmouseup = function(e){
     mouseDown = false
 }
+window.onkeydown = function(e){
+    if(e.key=="Enter" && state =="startup") joinGame()
+}
 
 draw = function(){
     requestAnimationFrame(draw)
+    setupCanvas()
+    context.clearRect(0,0,canvas.width,canvas.height)   
     if(state=="interface"){
         drawInterface() 
         if(stage<3) updateChoice()
     }
+    if(state=="end") drawOutcome()
 }
 setupCanvas = function(){
     xScale = 1*window.innerWidth
@@ -201,8 +196,6 @@ setupCanvas = function(){
     //console.log("setupCanvas")
 }
 drawInterface = function(){
-    setupCanvas()
-    context.clearRect(0,0,canvas.width,canvas.height)   
     if(stage<3) drawTop()
     if(stage==1) drawStage1Text()
     if(stage==2) drawBottom()
@@ -426,5 +419,27 @@ drawFeedback = function(){
     context.fillText(line1,graphX+0.5*graphWidth,lineY+24)
     context.fillText(line2,graphX+0.5*graphWidth,lineY+34)
     context.fillText(line3,graphX+0.5*graphWidth,lineY+42)
+    const line4 = `Countdown: ${countdown}`
+    context.fillText(line4,graphX+0.5*graphWidth,lineY+60)
+}
+drawOutcome = function(){
+    console.log("drawOutcome")
+    context.fillStyle = "rgb(0,0,0)"
+    context.textAlign = "center"
+    context.strokeStyle = "black"
+    context.font = feedbackFont
+    context.lineWidth = 0.25
+    const line1 = "The experiment is complete"
+    const line2 = `Period ${outcomePeriod} was randomly selected`
+    const line3A = "You won the prize"
+    const line3B = "You did not win the prize"
+    const line3 = winPrize == 1 ? line3A : line3B
+    const line4 = `You earned $${earnings.toFixed(2)}`
+    const line5 = "Please wait while your payment is prepared"
+    context.fillText(line1,graphX+0.5*graphWidth,lineY+14)
+    context.fillText(line2,graphX+0.5*graphWidth,lineY+22)
+    context.fillText(line3,graphX+0.5*graphWidth,lineY+42)
+    context.fillText(line4,graphX+0.5*graphWidth,lineY+50)
+    context.fillText(line5,graphX+0.5*graphWidth,lineY+58)
 }
 draw()

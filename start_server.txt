@@ -1,2 +1,6 @@
 cmd
 node server.js
+
+
+////// creating audio
+wavenet: https://cloud.google.com/text-to-speech/docs/wavenet
