@@ -78,6 +78,11 @@ socket.on("clientJoined",function(msg){
 })
 socket.on("serverUpdateClient", function(msg){
     if(period != msg.period){
+        console.log("mouseEvent",mouseEvent)
+        console.log("period",period)
+        console.log("choice",choice)
+        console.log("prob",prob)
+        console.log("cost",cost)
         console.log(period,msg.period)
         cost = {1:0, 2:0}
         prob = {1:0, 2:0}
@@ -107,6 +112,7 @@ socket.on("clicked",function(msg){
 
 
 update = function(){
+    if(stage<3) updateChoice()
     var msg = {
         id,
         period,
@@ -159,14 +165,17 @@ updateChoice = function(){
     mouseX = (mouseEvent.offsetX-x0)*100/canvas.height
     mouseY = (y0 - mouseEvent.offsetY)*100/canvas.height
     const mouseGraphX = (mouseX - graphX)/graphWidth
-    choice[stage] = Math.max(0,Math.min(1,mouseGraphX))
-    prob[stage] = Math.max(minProb[stage],choice[stage])
-    cost[stage] = prob[stage]*maxCost[stage]
-    selectProb = prob[stage]  
+    if(stage<3){
+        choice[stage] = Math.max(0,Math.min(1,mouseGraphX))
+        prob[stage] = Math.max(minProb[stage],choice[stage])
+        cost[stage] = prob[stage]*maxCost[stage]
+        selectProb = prob[stage]  
+    }
 }
 window.onmousedown = function(e){
     mouseDown = true
     console.log("Choice",choice)   
+    console.log("Prob", prob)
 }
 window.onmouseup = function(e){
     mouseDown = false
@@ -179,10 +188,7 @@ draw = function(){
     requestAnimationFrame(draw)
     setupCanvas()
     context.clearRect(0,0,canvas.width,canvas.height)   
-    if(state=="interface"){
-        drawInterface() 
-        if(stage<3) updateChoice()
-    }
+    if(state=="interface") drawInterface() 
     if(state=="end") drawOutcome()
 }
 setupCanvas = function(){

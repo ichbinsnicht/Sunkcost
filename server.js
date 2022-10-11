@@ -32,7 +32,6 @@ var dateString = ""
 // TODO
 // - $12 gift certificate. How can we get it? Bulk discount feasible?
 // - What is the value of a $12 gift card? Literature?
-// - check data recording
 // - greying out the choice 1 interval below the bound in stage 2
 // ------------------------------------------------------------------------------
 // - schedule (flight) time/funding (funding from VCU) for experiment at VCU
@@ -70,22 +69,26 @@ getDateString = function(){
 createDataFile = function(){
   dateString = getDateString()
   dataStream = fs.createWriteStream(`data/data-${dateString}.csv`)
-  var csvString = "session,period,id,shock,prob1,prob2,cost1,cost2,endowment,"
-  csvString += "minProb1,maxCost2\n"
+  var csvString = "session,period,id,minProb1,minProb2,maxCost1,maxCost2,"
+  csvString += "choice1,choice2,prob1,prob2,cost1,cost2,endowment,"
+  csvString += "\n"
   dataStream.write(csvString)
 }
 updateDataFile = function(){
   var csvString = ""
   Object.values(subjects).forEach(subject => {
-    csvString += `${dateString},${period},${subject.id},${subject.hist[period].shock},`
+    csvString += `${dateString},${period},${subject.id},`
+    csvString += `${subject.hist[period].minProb[1]},${subject.hist[period].minProb[2]},`
+    csvString += `${subject.hist[period].maxCost[1]},${subject.hist[period].maxCost[2]},`
+    csvString += `${subject.hist[period].choice[1]},${subject.hist[period].choice[2]},`    
     csvString += `${subject.hist[period].prob[1]},${subject.hist[period].prob[2]},`
-    csvString += `${subject.hist[period].cost[1]},${subject.hist[period].cost[2]},${endowment},`
-    csvString += `${subject.hist[period].minProb1},${subject.hist[period].maxCost2}\n`
+    csvString += `${subject.hist[period].cost[1]},${subject.hist[period].cost[2]},`
+    csvString += `${endowment},`
+    csvString += "\n"
   })
   dataStream.write(csvString)
 }
 
-// selected period data
 writePaymentFile = function(){
   var csvString = "id,earnings,winPrize,outcomePeriod,winTicket1,winTicket2,totalCost,endowment\n"
   Object.values(subjects).forEach(subject => {
@@ -117,7 +120,7 @@ io.on("connection",function(socket){
   })
   socket.on("clientUpdate", function(msg){ // callback function; msg from client, send msg to client
     if(subjects[msg.id]){
-      if(period == msg.period && stage == msg.stage) {
+      if(period == msg.period && stage == msg.stage && stage<3) {
         subjects[msg.id].hist[msg.period].choice[msg.stage] = msg.currentChoice
         subjects[msg.id].hist[msg.period].prob[msg.stage] = msg.currentProb      
         subjects[msg.id].hist[msg.period].cost[msg.stage] = msg.currentCost
@@ -200,6 +203,15 @@ update = function(){
   if(state == "interface" && stage == 2 && countdown <= 0) {
     countdown = stage3Length
     stage = 3
+    console.log("period",period)
+    console.log("subjects[1]",subjects[1].id)
+    console.log("subjects[1].hist[1]",subjects[1].hist[1])
+    console.log("subjects[1].hist[2]",subjects[1].hist[2])
+    console.log("subjects[1].hist[3]",subjects[1].hist[3])
+    console.log("subjects[2]",subjects[2].id)
+    console.log("subjects[2].hist[1]",subjects[2].hist[1])
+    console.log("subjects[2].hist[2]",subjects[2].hist[2])
+    console.log("subjects[2].hist[3]",subjects[2].hist[3])    
   }
   if(state == "interface" && stage == 3 && countdown <= 0) {
     updateDataFile()
