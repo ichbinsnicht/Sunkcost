@@ -11,6 +11,21 @@ var context = canvas.getContext("2d")
 socket = io()       // browser based socket
 var arange = n => [...Array(n).keys()]
 
+var baseInstructionsString = `
+This is an experiment about individual decision making. If you pay attention to these instructions, you can earn a significant amount of money. If you have any questions, raise your hand and we will come to assist you. Your earnings will depend on the decisions you make during the experiment.<br><br>
+
+At the beginning of the experiment, you will receive an endowment of $20.<br> 
+At the end of the experiment, you may win a $15 Starbucks gift card. <br><br>
+
+This experiment will consist of several periods. Each period has two stages. In each stage you will have some probability of getting a ticket. <br><br>
+<div style="padding-left: 5vh">
+    In stage 1, you will choose a number from 0 to 1. Your bound will be a randomly selected number. Your bound will not be revealed until stage 1 is over. Your probability of receiving a ticket in stage 1 will be the maximum of your bound and the number you choose in stage 1. Your cost in stage 1 will be your probability of receiving a ticket in stage 1 times $5.<br><br>
+    In stage 2, you will choose another number from 0 to 1. Your probability of receiving a ticket in stage 2 will be the number you choose in stage 2. Your marginal cost in stage 2 will be a randomly selected number. Your marginal cost will be revealed at the beginning of stage 2. Your cost in stage 2 will be your probability of receiving a ticket in stage 2 times your marginal cost in stage 2.<br><br>
+</div>
+At the end of the experiment one period will be randomly selected. If you receive both tickets in the randomly selected period, then you will win the $15 Starbucks giftcard. You will also receive your $20 endowment minus your total cost from both stages in the randomly selected period. <br><br>`
+
+var readyInstructionsString = baseInstructionsString + `The experiment is about to begin. One of the following periods will be randomly selected to determine your final earnings and whether you receive the $15 Starbucks gift card.`
+
 // graphical parameters
 const yMax = 10
 const graphWidth = 70
@@ -40,6 +55,9 @@ var outcomePeriod = 1
 var outcomeRandom = [0,0]
 var period = 1
 var stage = 1
+var experimentStarted = false
+var practiceComplete = false
+var numPracticePeriods = 0
 var choice = {1:0,2:0}
 var prob = {1:0,2:0}
 var minProb = {1:0,2:0}
@@ -77,6 +95,10 @@ socket.on("clientJoined",function(msg){
     setInterval(update, 10)
 })
 socket.on("serverUpdateClient", function(msg){
+    if(state!=msg.state || numPracticePeriods!=msg.numPracticePeriods){
+        var practiceInstructionsString = baseInstructionsString + `First, you will participate in ${numPracticePeriods} practice periods. The practice periods will not affect your final earnings. They are just for practice.`
+        instructionsDiv.innerHTML = practiceComplete ? readyInstructionsString : practiceInstructionsString
+    }
     if(period != msg.period){
         console.log("mouseEvent",mouseEvent)
         console.log("period",period)
@@ -91,6 +113,9 @@ socket.on("serverUpdateClient", function(msg){
     message = msg
     state = msg.state
     stage = msg.stage
+    experimentStarted = msg.experimentStarted
+    practiceComplete = msg.practiceComplete
+    numPracticePeriods = msg.numPracticePeriods
     countdown = msg.countdown
     period = msg.period
     outcomePeriod = msg.outcomePeriod
@@ -230,7 +255,7 @@ drawTop = function(){
             context.moveTo(x,lineY)
             context.lineTo(x,yTop) 
             context.stroke()
-            const xCostLabel = weight*maxCost[1]
+            const xCostLabel = `$${weight*maxCost[1]}`
             context.textBaseline = "bottom"
             context.fillText(xCostLabel,x,yTop-tickSpace)    
         })
@@ -244,7 +269,7 @@ drawTop = function(){
         context.moveTo(x,lineY)
         context.lineTo(x,yBottom) 
         context.stroke()  
-        const xProbLabel = weight
+        const xProbLabel = `${weight*100}%`
         context.textBaseline = "top"
         context.fillText(xProbLabel,x,yBottom+tickSpace)
     })
@@ -267,7 +292,8 @@ drawTop = function(){
     }
     context.fillStyle = "rgb(0,114,178)"
     context.textBaseline = "top"
-    context.fillText("Choice 1",graphX+graphWidth*choice[1],lineY+tickLength+tickSpace+7.5)
+    const choice1Y = stage==1 ? 4 : 7.5
+    context.fillText("Choice 1",graphX+graphWidth*choice[1],lineY+tickLength+tickSpace+choice1Y)
     context.beginPath()
     context.arc(graphX+graphWidth*choice[1],lineY,1,0,2*Math.PI)
     context.fill()
@@ -276,19 +302,21 @@ drawStage1Text = function(){
     context.fillStyle = "black"
     context.textBaseline = "top"
     context.textAlign = "center"
-    const choice1String = choice[1].toFixed(2)
+    const choice1String = `${(choice[1]*100).toFixed(0)}%`
     context.fillText(`Countdown: ${countdown}`,graphX+0.5*graphWidth,lineY+14)
+    context.fillStyle = "rgb(0,114,178)"
     context.fillText(`Choice 1: ${choice1String}`,graphX+0.5*graphWidth,lineY+20)
+    context.fillStyle = "black"
     const line1 = "You are currently selecting Choice 1"
     const line2 = "Probability 1 is your probability of receiving ticket 1."    
     const line3 = "Your Bound will be a randomly selected number."
     const line4 = "Probability 1 will equal the maximum of your Choice 1 and your Bound."
-    const line5 = `Your Cost 1 will be equal to ${maxCost[1].toFixed(2)} times Probability 1.`
+    const line5 = `Your Cost 1 will be equal to $${maxCost[1].toFixed(2)} times Probability 1.`
     const line6 = "In the next stage you will choose Probability 2"
     const line7 = "Your Marginal Cost will be a randomly selected number."
     const line8 = `Your Cost 2 will be equal to Marginal Cost times Probability 2.`
     const line9 = `Your Total Cost is Cost 1 plus Cost 2.`
-    const line10 = "Your probability of winning the prize will be will Probability 1 times Probability 2."
+    const line10 = "Your probability of winning the $15 Starbucks gift card is Probability 1 times Probability 2."
     context.fillText(line1,graphX+0.5*graphWidth,lineY+30+4)
     context.fillText(line2,graphX+0.5*graphWidth,lineY+34+4)
     context.fillText(line3,graphX+0.5*graphWidth,lineY+38+4)
@@ -328,8 +356,8 @@ drawBottom = function(){
     context.fill() 
     context.fillStyle = "rgb(0,0,0)"
     context.textAlign = "center"
-    context.fillText(`Probability 1: ${prob[1].toFixed(2)}      Probability 2: ${prob[2].toFixed(2)}`,graphX+0.5*graphWidth,lineY+20)
-    context.fillText(`Total Cost: ${(cost[1]+cost[2]).toFixed(2)}    Winning Probability: ${(prob[1]*prob[2]).toFixed(2)}`,graphX+0.5*graphWidth,lineY+24)
+    context.fillText(`Probability 1: ${(prob[1]*100).toFixed(0)}%      Probability 2: ${(prob[2]*100).toFixed(0)}%`,graphX+0.5*graphWidth,lineY+20)
+    context.fillText(`Total Cost: $${(cost[1]+cost[2]).toFixed(2)}    Winning Probability: ${(prob[1]*prob[2]*100).toFixed(0)}%`,graphX+0.5*graphWidth,lineY+24)
 }
 drawBottomLabelsX = function(){
     const numTicks = 6
@@ -347,7 +375,7 @@ drawBottomLabelsX = function(){
         context.moveTo(x,yTop)
         context.lineTo(x,yBottom) 
         context.stroke()  
-        const xProbLabel = weight
+        const xProbLabel = `${weight*100}%`
         context.textBaseline = "top"
         context.textAlign = "center"
         context.fillText(xProbLabel,x,yBottom+tickSpace) 
@@ -374,7 +402,7 @@ drawBottomLabelsLeftY = function(){
         context.moveTo(xRight,y)
         context.lineTo(xLeft,y) 
         context.stroke()  
-        const yCostLabel = ((1-weight)*cost[1]+weight*(maxCost[1]+maxCost[2])).toFixed(2)
+        const yCostLabel = `$${((1-weight)*cost[1]+weight*(maxCost[1]+maxCost[2])).toFixed(2)}`
         context.textBaseline = "middle"
         context.textAlign = "right"
         context.fillText(yCostLabel,graphX-tickLength-tickSpace,y) 
@@ -402,7 +430,7 @@ drawBottomLabelsRightY = function(){
         context.moveTo(xRight,y)
         context.lineTo(xLeft,y) 
         context.stroke()  
-        const yCostLabel = weight.toFixed(2)
+        const yCostLabel = `${(weight*100).toFixed(0)}%`
         context.textBaseline = "middle"
         context.textAlign = "left"
         context.fillText(yCostLabel,graphX+graphWidth+tickLength+tickSpace,y) 
@@ -420,7 +448,7 @@ drawFeedback = function(){
     context.font = feedbackFont
     context.lineWidth = 0.25
     const line1 = "If this stage is randomly selected at the end of the experiment: "
-    const line2 = `You will have a ${(prob[1]*prob[2]*100).toFixed(0)}% chance of winning the prize.`
+    const line2 = `You will have a ${(prob[1]*prob[2]*100).toFixed(0)}% chance of winning the $15 Starbucks gift card.`
     const line3 = `You will pay a total cost of $${(cost[1]+cost[2]).toFixed(2)} out of your endowment.`
     context.fillText(line1,graphX+0.5*graphWidth,lineY+24)
     context.fillText(line2,graphX+0.5*graphWidth,lineY+34)
@@ -437,8 +465,8 @@ drawOutcome = function(){
     context.lineWidth = 0.25
     const line1 = "The experiment is complete"
     const line2 = `Period ${outcomePeriod} was randomly selected`
-    const line3A = "You won the prize"
-    const line3B = "You did not win the prize"
+    const line3A = "You won the $15 Starbucks gift card"
+    const line3B = "You did not win the $15 Starbucks gift card"
     const line3 = winPrize == 1 ? line3A : line3B
     const line4 = `You earned $${earnings.toFixed(2)}`
     const line5 = "Please wait while your payment is prepared"

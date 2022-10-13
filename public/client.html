@@ -11,19 +11,7 @@
             <button id="idSubmit" onclick="joinGame()">Submit</button>
         </div>
         <div id="pleaseWaitDiv">Please Wait</div>        
-        <div id="instructionsDiv">
-            This is an experiment about individual decision making. If you pay attention to these instructions, you can earn a significant amount of money. If you have any questions, raise your hand and we will come to assist you. Your earnings will depend on the decisions you make during the experiment.<br><br>
-
-            At the beginning of the experiment, you will receive an endowment of $20.<br> 
-            At the end of the experiment, you may win a $12 Starbucks gift card. <br><br>
-            
-            This experiment will consist of several periods. Each period has two stages. In each stage you will have some probability of getting a ticket. <br><br>
-            <div style="padding-left: 5vh">
-                In stage 1, you will choose a number from 0 to 1. Your bound will be a randomly selected number. Your bound will not be revealed until stage 1 is over. Your probability of receiving a ticket in stage 1 will be the maximum of your bound and the number you choose in stage 1. Your cost in stage 1 will be your probability of receiving a ticket in stage 1 times $5.<br><br>
-                In stage 2, you will choose another number from 0 to 1. Your probability of receiving a ticket in stage 2 will be the number you choose in stage 2. Your marginal cost in stage 2 will be a randomly selected number. Your marginal cost will be revealed at the beginning of stage 2. Your cost in stage 2 will be your probability of receiving a ticket in stage 2 times your marginal cost in stage 2.<br><br>
-            </div>
-            At the end of the experiment one period will be randomly selected. If you receive both tickets in the randomly selected period, then you will win the $12 Starbucks giftcard. You will also receive your $20 endowment minus your total cost from both stages in the randomly selected period. <br><br>
-        </div>
+        <div id="instructionsDiv"></div>
         <div id="interfaceDiv"><canvas id="canvas"></canvas></div>
         <div id="outcomeDiv"></div>        
         <script src="https://cdn.socket.io/4.2.0/socket.io.min.js" type="text/javascript"></script>

@@ -8,10 +8,11 @@ var arange = x => [...Array(x).keys()]
 var choose = x => x[Math.floor(Math.random()*x.length)]
 
 // parameters
-const numPeriods  = 3   // 10 periods
-const stage1Length = 5
-const stage2Length = 5
-const stage3Length = 3
+const numPracticePeriods  = 2 // 3 practice periods
+const numPeriods  = 12   // 10 periods
+const stage1Length = 5   // 20 secs
+const stage2Length = 5   // 20 secs
+const stage3Length = 3   // 10 secs
 const timestep = 1
 const endowment = 20
 const maxCost1 = 5      // marginal cost of the probability in period 1
@@ -25,14 +26,17 @@ var numSubjects = 0
 var state       = "startup"
 var period      = 1
 var stage       = 1
+var practiceComplete = false
+var experimentStarted = false
 var countdown = stage1Length
 var dataStream = {}
 var dateString = ""
 
 // TODO
-// - $12 gift certificate. How can we get it? Bulk discount feasible?
+// - fix practice period instructions number
+// - derive theoretical predictions to motivate hypotheses
+// - $15 physicial gift certificate from Kroger (https://giftcards.kroger.com/starbucks-gift-card). 
 // - What is the value of a $12 gift card? Literature?
-// - greying out the choice 1 interval below the bound in stage 2
 // ------------------------------------------------------------------------------
 // - schedule (flight) time/funding (funding from VCU) for experiment at VCU
 // - test coding in lab @VCU
@@ -92,7 +96,7 @@ updateDataFile = function(){
 writePaymentFile = function(){
   var csvString = "id,earnings,winPrize,outcomePeriod,winTicket1,winTicket2,totalCost,endowment\n"
   Object.values(subjects).forEach(subject => {
-    csvString += `${subject.id},${subject.earnings},${subject.winPrize},${subject.outcomePeriod},` 
+    csvString += `${subject.id},${subject.earnings.toFixed(2)},${subject.winPrize},${subject.outcomePeriod},` 
     csvString += `${subject.winTicket1},${subject.winTicket2},${subject.totalCost},${endowment}\n`
   })
   var logError = (ERR) => { if(ERR) console.log(ERR)}
@@ -105,17 +109,24 @@ io.on("connection",function(socket){
     console.log(`showInstructions`)
     if(state == "startup") state = "instructions"
   })
+  socket.on("startPractice", function(msg){
+    if(state == "instructions") {
+      state = "interface"
+      console.log(`startPractice`)
+      setInterval(update, 1000*timestep) 
+    }
+  })
   socket.on("startExperiment", function(msg){
     if(state == "instructions") {
       state = "interface"
+      experimentStarted = true
       console.log(`startExperiment`)
       createDataFile()
-      setInterval(update, 1000*timestep) 
     }   
   })
   socket.on("managerUpdate", function(msg){
     var ids = Object.keys(subjects)
-    var reply = {numSubjects, ids, state, countdown}
+    var reply = {numSubjects, ids, state, countdown, experimentStarted, practiceComplete}
     socket.emit("serverUpdateManager",reply)
   })
   socket.on("clientUpdate", function(msg){ // callback function; msg from client, send msg to client
@@ -129,6 +140,9 @@ io.on("connection",function(socket){
         period,
         state,
         stage,
+        experimentStarted, 
+        practiceComplete,
+        numPracticePeriods,
         countdown, 
         endowment,      
         outcomePeriod: subjects[msg.id].outcomePeriod,
@@ -195,47 +209,46 @@ createSubject = function(id, socket){
   console.log(`subject ${id} connected`)
 }
 update = function(){
-  countdown = countdown - 1
-  if(state == "interface" && stage == 1 && countdown <= 0) {
-    countdown = stage2Length
-    stage = 2
-  }
-  if(state == "interface" && stage == 2 && countdown <= 0) {
-    countdown = stage3Length
-    stage = 3
-    console.log("period",period)
-    console.log("subjects[1]",subjects[1].id)
-    console.log("subjects[1].hist[1]",subjects[1].hist[1])
-    console.log("subjects[1].hist[2]",subjects[1].hist[2])
-    console.log("subjects[1].hist[3]",subjects[1].hist[3])
-    console.log("subjects[2]",subjects[2].id)
-    console.log("subjects[2].hist[1]",subjects[2].hist[1])
-    console.log("subjects[2].hist[2]",subjects[2].hist[2])
-    console.log("subjects[2].hist[3]",subjects[2].hist[3])    
-  }
-  if(state == "interface" && stage == 3 && countdown <= 0) {
-    updateDataFile()
-    if(period>=numPeriods){
-      state = "end" 
-      countdown = 0
-      arange(numSubjects).forEach(i => {
-        const subject = subjects[i+1]
-        subject.outcomePeriod = choose(arange(numPeriods))+1
-        subject.outcomeRandom = {1:Math.random(),2:Math.random()}
-        const selectedHist = subject.hist[subject.outcomePeriod]
-        subject.winTicket1 = (subject.outcomeRandom[1] <= selectedHist.prob[1])*1
-        subject.winTicket2 = (subject.outcomeRandom[2] <= selectedHist.prob[2])*1
-        subject.winPrize = (subject.winTicket1 && subject.winTicket2)*1
-        subject.totalCost = selectedHist.cost[1]+selectedHist.cost[2]
-        subject.earnings = endowment - subject.totalCost
-      })
-      writePaymentFile()
-      console.log("Session Complete")
-    } else{
-      countdown = stage1Length
-      period += 1
-      state = "interface"
-      stage = 1
-     } 
+  if(state == "interface"){
+    countdown = countdown - 1
+    if(stage == 1 && countdown <= 0) {
+      countdown = stage2Length
+      stage = 2
+    }
+    if(stage == 2 && countdown <= 0) {
+      countdown = stage3Length
+      stage = 3 
+    }
+    if(stage == 3 && countdown <= 0) {
+      if(experimentStarted) updateDataFile()
+      const maxPeriod = experimentStarted ? numPeriods : numPracticePeriods
+      if(period>=maxPeriod){
+        countdown = 0
+        if(experimentStarted){
+          state = "end" 
+          arange(numSubjects).forEach(i => {
+            const subject = subjects[i+1]
+            subject.outcomePeriod = choose(arange(numPeriods))+1
+            subject.outcomeRandom = {1:Math.random(),2:Math.random()}
+            const selectedHist = subject.hist[subject.outcomePeriod]
+            subject.winTicket1 = (subject.outcomeRandom[1] <= selectedHist.prob[1])*1
+            subject.winTicket2 = (subject.outcomeRandom[2] <= selectedHist.prob[2])*1
+            subject.winPrize = (subject.winTicket1 && subject.winTicket2)*1
+            subject.totalCost = selectedHist.cost[1]+selectedHist.cost[2]
+            subject.earnings = endowment - subject.totalCost
+          })
+          writePaymentFile()
+          console.log("Session Complete")
+        } else{
+          state = "instructions"
+          practiceComplete = true
+        }
+      } else{
+        countdown = stage1Length
+        period += 1
+        state = "interface"
+        stage = 1
+       } 
+    }
   }
 }
