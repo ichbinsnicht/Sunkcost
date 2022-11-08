@@ -8,7 +8,7 @@ var arange = x => [...Array(x).keys()]
 var choose = x => x[Math.floor(Math.random()*x.length)]
 
 // parameters
-const numPracticePeriods  = 2 // 3 practice periods
+const numPracticePeriods  = 5 // 3 practice periods
 const numPeriods  = 12   // 10 periods
 const stage1Length = 5   // 20 secs
 const stage2Length = 5   // 20 secs
@@ -33,13 +33,19 @@ var dataStream = {}
 var dateString = ""
 
 // TODO
-// - fix practice period instructions number
 // - derive theoretical predictions to motivate hypotheses
-// - $15 physicial gift certificate from Kroger (https://giftcards.kroger.com/starbucks-gift-card). 
-// - What is the value of a $12 gift card? Literature?
+// - Power calculation based on regression
+//   choice2 = f(bound1, mc2, cost1, choice1, epsilon)
+// - external funding: Incubator grant
+// - additional treatment: stage 1 choosen randomly vs explicitly
 // ------------------------------------------------------------------------------
 // - schedule (flight) time/funding (funding from VCU) for experiment at VCU
 // - test coding in lab @VCU
+// - calibration exercise not needed anymore (distribution is always without knowledge of bound) 
+
+// Done
+// - $15 physicial gift certificate from Kroger (https://giftcards.kroger.com/starbucks-gift-card). 
+// - What is the value of a $12 gift card? Literature?
 
 app.use(express.static(__dirname + "/public"))
 app.get("/",function(req,res){    // body of function
