@@ -95,10 +95,6 @@ socket.on("clientJoined",function(msg){
     setInterval(update, 10)
 })
 socket.on("serverUpdateClient", function(msg){
-    if(state!=msg.state || numPracticePeriods!=msg.numPracticePeriods){
-        var practiceInstructionsString = baseInstructionsString + `First, you will participate in ${numPracticePeriods} practice periods. The practice periods will not affect your final earnings. They are just for practice.`
-        instructionsDiv.innerHTML = practiceComplete ? readyInstructionsString : practiceInstructionsString
-    }
     if(period != msg.period){
         console.log("mouseEvent",mouseEvent)
         console.log("period",period)
@@ -111,7 +107,6 @@ socket.on("serverUpdateClient", function(msg){
         selectProb = 0
     }
     message = msg
-    state = msg.state
     stage = msg.stage
     experimentStarted = msg.experimentStarted
     practiceComplete = msg.practiceComplete
@@ -129,6 +124,11 @@ socket.on("serverUpdateClient", function(msg){
     hist = msg.hist
     maxCost = msg.hist[msg.period].maxCost
     minProb = msg.hist[msg.period].minProb
+    if(state!=msg.state){
+        var practiceInstructionsString = baseInstructionsString + `First, you will participate in ${numPracticePeriods} practice periods. The practice periods will not affect your final earnings. They are just for practice.`      
+        instructionsDiv.innerHTML = practiceComplete ? readyInstructionsString : practiceInstructionsString
+    }
+    state = msg.state
 })
 socket.on("clicked",function(msg){
     console.log(`The server says: clicked`, msg)
@@ -447,9 +447,15 @@ drawFeedback = function(){
     context.strokeStyle = "black"
     context.font = feedbackFont
     context.lineWidth = 0.25
-    const line1 = "If this stage is randomly selected at the end of the experiment: "
-    const line2 = `You will have a ${(prob[1]*prob[2]*100).toFixed(0)}% chance of winning the $15 Starbucks gift card.`
-    const line3 = `You will pay a total cost of $${(cost[1]+cost[2]).toFixed(2)} out of your endowment.`
+    const line1practice = "This is a practice period. If it were a real period: "
+    const line1real = "If this stage is randomly selected at the end of the experiment: "
+    const line1 = practiceComplete ? line1real : line1practice
+    const line2practice = `You would have a ${(prob[1]*prob[2]*100).toFixed(0)}% chance of winning the $15 Starbucks gift card.`    
+    const line2real = `You will have a ${(prob[1]*prob[2]*100).toFixed(0)}% chance of winning the $15 Starbucks gift card.`
+    const line2 = practiceComplete ? line2real : line2practice
+    const line3practice = `You would pay a total cost of $${(cost[1]+cost[2]).toFixed(2)} out of your endowment.`
+    const line3real = `You will pay a total cost of $${(cost[1]+cost[2]).toFixed(2)} out of your endowment.`
+    const line3 = practiceComplete ? line3real : line3practice
     context.fillText(line1,graphX+0.5*graphWidth,lineY+24)
     context.fillText(line2,graphX+0.5*graphWidth,lineY+34)
     context.fillText(line3,graphX+0.5*graphWidth,lineY+42)
