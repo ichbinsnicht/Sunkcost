@@ -33,9 +33,41 @@ var dataStream = {}
 var dateString = ""
 
 // TODO
-// - derive theoretical predictions to motivate hypotheses
+// - Implementation of new hypotheses:
+// --> c1,c2,alpha,beta (alpha = influence variable, exogenous c1 treatment)
+// --> p1+p2 instead of p1*p2 (additive instead of multiplicative probabilities)
+// --> graphics
 // - Power calculation based on regression
-//   choice2 = f(bound1, mc2, cost1, choice1, epsilon)
+//   choice2 = f(alpha, c1, c2 epsilon(theta, gamma) )
+
+// p2 = b00 + b01*c1 + epsilon if alpha = 0
+// p2 = b10 + b11*c2 + epsilon if alpha = 1
+// 
+// p2 = b0 + b1*c1 + b2*alpha + b3*c1*alpha + epsilon
+// Joint Test
+/*
+  Sunk Opp. Cost:
+  corr(p2,c1)=0 if alpha = 0
+  corr(p2,c1)>0 if alpha = 1
+
+  ==> b01=0, b1=0
+  ==> b11>0, b1+b3>0
+
+  Sunk Realized Cost: 
+  corr(p2,c1)>0 if alpha = 0
+  corr(p2,c1)>0 if alpha = 1
+
+  ==> b01>0, b1>0
+  ==> b11>0, b1+b3>0
+
+  Rational Cost: 
+  corr(p2,c1)=0 if alpha = 0
+  corr(p2,c1)=0 if alpha = 1
+
+  ==> b01=0, b1=0
+  ==> b11=0, b1+b3=0
+*/
+
 // - external funding: Incubator grant
 // - additional treatment: stage 1 choosen randomly vs explicitly
 // ------------------------------------------------------------------------------
