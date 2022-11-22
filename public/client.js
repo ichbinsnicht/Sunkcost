@@ -15,14 +15,17 @@ var baseInstructionsString = `
 This is an experiment about individual decision making. If you pay attention to these instructions, you can earn a significant amount of money. If you have any questions, raise your hand and we will come to assist you. Your earnings will depend on the decisions you make during the experiment.<br><br>
 
 At the beginning of the experiment, you will receive an endowment of $20.<br> 
-At the end of the experiment, you may win a $15 Starbucks gift card. <br><br>
+At the end of the experiment, depending on the decisions you make, you may win a $15 Starbucks gift card. <br><br>
 
-This experiment will consist of several periods. Each period has two stages. In each stage you will have some probability of getting a ticket. <br><br>
+This experiment will consist of several periods. Each period has two stages. <br><br>
 <div style="padding-left: 5vh">
-    In stage 1, you will choose a number from 0 to 1. Your bound will be a randomly selected number. Your bound will not be revealed until stage 1 is over. Your probability of receiving a ticket in stage 1 will be the maximum of your bound and the number you choose in stage 1. Your cost in stage 1 will be your probability of receiving a ticket in stage 1 times $5.<br><br>
-    In stage 2, you will choose another number from 0 to 1. Your probability of receiving a ticket in stage 2 will be the number you choose in stage 2. Your marginal cost in stage 2 will be a randomly selected number. Your marginal cost will be revealed at the beginning of stage 2. Your cost in stage 2 will be your probability of receiving a ticket in stage 2 times your marginal cost in stage 2.<br><br>
+    During stage 1, you will choose a number from 0 to 0.5. At the end of stage 1, a number will be randomly selected from 0 to 0.5. Your stage 1 score will be either the number you chose or the randomly selected number. Both are equally likely. Your stage 1 cost will be your stage 1 score times $5.<br><br>
+
+    At the beginning of stage 2, a multiplier will be randomly selected to be either 1 or 5 and revealed to you. During stage 2, you will choose another number from 0 to 0.5. Your stage 2 score will always be the number you chose. Your stage 2 cost will be your stage 2 score times the randomly selected multiplier.<br><br>
+
+    At the end of the period, your probability of winning the $15 Starbucks gift card will be your stage 1 score plus your stage 2 score. Your total cost will be your stage 1 cost plus your stage 2 cost.<br><br>
 </div>
-At the end of the experiment one period will be randomly selected. If you receive both tickets in the randomly selected period, then you will win the $15 Starbucks giftcard. You will also receive your $20 endowment minus your total cost from both stages in the randomly selected period. <br><br>`
+At the end of the experiment one period will be randomly selected to be the critical period. You will receive the $15 Starbucks giftcard if you won it in the critical period. You will also receive your $20 endowment minus your total cost from the critical period.<br><br>`
 
 var readyInstructionsString = baseInstructionsString + `The experiment is about to begin. One of the following periods will be randomly selected to determine your final earnings and whether you receive the $15 Starbucks gift card.`
 
@@ -31,7 +34,7 @@ const yMax = 10
 const graphWidth = 70
 const graphX = 0.5*(100-graphWidth)
 const graphHeight = 50
-const graphY = -10
+const graphY = -22
 const lineY = -90
 const tickFont = "1.5pt monospace"
 const labelFont = "2pt monospace"
@@ -50,6 +53,7 @@ var mouseX  = 50
 var mouseY  = 50
 var mouseGraphX = 0.5
 var mouseDown = false
+var baseline = 0
 var countdown = 60      // seconds
 var outcomePeriod = 1
 var outcomeRandom = [0,0]
@@ -59,16 +63,17 @@ var experimentStarted = false
 var practiceComplete = false
 var numPracticePeriods = 0
 var choice = {1:0,2:0}
-var prob = {1:0,2:0}
-var minProb = {1:0,2:0}
+var score = {1:0,2:0}
+var forcedScore = {1:0,2:0}
+var forced = {1:0,2:0}
 var cost = {1:0,2:0}
-var maxCost = {1:0,2:0}
+var multiplier = {1:0,2:0}
 var hist = {}
 var message = {}
-var selectProb = 0
 var mouseEvent = {x:0,y:0}
 var earnings = 0
 var winPrize = 0
+
 
 document.onmousedown = function(event){
     msg = {
@@ -87,10 +92,10 @@ socket.on("clientJoined",function(msg){
     period = msg.period
     hist = msg.hist
     choice = hist[period].choice
-    prob = hist[period].prob
+    score = hist[period].score
     cost = hist[period].cost
-    minProb = hist[period].minProb
-    maxCost = hist[period].maxCost
+    forcedScore = hist[period].forcedScore
+    multiplier = hist[period].multiplier
     console.log("hist",hist)
     setInterval(update, 10)
 })
@@ -99,12 +104,11 @@ socket.on("serverUpdateClient", function(msg){
         console.log("mouseEvent",mouseEvent)
         console.log("period",period)
         console.log("choice",choice)
-        console.log("prob",prob)
+        console.log("score",score)
         console.log("cost",cost)
         console.log(period,msg.period)
         cost = {1:0, 2:0}
-        prob = {1:0, 2:0}
-        selectProb = 0
+        score = {1:0, 2:0}
     }
     message = msg
     stage = msg.stage
@@ -122,8 +126,9 @@ socket.on("serverUpdateClient", function(msg){
     totalCost = msg.totalCost
     earnings = msg.earnings 
     hist = msg.hist
-    maxCost = msg.hist[msg.period].maxCost
-    minProb = msg.hist[msg.period].minProb
+    multiplier = msg.hist[msg.period].multiplier
+    forcedScore = msg.hist[msg.period].forcedScore
+    forced = msg.hist[msg.period].forced
     if(state!=msg.state){
         var practiceInstructionsString = baseInstructionsString + `First, you will participate in ${numPracticePeriods} practice periods. The practice periods will not affect your final earnings. They are just for practice.`      
         instructionsDiv.innerHTML = practiceComplete ? readyInstructionsString : practiceInstructionsString
@@ -143,10 +148,8 @@ update = function(){
         period,
         stage,
         currentChoice: choice[stage],
-        currentProb: prob[stage],
-        currentCost: cost[stage],
-        maxCost2: maxCost[2],
-        minProb1: minProb[1],                    
+        currentScore: score[stage],
+        currentCost: cost[stage],                  
     }
     socket.emit("clientUpdate",msg)
     startupDiv.style.display = "none"
@@ -191,16 +194,16 @@ updateChoice = function(){
     mouseY = (y0 - mouseEvent.offsetY)*100/canvas.height
     const mouseGraphX = (mouseX - graphX)/graphWidth
     if(stage<3){
-        choice[stage] = Math.max(0,Math.min(1,mouseGraphX))
-        prob[stage] = Math.max(minProb[stage],choice[stage])
-        cost[stage] = prob[stage]*maxCost[stage]
-        selectProb = prob[stage]  
+        choice[stage] = 0.5*Math.max(0,Math.min(1,mouseGraphX))
+        score[stage] = forced[stage]*forcedScore[stage] + (1-forced[stage])*choice[stage]
+        cost[stage] = score[stage]*multiplier[stage]  
     }
 }
 window.onmousedown = function(e){
     mouseDown = true
     console.log("Choice",choice)   
-    console.log("Prob", prob)
+    console.log("Score", score)
+    console.log("Forced",forced)  
 }
 window.onmouseup = function(e){
     mouseDown = false
@@ -255,7 +258,7 @@ drawTop = function(){
             context.moveTo(x,lineY)
             context.lineTo(x,yTop) 
             context.stroke()
-            const xCostLabel = `$${weight*maxCost[1]}`
+            const xCostLabel = `${0.5*weight*multiplier[1]}`
             context.textBaseline = "bottom"
             context.fillText(xCostLabel,x,yTop-tickSpace)    
         })
@@ -269,33 +272,28 @@ drawTop = function(){
         context.moveTo(x,lineY)
         context.lineTo(x,yBottom) 
         context.stroke()  
-        const xProbLabel = `${weight*100}%`
+        const xScoreLabel = `${weight*50}%`
         context.textBaseline = "top"
-        context.fillText(xProbLabel,x,yBottom+tickSpace)
+        context.fillText(xScoreLabel,x,yBottom+tickSpace)
     })
     context.font = labelFont
     if(stage==2){
         context.textBaseline = "top"
-        context.fillStyle = "rgb(213,94,0)"
-        context.fillText("Bound",graphX+graphWidth*minProb[1],lineY+tickLength+tickSpace+5)
-        context.beginPath()
-        context.arc(graphX+graphWidth*minProb[1],lineY,2.5,0,2*Math.PI)
-        context.fill()        
         context.fillStyle = "rgb(0,158,115)"
         context.textBaseline = "bottom"
-        context.fillText("Cost 1",graphX+graphWidth*prob[1],lineY-tickLength-tickSpace-2.5)
+        context.fillText("Cost 1",graphX+graphWidth*2*score[1],lineY-tickLength-tickSpace-2.5)
         context.textBaseline = "top"
-        context.fillText("Probability 1",graphX+graphWidth*prob[1],lineY+tickLength+tickSpace+2.5)
+        context.fillText("Score 1",graphX+graphWidth*2*score[1],lineY+tickLength+tickSpace+2.5)
         context.beginPath()
-        context.arc(graphX+graphWidth*prob[1],lineY,1.5,0,2*Math.PI)
+        context.arc(graphX+graphWidth*2*score[1],lineY,1.5,0,2*Math.PI)
         context.fill()
     }
     context.fillStyle = "rgb(0,114,178)"
     context.textBaseline = "top"
-    const choice1Y = stage==1 ? 4 : 7.5
-    context.fillText("Choice 1",graphX+graphWidth*choice[1],lineY+tickLength+tickSpace+choice1Y)
+    const choice1Y = stage==1 ? 4 : 5.5
+    context.fillText("Choice 1",graphX+graphWidth*2*choice[1],lineY+tickLength+tickSpace+choice1Y)
     context.beginPath()
-    context.arc(graphX+graphWidth*choice[1],lineY,1,0,2*Math.PI)
+    context.arc(graphX+graphWidth*2*choice[1],lineY,1,0,2*Math.PI)
     context.fill()
 }
 drawStage1Text = function(){
@@ -307,26 +305,26 @@ drawStage1Text = function(){
     context.fillStyle = "rgb(0,114,178)"
     context.fillText(`Choice 1: ${choice1String}`,graphX+0.5*graphWidth,lineY+20)
     context.fillStyle = "black"
-    const line1 = "You are currently selecting Choice 1"
-    const line2 = "Probability 1 is your probability of receiving ticket 1."    
-    const line3 = "Your Bound will be a randomly selected number."
-    const line4 = "Probability 1 will equal the maximum of your Choice 1 and your Bound."
-    const line5 = `Your Cost 1 will be equal to $${maxCost[1].toFixed(2)} times Probability 1.`
-    const line6 = "In the next stage you will choose Probability 2"
-    const line7 = "Your Marginal Cost will be a randomly selected number."
-    const line8 = `Your Cost 2 will be equal to Marginal Cost times Probability 2.`
-    const line9 = `Your Total Cost is Cost 1 plus Cost 2.`
-    const line10 = "Your probability of winning the $15 Starbucks gift card is Probability 1 times Probability 2."
-    context.fillText(line1,graphX+0.5*graphWidth,lineY+30+4)
-    context.fillText(line2,graphX+0.5*graphWidth,lineY+34+4)
-    context.fillText(line3,graphX+0.5*graphWidth,lineY+38+4)
-    context.fillText(line4,graphX+0.5*graphWidth,lineY+42+4)
-    context.fillText(line5,graphX+0.5*graphWidth,lineY+46+4)
-    context.fillText(line6,graphX+0.5*graphWidth,lineY+50+4)
-    context.fillText(line7,graphX+0.5*graphWidth,lineY+54+4)
-    context.fillText(line8,graphX+0.5*graphWidth,lineY+58+4)
-    context.fillText(line9,graphX+0.5*graphWidth,lineY+62+4)
-    context.fillText(line10,graphX+0.5*graphWidth,lineY+66+4)
+    const line1 = "You are currently selecting Choice 1."
+    const line2 = "A number will be randomly selected from 0 to 0.5."    
+    const line3 = "Score 1 will be either Choice 1 or the randomly selected number." 
+    const line4 = "Both options are equally likely."
+    const line5 = `Your Cost 1 will be $${multiplier[1].toFixed(2)} times Score 1.`
+    const line6 = "In the next stage you will choose Score 2."
+    const line7 = "Your Multiplier will be 1 or 5. Both options are equally likely."
+    const line8 = `Your Cost 2 will be the Multiplier times Score 2.`
+    const line9 = `Your Total Cost will be Cost 1 plus Cost 2.`
+    const line10 = "Your probability of winning the $15 Starbucks gift card will be Score 1 plus Score 2."
+    context.fillText(line1,graphX+0.5*graphWidth,lineY+30)
+    context.fillText(line2,graphX+0.5*graphWidth,lineY+34)
+    context.fillText(line3,graphX+0.5*graphWidth,lineY+38)
+    context.fillText(line4,graphX+0.5*graphWidth,lineY+42)
+    context.fillText(line5,graphX+0.5*graphWidth,lineY+46)
+    context.fillText(line6,graphX+0.5*graphWidth,lineY+54)
+    context.fillText(line7,graphX+0.5*graphWidth,lineY+58)
+    context.fillText(line8,graphX+0.5*graphWidth,lineY+62)
+    context.fillText(line9,graphX+0.5*graphWidth,lineY+70)
+    context.fillText(line10,graphX+0.5*graphWidth,lineY+74)
 }
 drawBottom = function(){
     context.fillStyle = "rgb(0,0,0)"
@@ -347,17 +345,22 @@ drawBottom = function(){
     context.lineWidth = 1
     context.lineCap = "round"
     context.beginPath()
-    context.moveTo(graphX,graphY)
-    context.lineTo(graphX+graphWidth,graphY-graphHeight*prob[1])
+    context.moveTo(graphX,graphY-graphHeight*score[1])
+    context.lineTo(graphX+graphWidth,graphY-graphHeight*(score[1]+0.5))
     context.stroke()   
     context.fillStyle = "rgb(0,114,178)"
     context.beginPath()
-    context.arc(graphX+graphWidth*prob[2],graphY-graphHeight*prob[1]*prob[2],1.5,0,2*Math.PI)
+    context.arc(graphX+graphWidth*2*score[2],graphY-graphHeight*(score[1]+score[2]),1.5,0,2*Math.PI)
     context.fill() 
     context.fillStyle = "rgb(0,0,0)"
-    context.textAlign = "center"
-    context.fillText(`Probability 1: ${(prob[1]*100).toFixed(0)}%      Probability 2: ${(prob[2]*100).toFixed(0)}%`,graphX+0.5*graphWidth,lineY+20)
-    context.fillText(`Total Cost: $${(cost[1]+cost[2]).toFixed(2)}    Winning Probability: ${(prob[1]*prob[2]*100).toFixed(0)}%`,graphX+0.5*graphWidth,lineY+24)
+    context.textAlign = "left"
+    let string1 = `Score 1: ${(score[1]*100).toFixed(0)}%     `
+    string1 += `Multiplier: $${(multiplier[2]).toFixed(0)}`
+    let string2 = `Score 2: ${(score[2]*100).toFixed(0)}%    `
+    string2 += `Total Cost: $${(cost[1]+cost[2]).toFixed(2)}    `
+    string2 += `Win Probability: ${((score[1]+score[2])*100).toFixed(0)}%`
+    context.fillText(string1,graphX-0.1*graphWidth,lineY+graphHeight+30)
+    context.fillText(string2,graphX-0.1*graphWidth,lineY+graphHeight+34)
 }
 drawBottomLabelsX = function(){
     const numTicks = 6
@@ -375,20 +378,21 @@ drawBottomLabelsX = function(){
         context.moveTo(x,yTop)
         context.lineTo(x,yBottom) 
         context.stroke()  
-        const xProbLabel = `${weight*100}%`
+        const xScoreLabel = `${weight*50}%`
         context.textBaseline = "top"
         context.textAlign = "center"
-        context.fillText(xProbLabel,x,yBottom+tickSpace) 
+        context.fillText(xScoreLabel,x,yBottom+tickSpace) 
     })
     context.font = labelFont
     context.fillStyle = "rgb(0,158,115)"
     context.textBaseline = "top"
-    context.fillText("Probability 2",graphX+graphWidth*prob[2],graphY+tickLength+tickSpace+2.5)
+    context.fillText("Score 2",graphX+graphWidth*2*score[2],graphY+tickLength+tickSpace+2.5)
 }
 drawBottomLabelsLeftY = function(){
     const numTicks = 6
     const tickLength = 2
     const tickSpace = 1    
+    baseline = score[1]*(5-multiplier[2])
     context.font = tickFont
     context.fillStyle = "rgb(0,0,0)"
     context.textAlign = "center"
@@ -402,7 +406,7 @@ drawBottomLabelsLeftY = function(){
         context.moveTo(xRight,y)
         context.lineTo(xLeft,y) 
         context.stroke()  
-        const yCostLabel = `$${((1-weight)*cost[1]+weight*(maxCost[1]+maxCost[2])).toFixed(2)}`
+        const yCostLabel = `$${(baseline+multiplier[2]*weight).toFixed(2)}`
         context.textBaseline = "middle"
         context.textAlign = "right"
         context.fillText(yCostLabel,graphX-tickLength-tickSpace,y) 
@@ -411,7 +415,7 @@ drawBottomLabelsLeftY = function(){
     context.fillStyle = "rgb(0,158,115)"
     context.textBaseline = "middle"
     context.textAlign = "right"
-    context.fillText("Total Cost",graphX-tickLength-tickSpace-6,graphY-graphHeight*prob[1]*prob[2])
+    context.fillText("Total Cost",graphX-tickLength-tickSpace-10,graphY-graphHeight*(score[1]+score[2]))
 }
 drawBottomLabelsRightY = function(){
     const numTicks = 6
@@ -439,7 +443,7 @@ drawBottomLabelsRightY = function(){
     context.fillStyle = "rgb(0,158,115)"
     context.textBaseline = "middle"
     context.textAlign = "left"
-    context.fillText("Winning Probability",graphX+graphWidth+tickLength+tickSpace+6,graphY-graphHeight*prob[1]*prob[2])
+    context.fillText("Win Probability",graphX+graphWidth+tickLength+tickSpace+6,graphY-graphHeight*(score[1]+score[2]))
 }
 drawFeedback = function(){
     context.fillStyle = "rgb(0,0,0)"
@@ -450,8 +454,8 @@ drawFeedback = function(){
     const line1practice = "This is a practice period. If it were a real period: "
     const line1real = "If this stage is randomly selected at the end of the experiment: "
     const line1 = practiceComplete ? line1real : line1practice
-    const line2practice = `You would have a ${(prob[1]*prob[2]*100).toFixed(0)}% chance of winning the $15 Starbucks gift card.`    
-    const line2real = `You will have a ${(prob[1]*prob[2]*100).toFixed(0)}% chance of winning the $15 Starbucks gift card.`
+    const line2practice = `You would have a ${(score[1]*score[2]*100).toFixed(0)}% chance of winning the $15 Starbucks gift card.`    
+    const line2real = `You will have a ${(score[1]*score[2]*100).toFixed(0)}% chance of winning the $15 Starbucks gift card.`
     const line2 = practiceComplete ? line2real : line2practice
     const line3practice = `You would pay a total cost of $${(cost[1]+cost[2]).toFixed(2)} out of your endowment.`
     const line3real = `You will pay a total cost of $${(cost[1]+cost[2]).toFixed(2)} out of your endowment.`

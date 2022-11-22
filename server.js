@@ -8,17 +8,16 @@ var arange = x => [...Array(x).keys()]
 var choose = x => x[Math.floor(Math.random()*x.length)]
 
 // parameters
-const numPracticePeriods  = 5 // 3 practice periods
+const numPracticePeriods  = 1 // 5 practice periods
 const numPeriods  = 12   // 10 periods
-const stage1Length = 5   // 20 secs
-const stage2Length = 5   // 20 secs
-const stage3Length = 3   // 10 secs
+const stage1Length = 7   // 20 secs
+const stage2Length = 900   // 20 secs
+const stage3Length = 1    // 10 secs
 const timestep = 1
 const endowment = 20
-const maxCost1 = 5      // marginal cost of the probability in period 1
-const maxCost2Low = 1   // calibrate the high costs!
-const maxCost2High = 5  // cost2 = sunk cost in period 2 (high cost shock)
-const potMinProb1 = 0.5
+const multiplier1 = 10      // marginal cost of the score in period 1
+const multiplier2Low = 1   // calibrate the high costs!
+const multiplier2High = 10  // cost2 = sunk cost in period 2 (high cost shock)
 
 // variables
 var subjects    = {}
@@ -33,43 +32,9 @@ var dataStream = {}
 var dateString = ""
 
 // TODO
-// - Implementation of new hypotheses:
-// --> c1,c2,alpha,beta (alpha = influence variable, exogenous c1 treatment)
-// --> p1+p2 instead of p1*p2 (additive instead of multiplicative probabilities)
-// --> graphics
-// - Power calculation based on regression
-//   choice2 = f(alpha, c1, c2 epsilon(theta, gamma) )
-
-// p2 = b00 + b01*c1 + epsilon if alpha = 0
-// p2 = b10 + b11*c2 + epsilon if alpha = 1
-// 
-// p2 = b0 + b1*c1 + b2*alpha + b3*c1*alpha + epsilon
-// Joint Test
-/*
-  Sunk Opp. Cost:
-  corr(p2,c1)=0 if alpha = 0
-  corr(p2,c1)>0 if alpha = 1
-
-  ==> b01=0, b1=0
-  ==> b11>0, b1+b3>0
-
-  Sunk Realized Cost: 
-  corr(p2,c1)>0 if alpha = 0
-  corr(p2,c1)>0 if alpha = 1
-
-  ==> b01>0, b1>0
-  ==> b11>0, b1+b3>0
-
-  Rational Cost: 
-  corr(p2,c1)=0 if alpha = 0
-  corr(p2,c1)=0 if alpha = 1
-
-  ==> b01=0, b1=0
-  ==> b11=0, b1+b3=0
-*/
-
+// - update feedback text and text at end of experiment (probability summation)
+// - update audio
 // - external funding: Incubator grant
-// - additional treatment: stage 1 choosen randomly vs explicitly
 // ------------------------------------------------------------------------------
 // - schedule (flight) time/funding (funding from VCU) for experiment at VCU
 // - test coding in lab @VCU
@@ -111,8 +76,8 @@ getDateString = function(){
 createDataFile = function(){
   dateString = getDateString()
   dataStream = fs.createWriteStream(`data/data-${dateString}.csv`)
-  var csvString = "session,period,id,minProb1,minProb2,maxCost1,maxCost2,"
-  csvString += "choice1,choice2,prob1,prob2,cost1,cost2,endowment,"
+  var csvString = "session,period,id,forced1,forcedScore1,multiplier1,multiplier2,"
+  csvString += "choice1,choice2,score1,score2,cost1,cost2,endowment,"
   csvString += "\n"
   dataStream.write(csvString)
 }
@@ -120,10 +85,10 @@ updateDataFile = function(){
   var csvString = ""
   Object.values(subjects).forEach(subject => {
     csvString += `${dateString},${period},${subject.id},`
-    csvString += `${subject.hist[period].minProb[1]},${subject.hist[period].minProb[2]},`
-    csvString += `${subject.hist[period].maxCost[1]},${subject.hist[period].maxCost[2]},`
+    csvString += `${subject.hist[period].forced[1]},${subject.hist[period].forcedScore[1]},`
+    csvString += `${subject.hist[period].multiplier[1]},${subject.hist[period].multiplier[2]},`
     csvString += `${subject.hist[period].choice[1]},${subject.hist[period].choice[2]},`    
-    csvString += `${subject.hist[period].prob[1]},${subject.hist[period].prob[2]},`
+    csvString += `${subject.hist[period].score[1]},${subject.hist[period].score[2]},`
     csvString += `${subject.hist[period].cost[1]},${subject.hist[period].cost[2]},`
     csvString += `${endowment},`
     csvString += "\n"
@@ -171,7 +136,7 @@ io.on("connection",function(socket){
     if(subjects[msg.id]){
       if(period == msg.period && stage == msg.stage && stage<3) {
         subjects[msg.id].hist[msg.period].choice[msg.stage] = msg.currentChoice
-        subjects[msg.id].hist[msg.period].prob[msg.stage] = msg.currentProb      
+        subjects[msg.id].hist[msg.period].score[msg.stage] = msg.currentScore      
         subjects[msg.id].hist[msg.period].cost[msg.stage] = msg.currentCost
       }  
       var reply = {
@@ -238,10 +203,11 @@ createSubject = function(id, socket){
   arange(numPeriods).forEach(i => {
     subjects[id].hist[i+1] = {
       choice: {1:0,2:0},
-      prob: {1:0,2:0},      
+      score: {1:0,2:0},      
       cost: {1:0,2:0},
-      minProb: {1:Math.random()*potMinProb1,2:0},
-      maxCost: {1:maxCost1,2:choose([maxCost2Low,maxCost2High])},
+      forcedScore: {1:Math.random()*0.5,2:0},
+      forced: {1:1*(Math.random()>0.5),2:0},
+      multiplier: {1:multiplier1,2:choose([multiplier2Low,multiplier2High])},
     }
   })
   console.log(`subject ${id} connected`)
@@ -267,11 +233,12 @@ update = function(){
           arange(numSubjects).forEach(i => {
             const subject = subjects[i+1]
             subject.outcomePeriod = choose(arange(numPeriods))+1
-            subject.outcomeRandom = {1:Math.random(),2:Math.random()}
+            subject.outcomeRandom = Math.random()
             const selectedHist = subject.hist[subject.outcomePeriod]
-            subject.winTicket1 = (subject.outcomeRandom[1] <= selectedHist.prob[1])*1
-            subject.winTicket2 = (subject.outcomeRandom[2] <= selectedHist.prob[2])*1
-            subject.winPrize = (subject.winTicket1 && subject.winTicket2)*1
+            subject.score1 = selectedHist.score[1]
+            subject.score2 = selectedHist.score[2]
+            subject.totalScore = subject.score1 + subject.score2
+            subject.winPrize = (subject.totalScore > subject.outcomeRandom)*1
             subject.totalCost = selectedHist.cost[1]+selectedHist.cost[2]
             subject.earnings = endowment - subject.totalCost
           })
