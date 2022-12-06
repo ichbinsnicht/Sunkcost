@@ -9,10 +9,10 @@ var choose = x => x[Math.floor(Math.random()*x.length)]
 
 // parameters
 const numPracticePeriods  = 1 // 5 practice periods
-const numPeriods  = 12   // 10 periods
-const stage1Length = 7   // 20 secs
-const stage2Length = 900   // 20 secs
-const stage3Length = 1    // 10 secs
+const numPeriods  = 2   // 10 periods
+const stage1Length = 3   // 20 secs
+const stage2Length = 3   // 20 secs
+const stage3Length = 3    // 10 secs
 const timestep = 1
 const endowment = 20
 const multiplier1 = 10      // marginal cost of the score in period 1
@@ -32,7 +32,6 @@ var dataStream = {}
 var dateString = ""
 
 // TODO
-// - update feedback text and text at end of experiment (probability summation)
 // - update audio
 // - external funding: Incubator grant
 // ------------------------------------------------------------------------------
@@ -247,6 +246,9 @@ update = function(){
         } else{
           state = "instructions"
           practiceComplete = true
+          period = 1
+          stage = 1
+          countdown = stage1Length
         }
       } else{
         countdown = stage1Length
