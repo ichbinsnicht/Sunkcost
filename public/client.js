@@ -19,9 +19,9 @@ At the end of the experiment, depending on the decisions you make, you may win a
 
 This experiment will consist of several periods. Each period has two stages. <br><br>
 <div style="padding-left: 5vh">
-    During stage 1, you will choose a number from 0 to 0.5. At the end of stage 1, a number will be randomly selected from 0 to 0.5. Your stage 1 score will be either the number you chose or the randomly selected number. Both are equally likely. Your stage 1 cost will be your stage 1 score times $5.<br><br>
+    During stage 1, you will choose a number from 0 to 0.5. At the end of stage 1, a number will be randomly selected from 0 to 0.5. Your stage 1 score will be either the number you chose or the randomly selected number. Both are equally likely. Your stage 1 cost will be your stage 1 score times $10.<br><br>
 
-    At the beginning of stage 2, a cost multiplier will be randomly selected to be either 1 or 5 and revealed to you. During stage 2, you will choose another number from 0 to 0.5. Your stage 2 score will always be the number you chose. Your stage 2 cost will be your stage 2 score times the randomly selected cost multiplier.<br><br>
+    At the beginning of stage 2, a cost multiplier will be randomly selected to be either $1 or $10 and revealed to you. During stage 2, you will choose another number from 0 to 0.5. Your stage 2 score will always be the number you chose. Your stage 2 cost will be your stage 2 score times the cost multiplier.<br><br>
 
     At the end of the period, your probability of winning the $15 Starbucks gift card will be your stage 1 score plus your stage 2 score. Your total cost will be your stage 1 cost plus your stage 2 cost.<br><br>
 </div>
