@@ -8,8 +8,8 @@ var arange = x => [...Array(x).keys()]
 var choose = x => x[Math.floor(Math.random()*x.length)]
 
 // parameters
-const numPracticePeriods  = 1 // 5 practice periods
-const numPeriods  = 2   // 10 periods
+const numPracticePeriods  = 5 // 5 practice periods
+const numPeriods  = 2   // 15 periods
 const stage1Length = 3   // 20 secs
 const stage2Length = 3   // 20 secs
 const stage3Length = 3    // 10 secs
