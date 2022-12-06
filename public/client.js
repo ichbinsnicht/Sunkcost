@@ -354,8 +354,8 @@ drawBottom = function(){
     context.fill() 
     context.fillStyle = "rgb(0,0,0)"
     context.textAlign = "left"
-    let string1 = `Score 1: ${(score[1]*100).toFixed(0)}%     `
-    string1 += `Multiplier: $${(multiplier[2]).toFixed(0)}`
+    let string1 = `Score 1: ${(score[1]*100).toFixed(0)}%    `
+    string1 += `Cost Multiplier: $${(multiplier[2]).toFixed(0)}`
     let string2 = `Score 2: ${(score[2]*100).toFixed(0)}%    `
     string2 += `Total Cost: $${(cost[1]+cost[2]).toFixed(2)}    `
     string2 += `Win Probability: ${((score[1]+score[2])*100).toFixed(0)}%`
@@ -451,15 +451,11 @@ drawFeedback = function(){
     context.strokeStyle = "black"
     context.font = feedbackFont
     context.lineWidth = 0.25
-    const line1practice = "This is a practice period. If it were a real period: "
-    const line1real = "If this stage is randomly selected at the end of the experiment: "
+    const line1practice = "This is a practice period. In this period: "
+    const line1real = "In this period: "
     const line1 = practiceComplete ? line1real : line1practice
-    const line2practice = `You would have a ${(score[1]*score[2]*100).toFixed(0)}% chance of winning the $15 Starbucks gift card.`    
-    const line2real = `You will have a ${(score[1]*score[2]*100).toFixed(0)}% chance of winning the $15 Starbucks gift card.`
-    const line2 = practiceComplete ? line2real : line2practice
-    const line3practice = `You would pay a total cost of $${(cost[1]+cost[2]).toFixed(2)} out of your endowment.`
-    const line3real = `You will pay a total cost of $${(cost[1]+cost[2]).toFixed(2)} out of your endowment.`
-    const line3 = practiceComplete ? line3real : line3practice
+    const line2 = `You have a ${((score[1]+score[2])*100).toFixed(0)}% chance of winning the $15 Starbucks gift card.`
+    const line3 = `Your total cost is $${(cost[1]+cost[2]).toFixed(2)}.`
     context.fillText(line1,graphX+0.5*graphWidth,lineY+24)
     context.fillText(line2,graphX+0.5*graphWidth,lineY+34)
     context.fillText(line3,graphX+0.5*graphWidth,lineY+42)
