@@ -12,7 +12,7 @@ socket = io()       // browser based socket
 var arange = n => [...Array(n).keys()]
 
 var baseInstructionsString = `
-This is an experiment about individual decision making. If you pay attention to these instructions, you can earn a significant amount of money. If you have any questions, raise your hand and we will come to assist you. Your earnings will depend on the decisions you make during the experiment.<br><br>
+This is an experiment about individual decision making. If you pay attention to these instructions, you can earn a significant amount of money. Your earnings will depend on the decisions you make during the experiment.<br><br>
 
 At the beginning of the experiment, you will receive an endowment of $20.<br> 
 At the end of the experiment, depending on the decisions you make, you may win a $15 Starbucks gift card. <br><br>
@@ -130,7 +130,7 @@ socket.on("serverUpdateClient", function(msg){
     forcedScore = msg.hist[msg.period].forcedScore
     forced = msg.hist[msg.period].forced
     if(state!=msg.state){
-        var practiceInstructionsString = baseInstructionsString + `First, you will participate in ${numPracticePeriods} practice periods. The practice periods will not affect your final earnings. They are just for practice.`      
+        var practiceInstructionsString = baseInstructionsString + `First, you will participate in ${numPracticePeriods} practice periods. The practice periods will not affect your final earnings. They are just for practice. If you have any questions, raise your hand and we will come to assist you.`      
         instructionsDiv.innerHTML = practiceComplete ? readyInstructionsString : practiceInstructionsString
     }
     state = msg.state
