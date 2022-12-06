@@ -9,7 +9,7 @@ var choose = x => x[Math.floor(Math.random()*x.length)]
 
 // parameters
 const numPracticePeriods  = 5 // 5 practice periods
-const numPeriods  = 2   // 15 periods
+const numPeriods  = 15   // 15 periods, numPeriods > numPracticePeriods
 const stage1Length = 3   // 20 secs
 const stage2Length = 3   // 20 secs
 const stage3Length = 3    // 10 secs
@@ -120,6 +120,7 @@ io.on("connection",function(socket){
   })
   socket.on("startExperiment", function(msg){
     if(state == "instructions") {
+      subjects.forEach(setupHist(subject))
       state = "interface"
       experimentStarted = true
       console.log(`startExperiment`)
@@ -183,9 +184,22 @@ shuffle = function(array){
   return shuffled
 }
 
+setupHist = function(subject) {
+  arange(numPeriods).forEach(i => {
+    subject.hist[i+1] = {
+      choice: {1:0,2:0},
+      score: {1:0,2:0},      
+      cost: {1:0,2:0},
+      forcedScore: {1:Math.random()*0.5,2:0},
+      forced: {1:1*(Math.random()>0.5),2:0},
+      multiplier: {1:multiplier1,2:choose([multiplier2Low,multiplier2High])},
+    }
+  })
+} 
+
 createSubject = function(id, socket){
   numSubjects += 1
-  subjects[id] = {
+  const subject = {
     id: id,
     socket: socket,
     choice1: 0,
@@ -199,16 +213,8 @@ createSubject = function(id, socket){
     earnings: 0,
     hist: {},
   }
-  arange(numPeriods).forEach(i => {
-    subjects[id].hist[i+1] = {
-      choice: {1:0,2:0},
-      score: {1:0,2:0},      
-      cost: {1:0,2:0},
-      forcedScore: {1:Math.random()*0.5,2:0},
-      forced: {1:1*(Math.random()>0.5),2:0},
-      multiplier: {1:multiplier1,2:choose([multiplier2Low,multiplier2High])},
-    }
-  })
+  subjects[id] = subject
+  setupHist(subject)
   console.log(`subject ${id} connected`)
 }
 update = function(){

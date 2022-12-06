@@ -27,7 +27,7 @@ This experiment will consist of several periods. Each period has two stages. <br
 </div>
 At the end of the experiment one period will be randomly selected to be the critical period. You will receive the $15 Starbucks giftcard if you won it in the critical period. You will also receive your $20 endowment minus your total cost from the critical period.<br><br>`
 
-var readyInstructionsString = baseInstructionsString + `The experiment is about to begin. One of the following periods will be randomly selected to determine your final earnings and whether you receive the $15 Starbucks gift card.`
+var readyInstructionsString = baseInstructionsString + `The experiment is about to begin. One of the following periods will be randomly selected to determine your final earnings and whether you receive the $15 Starbucks gift card. If you have any questions, raise your hand and we will come to assist you.`
 
 // graphical parameters
 const yMax = 10
