@@ -8,8 +8,8 @@ var arange = x => [...Array(x).keys()]
 var choose = x => x[Math.floor(Math.random()*x.length)]
 
 // parameters
-const numPracticePeriods  = 5 // 5 practice periods
-const numPeriods  = 15   // 15 periods, numPeriods > numPracticePeriods
+const numPracticePeriods  = 1 // 5 practice periods
+const numPeriods  = 1   // 15 periods, numPeriods > numPracticePeriods
 const stage1Length = 3   // 20 secs
 const stage2Length = 3   // 20 secs
 const stage3Length = 3    // 10 secs
@@ -32,16 +32,22 @@ var dataStream = {}
 var dateString = ""
 
 // TODO
-// - update audio
-// - external funding: Incubator grant
+// - implement real effort adjustments
+// - change total cost to stage 2 costs due to real effort intervention
+// - calibration exercise
+// - external funding (Incubator grant) or alternatives
 // ------------------------------------------------------------------------------
 // - schedule (flight) time/funding (funding from VCU) for experiment at VCU
 // - test coding in lab @VCU
-// - calibration exercise not needed anymore (distribution is always without knowledge of bound) 
 
 // Done
+// ------------------------------------------------------------------------------
 // - $15 physicial gift certificate from Kroger (https://giftcards.kroger.com/starbucks-gift-card). 
-// - What is the value of a $12 gift card? Literature?
+// - What is the value of a $15 gift card? Literature?
+// Actually people may value a gift card less than cash. If they value the gift card at the extreme,
+// 2/3 less than cash, then they would not want to invest, otherwise they do (2/3*15)
+// In literature, we may find the (individually internal) exchange rate of gift card to money
+// - How much individuals value the gift card depends on the subjects match with the gift card
 
 app.use(express.static(__dirname + "/public"))
 app.get("/",function(req,res){    // body of function
@@ -120,7 +126,9 @@ io.on("connection",function(socket){
   })
   socket.on("startExperiment", function(msg){
     if(state == "instructions") {
-      subjects.forEach(setupHist(subject))
+      console.log("subjects:", subjects)
+      arange(numSubjects).forEach(i => setupHist(subjects[i+1]))
+      console.log("subjects:", subjects)
       state = "interface"
       experimentStarted = true
       console.log(`startExperiment`)
