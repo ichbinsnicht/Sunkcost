@@ -11,7 +11,7 @@ var choose = x => x[Math.floor(Math.random()*x.length)]
 const numPracticePeriods  = 1 // 5 practice periods
 const numPeriods  = 1   // 15 periods, numPeriods > numPracticePeriods
 const stage1Length = 3   // 20 secs
-const stage2Length = 3   // 20 secs
+const stage2Length = 3000   // 20 secs
 const stage3Length = 3    // 10 secs
 const timestep = 1
 const endowment = 20
@@ -32,6 +32,13 @@ var dataStream = {}
 var dateString = ""
 
 // TODO
+// - symmetric period 1 and period 2 interface (no graph)
+// - bargraphs: below the two period lines we add wining probability and total cost
+// - in text life feedback: display cost 1 (in red), cost 2, win probability
+// - vary period 1 marginal cost (c1)
+//
+// Lower Priority
+// - how do we deal with habit persistence/inertia?
 // - implement real effort adjustments
 // - change total cost to stage 2 costs due to real effort intervention
 // - calibration exercise
