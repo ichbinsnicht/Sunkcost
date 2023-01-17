@@ -8,14 +8,15 @@ var arange = x => [...Array(x).keys()]
 var choose = x => x[Math.floor(Math.random()*x.length)]
 
 // parameters
-const numPracticePeriods  = 1 // 5 practice periods
-const numPeriods  = 1   // 15 periods, numPeriods > numPracticePeriods
-const stage1Length = 3   // 20 secs
-const stage2Length = 3000   // 20 secs
-const stage3Length = 3    // 10 secs
+const numPracticePeriods  = 10 // 5 practice periods (maybe more)
+const numPeriods  = 10   // 15 periods, numPeriods > numPracticePeriods
+const stage1Length = 30   // 20 secs
+const stage2Length = 30   // 20 secs
+const stage3Length = 10    // 10 secs
 const timestep = 1
-const endowment = 20
-const multiplier1 = 10      // marginal cost of the score in period 1
+const endowment = 15
+const multiplier1Low = 1      // marginal cost of the score in period 1
+const multiplier1High = 10      // marginal cost of the score in period 1
 const multiplier2Low = 1   // calibrate the high costs!
 const multiplier2High = 10  // cost2 = sunk cost in period 2 (high cost shock)
 
@@ -32,10 +33,9 @@ var dataStream = {}
 var dateString = ""
 
 // TODO
-// - symmetric period 1 and period 2 interface (no graph)
-// - bargraphs: below the two period lines we add wining probability and total cost
-// - in text life feedback: display cost 1 (in red), cost 2, win probability
-// - vary period 1 marginal cost (c1)
+// - display cost multiplier 1 & 2 in stage 2 (e.g. next to score lines)
+// - make feedback stage salient (provide info that they are in feedback stage)
+// - update audio
 //
 // Lower Priority
 // - how do we deal with habit persistence/inertia?
@@ -207,7 +207,7 @@ setupHist = function(subject) {
       cost: {1:0,2:0},
       forcedScore: {1:Math.random()*0.5,2:0},
       forced: {1:1*(Math.random()>0.5),2:0},
-      multiplier: {1:multiplier1,2:choose([multiplier2Low,multiplier2High])},
+      multiplier: {1:choose([multiplier1Low,multiplier1High]),2:choose([multiplier2Low,multiplier2High])},
     }
   })
 } 

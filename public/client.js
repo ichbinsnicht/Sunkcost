@@ -14,7 +14,7 @@ var arange = n => [...Array(n).keys()]
 var baseInstructionsString = `
 This is an experiment about individual decision making. If you pay attention to these instructions, you can earn a significant amount of money. Your earnings will depend on the decisions you make during the experiment.<br><br>
 
-At the beginning of the experiment, you will receive an endowment of $20.<br> 
+At the beginning of the experiment, you will receive an endowment of $15.<br> 
 At the end of the experiment, depending on the decisions you make, you may win a $15 Starbucks gift card. <br><br>
 
 This experiment will consist of several periods. Each period has two stages. <br><br>
@@ -25,7 +25,7 @@ This experiment will consist of several periods. Each period has two stages. <br
 
     At the end of the period, your probability of winning the $15 Starbucks gift card will be your stage 1 score plus your stage 2 score. Your total cost will be your stage 1 cost plus your stage 2 cost.<br><br>
 </div>
-At the end of the experiment one period will be randomly selected to be the critical period. You will receive the $15 Starbucks giftcard if you won it in the critical period. You will also receive your $20 endowment minus your total cost from the critical period.<br><br>`
+At the end of the experiment one period will be randomly selected to be the critical period. You will receive the $15 Starbucks giftcard if you won it in the critical period. You will also receive your $15 endowment minus your total cost from the critical period.<br><br>`
 
 var readyInstructionsString = baseInstructionsString + `The experiment is about to begin. One of the following periods will be randomly selected to determine your final earnings and whether you receive the $15 Starbucks gift card. If you have any questions, raise your hand and we will come to assist you.`
 
@@ -35,12 +35,19 @@ const graphWidth = 70
 const graphX = 0.5*(100-graphWidth)
 const graphHeight = 50
 const graphY = -22
-const lineY = -90
+const lineY1 = -90
+const lineY2 = -65
 const tickFont = "1.5pt monospace"
 const labelFont = "2pt monospace"
 const feedbackFont = "3pt monospace"
 const titleFont = "3pt monospace"
 const fullRange = true
+const black = "rgb(0,0,0)"
+const green = "rgb(0,200,0)"
+const darkGreen = "rgb(0,150,0)"
+const red = "rgb(256,0,0)"
+const darkRed = "rgb(150,0,0)"
+const blue = "rgb(0,50,256)"
 
 // variables
 var state   = "startup"
@@ -73,7 +80,6 @@ var message = {}
 var mouseEvent = {x:0,y:0}
 var earnings = 0
 var winPrize = 0
-
 
 document.onmousedown = function(event){
     msg = {
@@ -230,18 +236,21 @@ setupCanvas = function(){
     //console.log("setupCanvas")
 }
 drawInterface = function(){
-    if(stage<3) drawTop()
+    drawTop()
     if(stage==1) drawStage1Text()
-    if(stage==2) drawBottom()
-    if(stage==3) drawFeedback()
+    if(stage>=2) drawBottom()
+    if(stage>=2) drawStage2Text()
+    if(stage>=2) drawBarTotalCost()
+    if(stage>=2) drawBarWinProb()    
+    //if(stage==3) drawFeedback()
 }
 drawTop = function(){
-    context.fillStyle = "rgb(0,0,0)"
+    context.fillStyle = black
     context.strokeStyle = "black"
     context.lineWidth = 0.25
     context.beginPath()
-    context.moveTo(graphX,lineY)
-    context.lineTo(graphX+graphWidth,lineY) 
+    context.moveTo(graphX,lineY1)
+    context.lineTo(graphX+graphWidth,lineY1) 
     context.stroke()
     const numTicks = 6
     const tickLength = 2
@@ -249,27 +258,27 @@ drawTop = function(){
     context.font = tickFont
     context.textAlign = "center"
     context.textBaseline = "top"
-    if(stage==2){
-        arange(numTicks).forEach(i => {
-            const weight = i/(numTicks-1)
-            const x = (1-weight)*graphX+weight*(graphX+graphWidth)
-            const yTop = lineY-tickLength
-            context.beginPath()
-            context.moveTo(x,lineY)
-            context.lineTo(x,yTop) 
-            context.stroke()
-            const xCostLabel = `${0.5*weight*multiplier[1]}`
-            context.textBaseline = "bottom"
-            context.fillText(xCostLabel,x,yTop-tickSpace)    
-        })
-    }
+    //if(stage==2){
     arange(numTicks).forEach(i => {
         const weight = i/(numTicks-1)
         const x = (1-weight)*graphX+weight*(graphX+graphWidth)
-        const yTop = lineY-tickLength
-        const yBottom = lineY+tickLength
+        const yTop = lineY1-tickLength
         context.beginPath()
-        context.moveTo(x,lineY)
+        context.moveTo(x,lineY1)
+        context.lineTo(x,yTop) 
+        context.stroke()
+        const xCostLabel = `$${(0.5*weight*multiplier[1]).toFixed(2)}`
+        context.textBaseline = "bottom"
+        context.fillText(xCostLabel,x,yTop-tickSpace)    
+    })
+    //}
+    arange(numTicks).forEach(i => {
+        const weight = i/(numTicks-1)
+        const x = (1-weight)*graphX+weight*(graphX+graphWidth)
+        const yTop = lineY1-tickLength
+        const yBottom = lineY1+tickLength
+        context.beginPath()
+        context.moveTo(x,lineY1)
         context.lineTo(x,yBottom) 
         context.stroke()  
         const xScoreLabel = `${weight*50}%`
@@ -279,31 +288,96 @@ drawTop = function(){
     context.font = labelFont
     if(stage==2){
         context.textBaseline = "top"
-        context.fillStyle = "rgb(0,158,115)"
-        context.textBaseline = "bottom"
-        context.fillText("Cost 1",graphX+graphWidth*2*score[1],lineY-tickLength-tickSpace-2.5)
-        context.textBaseline = "top"
-        context.fillText("Score 1",graphX+graphWidth*2*score[1],lineY+tickLength+tickSpace+2.5)
+        context.fillStyle = darkGreen
+        context.fillText("Score 1",graphX+graphWidth*2*score[1],lineY1+tickLength+tickSpace+2.5)
         context.beginPath()
-        context.arc(graphX+graphWidth*2*score[1],lineY,1.5,0,2*Math.PI)
+        context.arc(graphX+graphWidth*2*score[1],lineY1,1.5,0,2*Math.PI)
         context.fill()
+        context.fillStyle = darkRed
+        context.textBaseline = "bottom"
+        context.fillText("Cost 1",graphX+graphWidth*2*score[1],lineY1-tickLength-tickSpace-2.5)
+        context.textBaseline = "top"        
+        context.beginPath()
+        context.arc(graphX+graphWidth*2*score[1],lineY1,1.5,Math.PI,2*Math.PI)
+        context.fill()        
     }
-    context.fillStyle = "rgb(0,114,178)"
+    context.fillStyle = blue
     context.textBaseline = "top"
     const choice1Y = stage==1 ? 4 : 5.5
-    context.fillText("Choice 1",graphX+graphWidth*2*choice[1],lineY+tickLength+tickSpace+choice1Y)
+    context.fillText("Choice 1",graphX+graphWidth*2*choice[1],lineY1+tickLength+tickSpace+choice1Y)
     context.beginPath()
-    context.arc(graphX+graphWidth*2*choice[1],lineY,1,0,2*Math.PI)
+    context.arc(graphX+graphWidth*2*choice[1],lineY1,1,0,2*Math.PI)
     context.fill()
+}
+drawBottom = function(){
+    context.fillStyle = black
+    context.strokeStyle = "black"
+    context.lineWidth = 0.25
+    context.beginPath()
+    context.moveTo(graphX,lineY2)
+    context.lineTo(graphX+graphWidth,lineY2) 
+    context.stroke()
+    const numTicks = 6
+    const tickLength = 2
+    const tickSpace = 1    
+    context.font = tickFont
+    context.textAlign = "center"
+    context.textBaseline = "top"
+    arange(numTicks).forEach(i => {
+        const weight = i/(numTicks-1)
+        const x = (1-weight)*graphX+weight*(graphX+graphWidth)
+        const yTop = lineY2-tickLength
+        context.beginPath()
+        context.moveTo(x,lineY2)
+        context.lineTo(x,yTop) 
+        context.stroke()
+        const xCostLabel = `$${(0.5*weight*multiplier[2]).toFixed(2)}`
+        context.textBaseline = "bottom"
+        context.fillText(xCostLabel,x,yTop-tickSpace)    
+    })
+    arange(numTicks).forEach(i => {
+        const weight = i/(numTicks-1)
+        const x = (1-weight)*graphX+weight*(graphX+graphWidth)
+        const yTop = lineY2-tickLength
+        const yBottom = lineY2+tickLength
+        context.beginPath()
+        context.moveTo(x,lineY2)
+        context.lineTo(x,yBottom) 
+        context.stroke()  
+        const xScoreLabel = `${weight*50}%`
+        context.textBaseline = "top"
+        context.fillText(xScoreLabel,x,yBottom+tickSpace)
+    }) 
+    context.font = labelFont
+    context.textBaseline = "top"
+    context.fillStyle = green    
+    context.fillText("Score 2",graphX+graphWidth*2*score[2],lineY2+tickLength+tickSpace+2.5)
+    context.beginPath()
+    context.arc(graphX+graphWidth*2*score[2],lineY2,1.5,0,2*Math.PI)
+    context.fill()
+    context.fillStyle = red
+    context.textBaseline = "bottom"
+    context.fillText("Cost 2",graphX+graphWidth*2*score[2],lineY2-tickLength-tickSpace-2.5)
+    context.textBaseline = "top"
+    context.beginPath()
+    context.arc(graphX+graphWidth*2*score[2],lineY2,1.5,Math.PI,2*Math.PI)
+    context.fill()
+    context.fillStyle = blue
+    context.textBaseline = "top"
+    const choice2Y = 5.5
+    context.fillText("Choice 2",graphX+graphWidth*2*choice[2],lineY2+tickLength+tickSpace+choice2Y)
+    context.beginPath()
+    context.arc(graphX+graphWidth*2*choice[2],lineY2,1,0,2*Math.PI)
+    context.fill()    
 }
 drawStage1Text = function(){
     context.fillStyle = "black"
     context.textBaseline = "top"
     context.textAlign = "center"
     const choice1String = `${(choice[1]*100).toFixed(0)}%`
-    context.fillText(`Countdown: ${countdown}`,graphX+0.5*graphWidth,lineY+14)
-    context.fillStyle = "rgb(0,114,178)"
-    context.fillText(`Choice 1: ${choice1String}`,graphX+0.5*graphWidth,lineY+20)
+    context.fillText(`Countdown: ${countdown}`,graphX+0.5*graphWidth,lineY1+14)
+    context.fillStyle = blue
+    context.fillText(`Choice 1: ${choice1String}`,graphX+0.5*graphWidth,lineY1+20)
     context.fillStyle = "black"
     const line1 = "You are currently selecting Choice 1."
     const line2 = "A number will be randomly selected from 0 to 0.5."    
@@ -315,138 +389,141 @@ drawStage1Text = function(){
     const line8 = `Your Cost 2 will be the Cost Multiplier times Score 2.`
     const line9 = `Your Total Cost will be Cost 1 plus Cost 2.`
     const line10 = "Your probability of winning the $15 Starbucks gift card will be Score 1 plus Score 2."
-    context.fillText(line1,graphX+0.5*graphWidth,lineY+30)
-    context.fillText(line2,graphX+0.5*graphWidth,lineY+34)
-    context.fillText(line3,graphX+0.5*graphWidth,lineY+38)
-    context.fillText(line4,graphX+0.5*graphWidth,lineY+42)
-    context.fillText(line5,graphX+0.5*graphWidth,lineY+46)
-    context.fillText(line6,graphX+0.5*graphWidth,lineY+54)
-    context.fillText(line7,graphX+0.5*graphWidth,lineY+58)
-    context.fillText(line8,graphX+0.5*graphWidth,lineY+62)
-    context.fillText(line9,graphX+0.5*graphWidth,lineY+70)
-    context.fillText(line10,graphX+0.5*graphWidth,lineY+74)
+    context.fillText(line1,graphX+0.5*graphWidth,lineY1+30)
+    context.fillText(line2,graphX+0.5*graphWidth,lineY1+34)
+    context.fillText(line3,graphX+0.5*graphWidth,lineY1+38)
+    context.fillText(line4,graphX+0.5*graphWidth,lineY1+42)
+    context.fillText(line5,graphX+0.5*graphWidth,lineY1+46)
+    context.fillText(line6,graphX+0.5*graphWidth,lineY1+54)
+    context.fillText(line7,graphX+0.5*graphWidth,lineY1+58)
+    context.fillText(line8,graphX+0.5*graphWidth,lineY1+62)
+    context.fillText(line9,graphX+0.5*graphWidth,lineY1+70)
+    context.fillText(line10,graphX+0.5*graphWidth,lineY1+74)    
 }
-drawBottom = function(){
-    context.fillStyle = "rgb(0,0,0)"
+drawStage2Text = function(){
+    context.fillStyle = "black"
+    context.textBaseline = "top"
+    context.textAlign = "center"
+    const choice2String = `${(choice[2]*100).toFixed(0)}%`
+    context.fillText(`Countdown: ${countdown}`,graphX+0.5*graphWidth,lineY2+14)
+    context.fillStyle = blue
+    context.fillText(`Choice 2: ${choice2String}`,graphX+0.5*graphWidth,lineY2+20)
+    context.fillStyle = "black"
+}
+drawBarTotalCost = function(){
+    context.fillStyle = black
     context.strokeStyle = "black"
     context.lineWidth = 0.25
-    context.fillText(`Countdown: ${countdown}`,graphX+0.5*graphWidth,lineY+14)
-    context.beginPath()
-    context.moveTo(graphX,graphY-graphHeight)
-    context.lineTo(graphX,graphY)
-    context.lineTo(graphX+graphWidth,graphY)
-    context.lineTo(graphX+graphWidth,graphY-graphHeight)
+    context.beginPath() 
+    const barX = 30
+    const baseY = -10
+    const barWidth = 10
+    const barHeight = 25
+    context.moveTo(barX-0.5*barWidth,baseY-barHeight)
+    context.lineTo(barX-0.5*barWidth,baseY)
+    context.lineTo(barX+0.5*barWidth,baseY)
+    context.lineTo(barX+0.5*barWidth,baseY-barHeight)
     context.stroke()
-    drawBottomLabelsX()
-    drawBottomLabelsLeftY()
-    drawBottomLabelsRightY()
-    context.fillStyle = "rgb(0,0,0)"
-    context.strokeStyle = "rgb(0,158,115)"
-    context.lineWidth = 1
-    context.lineCap = "round"
-    context.beginPath()
-    context.moveTo(graphX,graphY-graphHeight*score[1])
-    context.lineTo(graphX+graphWidth,graphY-graphHeight*(score[1]+0.5))
-    context.stroke()   
-    context.fillStyle = "rgb(0,114,178)"
-    context.beginPath()
-    context.arc(graphX+graphWidth*2*score[2],graphY-graphHeight*(score[1]+score[2]),1.5,0,2*Math.PI)
-    context.fill() 
-    context.fillStyle = "rgb(0,0,0)"
-    context.textAlign = "left"
-    let string1 = `Score 1: ${(score[1]*100).toFixed(0)}%    `
-    string1 += `Cost Multiplier: $${(multiplier[2]).toFixed(0)}`
-    let string2 = `Score 2: ${(score[2]*100).toFixed(0)}%    `
-    string2 += `Total Cost: $${(cost[1]+cost[2]).toFixed(2)}    `
-    string2 += `Win Probability: ${((score[1]+score[2])*100).toFixed(0)}%`
-    context.fillText(string1,graphX-0.1*graphWidth,lineY+graphHeight+30)
-    context.fillText(string2,graphX-0.1*graphWidth,lineY+graphHeight+34)
-}
-drawBottomLabelsX = function(){
-    const numTicks = 6
+    context.fillStyle = red 
+    const totalCost = cost[1]+cost[2]
+    const barLevelTotal = barHeight*totalCost/10
+    context.fillRect(barX-0.5*barWidth,baseY-barLevelTotal,barWidth,barLevelTotal)
+    context.fillStyle = darkRed 
+    const cost1 = cost[1]
+    const barLevel1 = barHeight*cost1/10
+    context.fillRect(barX-0.5*barWidth,baseY-barLevel1,barWidth,barLevel1)    
+    const numTicks = 3
     const tickLength = 2
-    const tickSpace = 1    
+    const tickSpace = 1
     context.font = tickFont
+    context.fillStyle = black
     context.textAlign = "center"
     context.textBaseline = "top"
     arange(numTicks).forEach(i => {
         const weight = i/(numTicks-1)
-        const x = (1-weight)*graphX+weight*(graphX+graphWidth)
-        const yTop = graphY
-        const yBottom = graphY+tickLength
+        const y = (1-weight)*baseY+weight*(baseY-barHeight)
+        const xRight1 = barX-0.5*barWidth
+        const xLeft1 = barX-0.5*barWidth-tickLength
         context.beginPath()
-        context.moveTo(x,yTop)
-        context.lineTo(x,yBottom) 
-        context.stroke()  
-        const xScoreLabel = `${weight*50}%`
-        context.textBaseline = "top"
-        context.textAlign = "center"
-        context.fillText(xScoreLabel,x,yBottom+tickSpace) 
-    })
-    context.font = labelFont
-    context.fillStyle = "rgb(0,158,115)"
-    context.textBaseline = "top"
-    context.fillText("Score 2",graphX+graphWidth*2*score[2],graphY+tickLength+tickSpace+2.5)
-}
-drawBottomLabelsLeftY = function(){
-    const numTicks = 6
-    const tickLength = 2
-    const tickSpace = 1    
-    baseline = score[1]*(5-multiplier[2])
-    context.font = tickFont
-    context.fillStyle = "rgb(0,0,0)"
-    context.textAlign = "center"
-    context.textBaseline = "top"
-    arange(numTicks).forEach(i => {
-        const weight = i/(numTicks-1)
-        const y = (1-weight)*graphY+weight*(graphY-graphHeight)
-        const xRight = graphX
-        const xLeft = graphX-tickLength
+        context.moveTo(xRight1,y)
+        context.lineTo(xLeft1,y) 
+        context.stroke()      
+        const xRight2 = barX+0.5*barWidth+tickLength
+        const xLeft2 = barX+0.5*barWidth
         context.beginPath()
-        context.moveTo(xRight,y)
-        context.lineTo(xLeft,y) 
-        context.stroke()  
-        const yCostLabel = `$${(baseline+multiplier[2]*weight).toFixed(2)}`
-        context.textBaseline = "middle"
-        context.textAlign = "right"
-        context.fillText(yCostLabel,graphX-tickLength-tickSpace,y) 
-    })
-    context.font = labelFont
-    context.fillStyle = "rgb(0,158,115)"
-    context.textBaseline = "middle"
-    context.textAlign = "right"
-    context.fillText("Total Cost",graphX-tickLength-tickSpace-10,graphY-graphHeight*(score[1]+score[2]))
-}
-drawBottomLabelsRightY = function(){
-    const numTicks = 6
-    const tickLength = 2
-    const tickSpace = 1    
-    context.font = tickFont
-    context.fillStyle = "rgb(0,0,0)"
-    context.textAlign = "center"
-    context.textBaseline = "top"
-    arange(numTicks).forEach(i => {
-        const weight = i/(numTicks-1)
-        const y = (1-weight)*graphY+weight*(graphY-graphHeight)
-        const xLeft = graphX+graphWidth
-        const xRight = graphX+graphWidth+tickLength
-        context.beginPath()
-        context.moveTo(xRight,y)
-        context.lineTo(xLeft,y) 
-        context.stroke()  
-        const yCostLabel = `${(weight*100).toFixed(0)}%`
+        context.moveTo(xRight2,y)
+        context.lineTo(xLeft2,y) 
+        context.stroke()              
+        const yCostLabel = `$${(10*weight).toFixed(2)}`
         context.textBaseline = "middle"
         context.textAlign = "left"
-        context.fillText(yCostLabel,graphX+graphWidth+tickLength+tickSpace,y) 
-    })
-    context.font = labelFont
-    context.fillStyle = "rgb(0,158,115)"
-    context.textBaseline = "middle"
-    context.textAlign = "left"
-    context.fillText("Win Probability",graphX+graphWidth+tickLength+tickSpace+6,graphY-graphHeight*(score[1]+score[2]))
+        context.fillText(yCostLabel,barX+0.5*barWidth+tickLength+tickSpace,y) 
+        context.textAlign = "right"
+        context.fillText(yCostLabel,barX-0.5*barWidth-tickLength-tickSpace,y)          
+    })    
+    context.fillStyle = darkRed  
+    context.textAlign = "center"    
+    const totalCostString = `Total Cost: $${totalCost.toFixed(0)}`
+    context.fillText(totalCostString,barX,baseY+5)    
+}
+drawBarWinProb = function(){
+    context.fillStyle = black
+    context.strokeStyle = "black"
+    context.lineWidth = 0.25
+    context.beginPath() 
+    const barX = 70
+    const baseY = -10
+    const barWidth = 10
+    const barHeight = 25
+    context.moveTo(barX-0.5*barWidth,baseY-barHeight)
+    context.lineTo(barX-0.5*barWidth,baseY)
+    context.lineTo(barX+0.5*barWidth,baseY)
+    context.lineTo(barX+0.5*barWidth,baseY-barHeight)
+    context.stroke()
+    context.fillStyle = green
+    const winProb = (score[1]+score[2])*100    
+    const barLevelTotal = barHeight*winProb/100
+    context.fillRect(barX-0.5*barWidth,baseY-barLevelTotal,barWidth,barLevelTotal)    
+    context.fillStyle = darkGreen
+    const score1 = score[1]*100    
+    const barLevel1 = barHeight*score1/100
+    context.fillRect(barX-0.5*barWidth,baseY-barLevel1,barWidth,barLevel1)       
+    const numTicks = 3
+    const tickLength = 2
+    const tickSpace = 1
+    context.font = tickFont
+    context.fillStyle = black
+    context.textAlign = "center"
+    context.textBaseline = "top"
+    arange(numTicks).forEach(i => {
+        const weight = i/(numTicks-1)
+        const y = (1-weight)*baseY+weight*(baseY-barHeight)
+        const xRight1 = barX-0.5*barWidth
+        const xLeft1 = barX-0.5*barWidth-tickLength
+        context.beginPath()
+        context.moveTo(xRight1,y)
+        context.lineTo(xLeft1,y) 
+        context.stroke()      
+        const xRight2 = barX+0.5*barWidth+tickLength
+        const xLeft2 = barX+0.5*barWidth
+        context.beginPath()
+        context.moveTo(xRight2,y)
+        context.lineTo(xLeft2,y) 
+        context.stroke()              
+        const yWinProbLabel = `${100*weight}%`
+        context.textBaseline = "middle"
+        context.textAlign = "left"
+        context.fillText(yWinProbLabel,barX+0.5*barWidth+tickLength+tickSpace,y) 
+        context.textAlign = "right"
+        context.fillText(yWinProbLabel,barX-0.5*barWidth-tickLength-tickSpace,y)          
+    })    
+    context.fillStyle = darkGreen  
+    context.textAlign = "center"    
+    const winProbString = `Win Prob: ${winProb.toFixed(0)}%`
+    context.fillText(winProbString,barX,baseY+5)    
 }
 drawFeedback = function(){
-    context.fillStyle = "rgb(0,0,0)"
+    context.fillStyle = black
     context.textAlign = "center"
     context.strokeStyle = "black"
     context.font = feedbackFont
@@ -456,15 +533,15 @@ drawFeedback = function(){
     const line1 = practiceComplete ? line1real : line1practice
     const line2 = `You have a ${((score[1]+score[2])*100).toFixed(0)}% chance of winning the $15 Starbucks gift card.`
     const line3 = `Your total cost is $${(cost[1]+cost[2]).toFixed(2)}.`
-    context.fillText(line1,graphX+0.5*graphWidth,lineY+24)
-    context.fillText(line2,graphX+0.5*graphWidth,lineY+34)
-    context.fillText(line3,graphX+0.5*graphWidth,lineY+42)
+    context.fillText(line1,graphX+0.5*graphWidth,lineY1+24)
+    context.fillText(line2,graphX+0.5*graphWidth,lineY1+34)
+    context.fillText(line3,graphX+0.5*graphWidth,lineY1+42)
     const line4 = `Countdown: ${countdown}`
-    context.fillText(line4,graphX+0.5*graphWidth,lineY+60)
+    context.fillText(line4,graphX+0.5*graphWidth,lineY1+60)
 }
 drawOutcome = function(){
     console.log("drawOutcome")
-    context.fillStyle = "rgb(0,0,0)"
+    context.fillStyle = black
     context.textAlign = "center"
     context.strokeStyle = "black"
     context.font = feedbackFont
@@ -476,10 +553,10 @@ drawOutcome = function(){
     const line3 = winPrize == 1 ? line3A : line3B
     const line4 = `You earned $${earnings.toFixed(2)}`
     const line5 = "Please wait while your payment is prepared"
-    context.fillText(line1,graphX+0.5*graphWidth,lineY+14)
-    context.fillText(line2,graphX+0.5*graphWidth,lineY+22)
-    context.fillText(line3,graphX+0.5*graphWidth,lineY+42)
-    context.fillText(line4,graphX+0.5*graphWidth,lineY+50)
-    context.fillText(line5,graphX+0.5*graphWidth,lineY+58)
+    context.fillText(line1,graphX+0.5*graphWidth,lineY1+14)
+    context.fillText(line2,graphX+0.5*graphWidth,lineY1+22)
+    context.fillText(line3,graphX+0.5*graphWidth,lineY1+42)
+    context.fillText(line4,graphX+0.5*graphWidth,lineY1+50)
+    context.fillText(line5,graphX+0.5*graphWidth,lineY1+58)
 }
 draw()
