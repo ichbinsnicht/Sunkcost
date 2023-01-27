@@ -10,9 +10,9 @@ var choose = x => x[Math.floor(Math.random()*x.length)]
 // parameters
 const numPracticePeriods  = 10 // 5 practice periods (maybe more)
 const numPeriods  = 10   // 15 periods, numPeriods > numPracticePeriods
-const stage1Length = 30   // 20 secs
-const stage2Length = 30   // 20 secs
-const stage3Length = 10    // 10 secs
+const stage1Length = 10   // 20 secs
+const stage2Length = 10   // 20 secs
+const stage3Length = 3    // 10 secs
 const timestep = 1
 const endowment = 15
 const multiplier1Low = 1      // marginal cost of the score in period 1
@@ -33,6 +33,7 @@ var dataStream = {}
 var dateString = ""
 
 // TODO
+// - explain multipliers in instructions
 // - display cost multiplier 1 & 2 in stage 2 (e.g. next to score lines)
 // - make feedback stage salient (provide info that they are in feedback stage)
 // - update audio

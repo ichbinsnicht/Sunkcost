@@ -17,15 +17,13 @@ This is an experiment about individual decision making. If you pay attention to 
 At the beginning of the experiment, you will receive an endowment of $15.<br> 
 At the end of the experiment, depending on the decisions you make, you may win a $15 Starbucks gift card. <br><br>
 
-This experiment will consist of several periods. Each period has two stages. <br><br>
-<div style="padding-left: 5vh">
-    During stage 1, you will choose a number from 0 to 0.5. At the end of stage 1, a number will be randomly selected from 0 to 0.5. Your stage 1 score will be either the number you chose or the randomly selected number. Both are equally likely. Your stage 1 cost will be your stage 1 score times $10.<br><br>
+This experiment has two stages. In each stage you will receive a score and pay a cost. At the end of the experiment, your probability of winning the $15 Starbucks gift card will be score 1 plus score 2. Your final payment will be your $15 endowment minus cost 1 and cost 2.<br><br>
 
-    At the beginning of stage 2, a cost multiplier will be randomly selected to be either $1 or $10 and revealed to you. During stage 2, you will choose another number from 0 to 0.5. Your stage 2 score will always be the number you chose. Your stage 2 cost will be your stage 2 score times the cost multiplier.<br><br>
+At the beginning of stage 1, multiplier 1 will be randomly selected to be either $1 or $10. During stage 1, you will choose a number from 0 to 0.5. At the end of stage 1, a number will be randomly selected from 0 to 0.5. Score 1 will be either the number you chose or the randomly selected number. Both are equally likely. Cost 1 will be score 1 times multiplier 1.<br><br>
 
-    At the end of the period, your probability of winning the $15 Starbucks gift card will be your stage 1 score plus your stage 2 score. Your total cost will be your stage 1 cost plus your stage 2 cost.<br><br>
-</div>
-At the end of the experiment one period will be randomly selected to be the critical period. You will receive the $15 Starbucks giftcard if you won it in the critical period. You will also receive your $15 endowment minus your total cost from the critical period.<br><br>`
+At the beginning of stage 2, multiplier 2 will be randomly selected to be either $1 or $10. During stage 2, you will choose another number from 0 to 0.5. Score 2 will always be the number you chose. Cost 2 will be score 2 times the multiplier 2.<br><br>
+
+<br><br>`
 
 var readyInstructionsString = baseInstructionsString + `The experiment is about to begin. One of the following periods will be randomly selected to determine your final earnings and whether you receive the $15 Starbucks gift card. If you have any questions, raise your hand and we will come to assist you.`
 
@@ -308,6 +306,11 @@ drawTop = function(){
     context.beginPath()
     context.arc(graphX+graphWidth*2*choice[1],lineY1,1,0,2*Math.PI)
     context.fill()
+    context.fillStyle = "black"
+    context.textBaseline = "middle"
+    context.textAlign = "left"
+    const multiplier1String = `Multiplier 1: $${(multiplier[1]).toFixed(0)}`
+    context.fillText(multiplier1String,graphX+graphWidth+10,lineY1)    
 }
 drawBottom = function(){
     context.fillStyle = black
@@ -368,7 +371,12 @@ drawBottom = function(){
     context.fillText("Choice 2",graphX+graphWidth*2*choice[2],lineY2+tickLength+tickSpace+choice2Y)
     context.beginPath()
     context.arc(graphX+graphWidth*2*choice[2],lineY2,1,0,2*Math.PI)
-    context.fill()    
+    context.fill()
+    context.fillStyle = "black"
+    context.textBaseline = "middle"
+    context.textAlign = "left"
+    const multiplier2String = `Multiplier 2: $${(multiplier[2]).toFixed(0)}`
+    context.fillText(multiplier2String,graphX+graphWidth+10,lineY2)    
 }
 drawStage1Text = function(){
     context.fillStyle = "black"
