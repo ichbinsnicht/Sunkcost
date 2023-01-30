@@ -14,16 +14,13 @@ var arange = n => [...Array(n).keys()]
 var baseInstructionsString = `
 This is an experiment about individual decision making. If you pay attention to these instructions, you can earn a significant amount of money. Your earnings will depend on the decisions you make during the experiment.<br><br>
 
-At the beginning of the experiment, you will receive an endowment of $15.<br> 
-At the end of the experiment, depending on the decisions you make, you may win a $15 Starbucks gift card. <br><br>
+At the beginning of the experiment, you will receive an endowment of $15. At the end of the experiment, depending on the decisions you make, you may win a $15 Starbucks gift card. <br><br>
 
-This experiment has two stages. In each stage you will receive a score and pay a cost. At the end of the experiment, your probability of winning the $15 Starbucks gift card will be score 1 plus score 2. Your final payment will be your $15 endowment minus cost 1 and cost 2.<br><br>
+This experiment has two stages. In each stage, you will make a choice, choice 1 in stage 1 and choice 2 in stage 2. In each stage, you will receive a score, score 1 in stage 1 and score 2 stage 2. In each stage, you will pay a cost, cost 1 in stage 1 and cost 2 in stage 2. In each stage, you will have a multiplier, multiplier 1 in stage 1 and multiplier 2 in stage 2. In each stage, your cost will be your score times your multiplier. At the end of the experiment, your probability of winning the $15 Starbucks gift card will be score 1 plus score 2. Your final payment will be your $15 endowment minus cost 1 and cost 2.<br><br>
 
-At the beginning of stage 1, multiplier 1 will be randomly selected to be either $1 or $10. During stage 1, you will choose a number from 0 to 0.5. At the end of stage 1, a number will be randomly selected from 0 to 0.5. Score 1 will be either the number you chose or the randomly selected number. Both are equally likely. Cost 1 will be score 1 times multiplier 1.<br><br>
+At the beginning of stage 1, multiplier 1 will be randomly selected to be either $1 or $10. Both are equally likely. During stage 1, you will select choice 1 from 0 to 0.5. At the end of stage 1, score 1 will be either choice 1 or a randomly selected number from 0 to 0.5. Both are equally likely. Cost 1 will be score 1 times multiplier 1.<br><br>
 
-At the beginning of stage 2, multiplier 2 will be randomly selected to be either $1 or $10. During stage 2, you will choose another number from 0 to 0.5. Score 2 will always be the number you chose. Cost 2 will be score 2 times the multiplier 2.<br><br>
-
-<br><br>`
+At the beginning of stage 2, multiplier 2 will be randomly selected to be either $1 or $10. Both are equally likely. During stage 2, you will select choice 2 from 0 to 0.5. Score 2 will always equal choice 2. Cost 2 will be score 2 times multiplier 2.<br><br>`
 
 var readyInstructionsString = baseInstructionsString + `The experiment is about to begin. One of the following periods will be randomly selected to determine your final earnings and whether you receive the $15 Starbucks gift card. If you have any questions, raise your hand and we will come to assist you.`
 
@@ -284,7 +281,7 @@ drawTop = function(){
         context.fillText(xScoreLabel,x,yBottom+tickSpace)
     })
     context.font = labelFont
-    if(stage==2){
+    if(stage>=2){
         context.textBaseline = "top"
         context.fillStyle = darkGreen
         context.fillText("Score 1",graphX+graphWidth*2*score[1],lineY1+tickLength+tickSpace+2.5)
@@ -377,6 +374,10 @@ drawBottom = function(){
     context.textAlign = "left"
     const multiplier2String = `Multiplier 2: $${(multiplier[2]).toFixed(0)}`
     context.fillText(multiplier2String,graphX+graphWidth+10,lineY2)    
+    if(stage==3){
+        const stagesCompleteString = `BOTH STAGES ARE COMPLETE`
+        context.fillText(stagesCompleteString,graphX+graphWidth+10,lineY2+14) 
+    }
 }
 drawStage1Text = function(){
     context.fillStyle = "black"
@@ -387,26 +388,28 @@ drawStage1Text = function(){
     context.fillStyle = blue
     context.fillText(`Choice 1: ${choice1String}`,graphX+0.5*graphWidth,lineY1+20)
     context.fillStyle = "black"
-    const line1 = "You are currently selecting Choice 1."
-    const line2 = "A number will be randomly selected from 0 to 0.5."    
-    const line3 = "Score 1 will be either Choice 1 or the randomly selected number." 
-    const line4 = "Both options are equally likely."
-    const line5 = `Your Cost 1 will be $${multiplier[1].toFixed(2)} times Score 1.`
-    const line6 = "In the next stage you will choose Score 2."
-    const line7 = "Your Cost Multiplier will be 1 or 5. Both options are equally likely."
-    const line8 = `Your Cost 2 will be the Cost Multiplier times Score 2.`
-    const line9 = `Your Total Cost will be Cost 1 plus Cost 2.`
-    const line10 = "Your probability of winning the $15 Starbucks gift card will be Score 1 plus Score 2."
+    const line1 = "You are currently selecting Choice 1."    
+    const line2 = "Score 1 will either be Choice 1 or will be randomly selected from 0 to 0.5." 
+    const line3 = "Both options are equally likely."
+    const line4 = `Cost 1 will be $${multiplier[1].toFixed(2)} times Score 1.`
+    const line5 = "In the next stage you will select choice 2."
+    const line6 = "Score 2 will equal Choice 2."    
+    const line7 = "Multiplier 2 will be $1 or $10."
+    const line8 = "Both options are equally likely."
+    const line9 = `Cost 2 will be Multiplier 2 times Score 2.`
+    const line10 = `Your final earnings will be your $15 endowment minus Cost 1 and Cost 2.`
+    const line11 = "Your probability of winning the $15 Starbucks gift card will be Score 1 plus Score 2."
     context.fillText(line1,graphX+0.5*graphWidth,lineY1+30)
     context.fillText(line2,graphX+0.5*graphWidth,lineY1+34)
     context.fillText(line3,graphX+0.5*graphWidth,lineY1+38)
     context.fillText(line4,graphX+0.5*graphWidth,lineY1+42)
-    context.fillText(line5,graphX+0.5*graphWidth,lineY1+46)
+    context.fillText(line5,graphX+0.5*graphWidth,lineY1+50)
     context.fillText(line6,graphX+0.5*graphWidth,lineY1+54)
     context.fillText(line7,graphX+0.5*graphWidth,lineY1+58)
     context.fillText(line8,graphX+0.5*graphWidth,lineY1+62)
-    context.fillText(line9,graphX+0.5*graphWidth,lineY1+70)
-    context.fillText(line10,graphX+0.5*graphWidth,lineY1+74)    
+    context.fillText(line9,graphX+0.5*graphWidth,lineY1+66)
+    context.fillText(line10,graphX+0.5*graphWidth,lineY1+74)
+    context.fillText(line11,graphX+0.5*graphWidth,lineY1+78)        
 }
 drawStage2Text = function(){
     context.fillStyle = "black"
@@ -414,8 +417,10 @@ drawStage2Text = function(){
     context.textAlign = "center"
     const choice2String = `${(choice[2]*100).toFixed(0)}%`
     context.fillText(`Countdown: ${countdown}`,graphX+0.5*graphWidth,lineY2+14)
-    context.fillStyle = blue
-    context.fillText(`Choice 2: ${choice2String}`,graphX+0.5*graphWidth,lineY2+20)
+    if(stage==2){
+        context.fillStyle = blue
+        context.fillText(`Choice 2: ${choice2String}`,graphX+0.5*graphWidth,lineY2+20)
+    }
     context.fillStyle = "black"
 }
 drawBarTotalCost = function(){
