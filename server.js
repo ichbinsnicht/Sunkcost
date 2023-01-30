@@ -8,11 +8,11 @@ var arange = x => [...Array(x).keys()]
 var choose = x => x[Math.floor(Math.random()*x.length)]
 
 // parameters
-const numPracticePeriods  = 10 // 5 practice periods (maybe more)
-const numPeriods  = 10   // 15 periods, numPeriods > numPracticePeriods
-const stage1Length = 10   // 20 secs
-const stage2Length = 10   // 20 secs
-const stage3Length = 3    // 10 secs
+const numPracticePeriods  = 5 // 5 practice periods
+const numPeriods  = 1   // 1 period, numPeriods > numPracticePeriods
+const stage1Length = 30   // 30 secs
+const stage2Length = 3   // 30 secs
+const stage3Length = 5    // 10 secs
 const timestep = 1
 const endowment = 15
 const multiplier1Low = 1      // marginal cost of the score in period 1
@@ -33,9 +33,6 @@ var dataStream = {}
 var dateString = ""
 
 // TODO
-// - explain multipliers in instructions
-// - display cost multiplier 1 & 2 in stage 2 (e.g. next to score lines)
-// - make feedback stage salient (provide info that they are in feedback stage)
 // - update audio
 //
 // Lower Priority
@@ -201,7 +198,7 @@ shuffle = function(array){
 }
 
 setupHist = function(subject) {
-  arange(numPeriods).forEach(i => {
+  arange(numPracticePeriods).forEach(i => {
     subject.hist[i+1] = {
       choice: {1:0,2:0},
       score: {1:0,2:0},      
