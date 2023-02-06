@@ -10,9 +10,9 @@ var choose = x => x[Math.floor(Math.random()*x.length)]
 // parameters
 const numPracticePeriods  = 5 // 5 practice periods
 const numPeriods  = 1   // 1 period, numPeriods > numPracticePeriods
-const stage1Length = 30   // 30 secs
-const stage2Length = 3   // 30 secs
-const stage3Length = 5    // 10 secs
+const stage1Length = 5   // 30 secs
+const stage2Length = 5   // 30 secs
+const stage3Length = 10    // 10 secs
 const timestep = 1
 const endowment = 15
 const multiplier1Low = 1      // marginal cost of the score in period 1
@@ -33,13 +33,23 @@ var dataStream = {}
 var dateString = ""
 
 // TODO
+// - configure mouse for off-center positioning
+// - clean interface without instructions in stage 1
+// - provide feedback in all practicePeriods
+// - implement real effort treatments
 // - update audio
 //
 // Lower Priority
+// - interface and language improvement
+// - calibrate timing of stages
+// - task: pilot with friends/colleagues 
 // - how do we deal with habit persistence/inertia?
-// - implement real effort adjustments
+// - - money is prepared to be send to you for the experiment ($5500)
 // - change total cost to stage 2 costs due to real effort intervention
 // - calibration exercise
+// - set up mixture model to have everything ready prior to the experiment
+//- (free software) eye tracking to detect heterogeneity across gender? https://github.com/brownhci/WebGazer (women are more likely to focus on risk and men more likely on payout)
+//- ask Shengwu for input again
 // - external funding (Incubator grant) or alternatives
 // ------------------------------------------------------------------------------
 // - schedule (flight) time/funding (funding from VCU) for experiment at VCU
@@ -230,6 +240,20 @@ createSubject = function(id, socket){
   setupHist(subject)
   console.log(`subject ${id} connected`)
 }
+calculateOutcome = function(){
+  arange(numSubjects).forEach(i => {
+    const subject = subjects[i+1]
+    subject.outcomePeriod = choose(arange(numPeriods))+1
+    subject.outcomeRandom = Math.random()
+    const selectedHist = subject.hist[subject.outcomePeriod]
+    subject.score1 = selectedHist.score[1]
+    subject.score2 = selectedHist.score[2]
+    subject.totalScore = subject.score1 + subject.score2
+    subject.winPrize = (subject.totalScore > subject.outcomeRandom)*1
+    subject.totalCost = selectedHist.cost[1]+selectedHist.cost[2]
+    subject.earnings = endowment - subject.totalCost
+  })
+}
 update = function(){
   if(state == "interface"){
     countdown = countdown - 1
@@ -238,6 +262,7 @@ update = function(){
       stage = 2
     }
     if(stage == 2 && countdown <= 0) {
+      calculateOutcome()
       countdown = stage3Length
       stage = 3 
     }
@@ -248,18 +273,6 @@ update = function(){
         countdown = 0
         if(experimentStarted){
           state = "end" 
-          arange(numSubjects).forEach(i => {
-            const subject = subjects[i+1]
-            subject.outcomePeriod = choose(arange(numPeriods))+1
-            subject.outcomeRandom = Math.random()
-            const selectedHist = subject.hist[subject.outcomePeriod]
-            subject.score1 = selectedHist.score[1]
-            subject.score2 = selectedHist.score[2]
-            subject.totalScore = subject.score1 + subject.score2
-            subject.winPrize = (subject.totalScore > subject.outcomeRandom)*1
-            subject.totalCost = selectedHist.cost[1]+selectedHist.cost[2]
-            subject.earnings = endowment - subject.totalCost
-          })
           writePaymentFile()
           console.log("Session Complete")
         } else{
