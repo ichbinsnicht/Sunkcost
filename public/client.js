@@ -31,7 +31,7 @@ const graphX = 0.5*(100-graphWidth)
 const graphHeight = 50
 const graphY = -22
 const lineY1 = -90
-const lineY2 = -60
+const lineY2 = -65
 const tickFont = "1.5pt monospace"
 const labelFont = "2pt monospace"
 const feedbackFont = "3pt monospace"
@@ -60,7 +60,7 @@ var countdown = 60      // seconds
 var outcomePeriod = 1
 var outcomeRandom = [0,0]
 var period = 1
-var stage = 1
+var step = 1
 var experimentStarted = false
 var practiceComplete = false
 var numPracticePeriods = 0
@@ -112,7 +112,7 @@ socket.on("serverUpdateClient", function(msg){
         score = {1:0, 2:0}
     }
     message = msg
-    stage = msg.stage
+    step = msg.step
     experimentStarted = msg.experimentStarted
     practiceComplete = msg.practiceComplete
     numPracticePeriods = msg.numPracticePeriods
@@ -121,8 +121,6 @@ socket.on("serverUpdateClient", function(msg){
     outcomePeriod = msg.outcomePeriod
     outcomeRandom = msg.outcomeRandom
     endowment = msg.endowment
-    winTicket1 = msg.winTicket1
-    winTicket2 = msg.winTicket2
     winPrize = msg.winPrize
     totalCost = msg.totalCost
     earnings = msg.earnings 
@@ -143,14 +141,14 @@ socket.on("clicked",function(msg){
 
 
 update = function(){
-    if(stage<3) updateChoice()
+    if(step<4) updateChoice()
     var msg = {
         id,
         period,
-        stage,
-        currentChoice: choice[stage],
-        currentScore: score[stage],
-        currentCost: cost[stage],                  
+        step: step,
+        currentChoice: choice[step],
+        currentScore: score[step],
+        currentCost: cost[step],                  
     }
     socket.emit("clientUpdate",msg)
     startupDiv.style.display = "none"
@@ -188,18 +186,7 @@ joinGame = function(){
 window.onmousemove = function(e){
     mouseEvent = e
 }
-updateChoice = function(){
-    const x0 = canvas.width/2-canvas.height/2
-    const y0 = canvas.height
-    mouseX = (mouseEvent.offsetX-x0)*100/canvas.height
-    mouseY = (y0 - mouseEvent.offsetY)*100/canvas.height
-    const mouseGraphX = (mouseX - graphX)/graphWidth
-    if(stage<3){
-        choice[stage] = 0.5*Math.max(0,Math.min(1,mouseGraphX))
-        score[stage] = forced[stage]*forcedScore[stage] + (1-forced[stage])*choice[stage]
-        cost[stage] = score[stage]*multiplier[stage]  
-    }
-}
+
 window.onmousedown = function(e){
     mouseDown = true
     console.log("Choice",choice)   
@@ -230,14 +217,27 @@ setupCanvas = function(){
     context.setTransform(yScale/100,0,0,yScale/100,xTranslate,yTranslate)
     //console.log("setupCanvas")
 }
+updateChoice = function(){
+    const x0 = canvas.width/2-canvas.height/2 - .1*canvas.width
+    const y0 = canvas.height
+    mouseX = (mouseEvent.offsetX-x0)*100/canvas.height
+    mouseY = (y0 - mouseEvent.offsetY)*100/canvas.height
+    const mouseGraphX = (mouseX - graphX)/graphWidth
+    if(step==1 || step==3){
+        const stage = step < 3 ? 1 : 2
+        choice[stage] = 0.5*Math.max(0,Math.min(1,mouseGraphX))
+        score[stage] = forced[stage]*forcedScore[stage] + (1-forced[stage])*choice[stage]
+        cost[stage] = score[stage]*multiplier[stage]  
+    }
+}
 drawInterface = function(){
     drawTop()
-    if(stage>=1) drawStage1Text()
-    if(stage>=2) drawBottom()
-    if(stage>=2) drawStage2Text()
-    if(stage>=2) drawBarTotalCost()
-    if(stage>=2) drawBarWinProb()    
-    //if(stage==3) drawFeedback()
+    if(step>=1) drawStep1Text()
+    if(step==2) drawStep2Text()
+    if(step>=3) drawBottom()
+    if(step>=3) drawStep3Text()
+    if(step>=2) drawBarTotalCost()
+    if(step>=2) drawBarWinProb()  
 }
 drawTop = function(){
     context.fillStyle = black
@@ -253,7 +253,6 @@ drawTop = function(){
     context.font = tickFont
     context.textAlign = "center"
     context.textBaseline = "top"
-    //if(stage==2){
     arange(numTicks).forEach(i => {
         const weight = i/(numTicks-1)
         const x = (1-weight)*graphX+weight*(graphX+graphWidth)
@@ -266,7 +265,6 @@ drawTop = function(){
         context.textBaseline = "bottom"
         context.fillText(xCostLabel,x,yTop-tickSpace)    
     })
-    //}
     arange(numTicks).forEach(i => {
         const weight = i/(numTicks-1)
         const x = (1-weight)*graphX+weight*(graphX+graphWidth)
@@ -281,7 +279,7 @@ drawTop = function(){
         context.fillText(xScoreLabel,x,yBottom+tickSpace)
     })
     context.font = labelFont
-    if(stage>=2){
+    if(step>=2){
         context.textBaseline = "top"
         context.fillStyle = darkGreen
         context.fillText("Score 1",graphX+graphWidth*2*score[1],lineY1+tickLength+tickSpace+2)
@@ -372,31 +370,41 @@ drawBottom = function(){
     context.textAlign = "left"
     const multiplier2String = `Multiplier 2: $${(multiplier[2]).toFixed(0)}`
     context.fillText(multiplier2String,graphX+graphWidth+10,lineY2)    
-    if(stage==3){
-        const line1 = "This is a practice period."
-        const line2 = "In this period: "
-        const line3A = "You would have won the $15 Starbucks gift card"
-        const line3B = "You would not have won the $15 Starbucks gift card"
-        const line3 = winPrize == 1 ? line3A : line3B
-        const line4 = `Your total cost would have been $${(cost[1]+cost[2]).toFixed(2)}.`
-        const line5 = `Your earnings would have been $${earnings.toFixed(2)}`
-        context.fillText(line1,graphX+graphWidth+10,lineY2+14) 
-        context.fillText(line2,graphX+graphWidth+10,lineY2+22) 
-        context.fillText(line3,graphX+graphWidth+10,lineY2+26) 
-        context.fillText(line4,graphX+graphWidth+10,lineY2+30) 
-        context.fillText(line5,graphX+graphWidth+10,lineY2+34)         
+    context.textBaseline = "top"
+    if(step==4){
+        const line1 = "This was a practice period."
+        const line2A = "You would have won the $15 Starbucks gift card"
+        const line2B = "You would not have won the $15 Starbucks gift card"
+        const line2 = winPrize == 1 ? line2A : line2B
+        const line3 = `Your total cost would have been $${(cost[1]+cost[2]).toFixed(2)}.`
+        const line4 = `Your earnings would have been $${earnings.toFixed(2)}`
+        context.fillText(line1,graphX+graphWidth+10,lineY2+21) 
+        context.fillText(line2,graphX+graphWidth+10,lineY2+29) 
+        context.fillText(line3,graphX+graphWidth+10,lineY2+33) 
+        context.fillText(line4,graphX+graphWidth+10,lineY2+37) 
+        context.textAlign = "center"         
+        context.fillStyle = "green"
+        const lineComplete = `Stage 2 Complete`
+        context.fillText(lineComplete,graphX+0.5*graphWidth,lineY2+21)       
     }
 }
-drawStage1Text = function(){
+drawStep1Text = function(){
     context.fillStyle = "black"
     context.textBaseline = "top"
     context.textAlign = "center"
     const choice1String = `${(choice[1]*100).toFixed(0)}%`
-    context.fillText(`Countdown: ${countdown}`,graphX+0.5*graphWidth,lineY2+15)
+    context.fillText(`Countdown: ${countdown}`,graphX+0.5*graphWidth,lineY2+18)
     context.fillStyle = blue
     context.fillText(`Choice 1: ${choice1String}`,graphX+0.5*graphWidth,lineY1+10)
 }
-drawStage2Text = function(){
+drawStep2Text = function(){
+    context.fillStyle = "green"
+    context.textBaseline = "top"
+    context.textAlign = "center"
+    const stage1CompleteString = `Stage 1 Complete`
+    context.fillText(stage1CompleteString,graphX+0.5*graphWidth,lineY2+5)
+}
+drawStep3Text = function(){
     context.fillStyle = "black"
     context.textBaseline = "top"
     context.textAlign = "center"
@@ -458,8 +466,11 @@ drawBarTotalCost = function(){
     })    
     context.fillStyle = darkRed  
     context.textAlign = "center"    
-    const totalCostString = `Total Cost: $${totalCost.toFixed(0)}`
-    context.fillText(totalCostString,barX,baseY+5)    
+    const costString1 = `Cost 1: $${totalCost.toFixed(0)}`
+    const costString2 = `Total Cost: $${totalCost.toFixed(0)}`
+    const costString = step<3 ? costString1 : costString2
+    context.fillText(costString,barX,baseY+5)
+
 }
 drawBarWinProb = function(){
     context.fillStyle = black
@@ -514,25 +525,10 @@ drawBarWinProb = function(){
     })    
     context.fillStyle = darkGreen  
     context.textAlign = "center"    
-    const winProbString = `Win Prob: ${winProb.toFixed(0)}%`
-    context.fillText(winProbString,barX,baseY+5)    
-}
-drawFeedback = function(){
-    context.fillStyle = black
-    context.textAlign = "center"
-    context.strokeStyle = "black"
-    context.font = feedbackFont
-    context.lineWidth = 0.25
-    const line1practice = "This is a practice period. In this period: "
-    const line1real = "In this period: "
-    const line1 = practiceComplete ? line1real : line1practice
-    const line2 = `You have a ${((score[1]+score[2])*100).toFixed(0)}% chance of winning the $15 Starbucks gift card.`
-    const line3 = `Your total cost is $${(cost[1]+cost[2]).toFixed(2)}.`
-    context.fillText(line1,graphX+0.5*graphWidth,lineY1+24)
-    context.fillText(line2,graphX+0.5*graphWidth,lineY1+34)
-    context.fillText(line3,graphX+0.5*graphWidth,lineY1+42)
-    const line4 = `Countdown: ${countdown}`
-    context.fillText(line4,graphX+0.5*graphWidth,lineY1+60)
+    const winProbString1 = `Score 1: ${winProb.toFixed(0)}%`
+    const winProbString2 = `Win Prob: ${winProb.toFixed(0)}%`    
+    const winProbString = step<3 ? winProbString1 : winProbString2
+    context.fillText(winProbString,barX,baseY+5)
 }
 drawOutcome = function(){
     console.log("drawOutcome")
