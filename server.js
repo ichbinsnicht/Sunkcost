@@ -9,11 +9,11 @@ var choose = x => x[Math.floor(Math.random()*x.length)]
 
 // parameters
 const numPracticePeriods  = 5 // 5 practice periods
-const numPeriods  = 1     // 1 period, numPeriods > numPracticePeriods
-const step1Length = 5    // 15 secs
-const step2Length = 5    // 15 secs
-const step3Length = 5    // 15 secs
-const step4Length = 5    // 15 secs
+const numPeriods  = 1    // 1 period, numPeriods > numPracticePeriods
+const step1Length = 15   // 15 secs
+const step2Length = 15   // 15 secs
+const step3Length = 15   // 15 secs
+const step4Length = 15   // 15 secs
 const timestep = 1
 const endowment = 15
 const multiplier1Low = 1      // marginal cost of the score in period 1
@@ -22,11 +22,12 @@ const multiplier2Low = 1   // calibrate the high costs!
 const multiplier2High = 10  // cost2 = sunk cost in period 2 (high cost shock)
 
 // variables
-var subjects    = {}
+var subjects = {}
 var numSubjects = 0
-var state       = "startup"
-var period      = 1
-var step       = 1
+var state = "startup"
+var period = 1
+var step = 1
+var stage = 1 
 var practiceComplete = false
 var experimentStarted = false
 var countdown = step1Length
@@ -73,12 +74,12 @@ app.get("/manager",function(req,res){
   res.sendFile(__dirname + "/public/manager.html")
 })
 
-formatTwo = function(x){
+const formatTwo = function(x){
   var y = x.toFixed(0)
   if(y<10) y = "0" + y
   return y
 }
-getDateString = function(){
+const getDateString = function(){
   const d = new Date()
   const year = d.getFullYear()
   const month = formatTwo(d.getMonth()+1)
@@ -91,15 +92,15 @@ getDateString = function(){
 }
 
 // within-period data
-createDataFile = function(){
+const createDataFile = function(){
   dateString = getDateString()
   dataStream = fs.createWriteStream(`data/data-${dateString}.csv`)
   var csvString = "session,period,practice,id,forced1,forcedScore1,multiplier1,multiplier2,"
-  csvString += "choice1,choice2,score1,score2,cost1,cost2,endowment,winPrize,totalCost,earnings"
+  csvString += "choice1,choice2,score1,score2,cost1,cost2,endowment,totalScore,outcomeRandom,winPrize,totalCost,earnings"
   csvString += "\n"
   dataStream.write(csvString)
 }
-updateDataFile = function(){
+const updateDataFile = function(){
   var csvString = ""
   Object.values(subjects).forEach(subject => {
     csvString += `${dateString},${period},${1-practiceComplete},${subject.id},`
@@ -108,17 +109,18 @@ updateDataFile = function(){
     csvString += `${subject.hist[period].choice[1]},${subject.hist[period].choice[2]},`    
     csvString += `${subject.hist[period].score[1]},${subject.hist[period].score[2]},`
     csvString += `${subject.hist[period].cost[1]},${subject.hist[period].cost[2]},`
-    csvString += `${endowment},${subject.winPrize},${subject.totalCost},${subject.earnings},`
+    csvString += `${endowment},${subject.totalScore},${subject.outcomeRandom},`
+    csvString += `${subject.winPrize},${subject.totalCost},${subject.earnings},`
     csvString += "\n"
   })
   dataStream.write(csvString)
 }
 
-writePaymentFile = function(){
-  var csvString = "id,earnings,winPrize,outcomePeriod,totalCost,endowment\n"
+const writePaymentFile = function(){
+  var csvString = "id,earnings,winPrize\n"
+  calculateOutcome()
   Object.values(subjects).forEach(subject => {
-    csvString += `${subject.id},${subject.earnings.toFixed(2)},${subject.winPrize},${subject.outcomePeriod},` 
-    csvString += `${subject.totalCost},${endowment}\n`
+    csvString += `${subject.id},${subject.earnings.toFixed(2)},${subject.winPrize}\n`
   })
   var logError = (ERR) => { if(ERR) console.log(ERR)}
   fs.writeFile(`data/payment-${dateString}.csv`,csvString,logError)
@@ -140,9 +142,7 @@ io.on("connection",function(socket){
   })
   socket.on("startExperiment", function(msg){
     if(state == "instructions") {
-      console.log("subjects:", subjects)
       arange(numSubjects).forEach(i => setupHist(subjects[i+1]))
-      console.log("subjects:", subjects)
       state = "interface"
       experimentStarted = true
       console.log(`startExperiment`)
@@ -155,15 +155,17 @@ io.on("connection",function(socket){
   })
   socket.on("clientUpdate", function(msg){ // callback function; msg from client, send msg to client
     if(subjects[msg.id]){
-      if(period == msg.period && step == msg.step && step<3) {
-        subjects[msg.id].hist[msg.period].choice[msg.step] = msg.currentChoice
-        subjects[msg.id].hist[msg.period].score[msg.step] = msg.currentScore      
-        subjects[msg.id].hist[msg.period].cost[msg.step] = msg.currentCost
+      const choosing = step==1 || step==3
+      if(period == msg.period && step == msg.step && choosing ) {
+        subjects[msg.id].hist[msg.period].choice[msg.stage] = msg.currentChoice
+        subjects[msg.id].hist[msg.period].score[msg.stage] = msg.currentScore      
+        subjects[msg.id].hist[msg.period].cost[msg.stage] = msg.currentCost
       }  
       var reply = {
         period,
         state,
-        step: step,
+        step,
+        stage,
         experimentStarted, 
         practiceComplete,
         numPracticePeriods,
@@ -195,7 +197,7 @@ http.listen(3000,function(msg){
   console.log(`listening on port ${port}`)
 })
 
-shuffle = function(array){
+const shuffle = function(array){
   var shuffled = array
     .map(x => ({value: x, priority: Math.random()}))
     .sort((a,b) => a.priority-b.priority)
@@ -203,7 +205,7 @@ shuffle = function(array){
   return shuffled
 }
 
-setupHist = function(subject) {
+const setupHist = function(subject) {
   arange(numPracticePeriods).forEach(i => {
     subject.hist[i+1] = {
       choice: {1:0,2:0},
@@ -211,12 +213,13 @@ setupHist = function(subject) {
       cost: {1:0,2:0},
       forcedScore: {1:Math.random()*0.5,2:0},
       forced: {1:1*(Math.random()>0.5),2:0},
+      outcomeRandom: Math.random(),
       multiplier: {1:choose([multiplier1Low,multiplier1High]),2:choose([multiplier2Low,multiplier2High])},
     }
   })
 } 
 
-createSubject = function(id, socket){
+const createSubject = function(id, socket){
   numSubjects += 1
   const subject = {
     id: id,
@@ -234,21 +237,20 @@ createSubject = function(id, socket){
   setupHist(subject)
   console.log(`subject ${id} connected`)
 }
-calculateOutcome = function(){
+const calculateOutcome = function(){
   arange(numSubjects).forEach(i => {
     const subject = subjects[i+1]
-    subject.outcomePeriod = 1
-    subject.outcomeRandom = Math.random()
-    const selectedHist = subject.hist[subject.outcomePeriod]
+    const selectedHist = subject.hist[period]
+    subject.outcomeRandom = selectedHist.outcomeRandom
     subject.score1 = selectedHist.score[1]
     subject.score2 = selectedHist.score[2]
-    subject.totalScore = subject.score1 + subject.score2
-    subject.winPrize = (subject.totalScore > subject.outcomeRandom)*1
+    subject.totalScore = selectedHist.score[1] + selectedHist.score[2]
+    subject.winPrize = (subject.totalScore > selectedHist.outcomeRandom)*1
     subject.totalCost = selectedHist.cost[1]+selectedHist.cost[2]
     subject.earnings = endowment - subject.totalCost
   })
 }
-update = function(){
+const update = function(){
   if(state == "interface"){
     countdown = countdown - 1
     if(step == 1 && countdown <= 0) {
@@ -287,5 +289,6 @@ update = function(){
         step = 1
        } 
     }
+    stage = step < 3 ? 1 : 2 
   }
 }

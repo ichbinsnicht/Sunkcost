@@ -61,6 +61,7 @@ var outcomePeriod = 1
 var outcomeRandom = [0,0]
 var period = 1
 var step = 1
+var stage = 1
 var experimentStarted = false
 var practiceComplete = false
 var numPracticePeriods = 0
@@ -113,6 +114,7 @@ socket.on("serverUpdateClient", function(msg){
     }
     message = msg
     step = msg.step
+    stage = msg.stage
     experimentStarted = msg.experimentStarted
     practiceComplete = msg.practiceComplete
     numPracticePeriods = msg.numPracticePeriods
@@ -146,9 +148,10 @@ update = function(){
         id,
         period,
         step: step,
-        currentChoice: choice[step],
-        currentScore: score[step],
-        currentCost: cost[step],                  
+        stage: stage,
+        currentChoice: choice[stage],
+        currentScore: score[stage],
+        currentCost: cost[stage],                  
     }
     socket.emit("clientUpdate",msg)
     startupDiv.style.display = "none"
@@ -224,7 +227,6 @@ updateChoice = function(){
     mouseY = (y0 - mouseEvent.offsetY)*100/canvas.height
     const mouseGraphX = (mouseX - graphX)/graphWidth
     if(step==1 || step==3){
-        const stage = step < 3 ? 1 : 2
         choice[stage] = 0.5*Math.max(0,Math.min(1,mouseGraphX))
         score[stage] = forced[stage]*forcedScore[stage] + (1-forced[stage])*choice[stage]
         cost[stage] = score[stage]*multiplier[stage]  
