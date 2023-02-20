@@ -1,5 +1,7 @@
 var infoDiv = document.getElementById("infoDiv")
 var subjectsTable = document.getElementById("subjectsTable")
+var realEffortCheckbox = document.getElementById("realEffortCheckBox")
+var startRealEffortPracticeButton = document.getElementById("startRealEffortPracticeButton")
 var audio = new Audio("instructions.mp3")
 socket = io()
 
@@ -19,28 +21,35 @@ socket.on("serverUpdateManager", function(msg){
     state = msg.state
     practiceComplete = msg.practiceComplete
     experimentStarted = msg.experimentStarted
-    infoString = ""
+    startRealEffortPracticeButton.hidden = !msg.realEffort
+    if(state != "startup") {
+        realEffort = msg.realEffort
+        realEffortCheckbox.disabled = true
+        realEffortCheckbox.checked = msg.realEffort
+    }
+    var infoString = ""
     infoString += `${numSubjects} Subjects <br>`
     infoString += `State: ${state} <br>` 
     infoDiv.innerHTML = infoString
-    tableString = ""
+    var tableString = ""
     ids.forEach(id => tableString += `<tr><td>${id}</td></tr>`)
     subjectsTable.innerHTML = tableString
 })
-showInstructions = function() {
+const showInstructions = function() {
     if (experimentStarted) alert("Experiment already started!")
     else {
+        realEffortCheckbox.disabled = true
         console.log("Show instructions")
         msg = {}
         socket.emit("showInstructions",msg)
     }
 }
-playAudio = function(){
+const playAudio = function(){
     if (experimentStarted) alert("Experiment already started!") 
     else if (state=="instructions") audio.play()
     else alert("Show instructions first!")
 }
-stopAudio = function(){
+const stopAudio = function(){
     if (state=="instructions") {
          audio.pause()
         audio.currentTime = 0
@@ -48,7 +57,7 @@ stopAudio = function(){
         alert("Show instructions first!")
     }
 }
-startPractice = function(){
+const startPracticePeriods = function(){
     if (experimentStarted) alert("Experiment already started!") 
     else if (state=="instructions"){
         console.log("Start practice")
@@ -57,7 +66,7 @@ startPractice = function(){
         alert("Show instructions first!")
     }
 }
-startExperiment = function(){
+const startExperiment = function(){
     if (experimentStarted) alert("Experiment already started!") 
     else if (state=="instructions" && practiceComplete){
         console.log("Start experiment")
@@ -66,6 +75,7 @@ startExperiment = function(){
         alert("Complete practice periods first!")
     }
 }
-update = function(){
-    socket.emit("managerUpdate")
+const update = function(){
+    const msg = { realEffort: realEffortCheckbox.checked }
+    socket.emit("managerUpdate",msg)
 }
