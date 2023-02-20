@@ -45,6 +45,7 @@ const darkRed = "rgb(150,0,0)"
 const blue = "rgb(0,50,256)"
 
 // variables
+var realEffort = false
 var state   = "startup"
 var id      = null
 var numPeriods = 0
@@ -112,6 +113,7 @@ socket.on("serverUpdateClient", function(msg){
         cost = {1:0, 2:0}
         score = {1:0, 2:0}
     }
+    realEffort = msg.realEffort
     message = msg
     step = msg.step
     stage = msg.stage
@@ -374,11 +376,11 @@ drawBottom = function(){
     context.fillText(multiplier2String,graphX+graphWidth+10,lineY2)    
     context.textBaseline = "top"
     if(step==4){
-        const line1 = "This was a practice period."
+        const line1 = "This was a practice period"
         const line2A = "You would have won the $15 Starbucks gift card"
         const line2B = "You would not have won the $15 Starbucks gift card"
         const line2 = winPrize == 1 ? line2A : line2B
-        const line3 = `Your total cost would have been $${(cost[1]+cost[2]).toFixed(2)}.`
+        const line3 = `Your total cost would have been $${(cost[1]+cost[2]).toFixed(2)}`
         const line4 = `Your earnings would have been $${earnings.toFixed(2)}`
         context.fillText(line1,graphX+graphWidth+10,lineY2+21) 
         context.fillText(line2,graphX+graphWidth+10,lineY2+29) 

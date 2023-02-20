@@ -22,6 +22,7 @@ const multiplier2Low = 1   // calibrate the high costs!
 const multiplier2High = 10  // cost2 = sunk cost in period 2 (high cost shock)
 
 // variables
+var realEffort = false
 var subjects = {}
 var numSubjects = 0
 var state = "startup"
@@ -36,6 +37,7 @@ var dateString = ""
 
 // TODO
 // - implement real effort treatments
+// --> modify if conditions in manager buttons for realeffort
 // - update audio
 //
 // Lower Priority
@@ -149,8 +151,9 @@ io.on("connection",function(socket){
     }   
   })
   socket.on("managerUpdate", function(msg){
+    if(state == "startup") realEffort = msg.realEffort
     var ids = Object.keys(subjects)
-    var reply = {numSubjects, ids, state, countdown, experimentStarted, practiceComplete}
+    var reply = {numSubjects, ids, state, countdown, experimentStarted, practiceComplete, realEffort}
     socket.emit("serverUpdateManager",reply)
   })
   socket.on("clientUpdate", function(msg){ // callback function; msg from client, send msg to client
@@ -162,6 +165,7 @@ io.on("connection",function(socket){
         subjects[msg.id].hist[msg.period].cost[msg.stage] = msg.currentCost
       }  
       var reply = {
+        realEffort,
         period,
         state,
         step,

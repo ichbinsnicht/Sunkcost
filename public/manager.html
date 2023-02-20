@@ -9,12 +9,16 @@
                 <div id="subjectsDiv"> 
                     <table id="subjectsTable"> </table>
                 </div>
-                <div id="parametersDiv">                 
+                <div id="parametersDiv">
+                    <input type="checkbox" id="realEffortCheckBox" name="realEffortCheckBox" />
+                    <label for="realEffortCheckBox">Real Effort</label><br><br>
                     <button type="button" onclick="showInstructions()">Show Instructions</button> <br>
                     <button type="button" onclick="playAudio()">Play Audio</button> 
                     <button type="button" onclick="stopAudio()">Stop Audio</button> <br>
-                    <button type="button" onclick="startPractice()">Start Practice</button> <br>
-                    <button type="button" onclick="startExperiment()">Start Experiment</button> <br>
+                    <br>Start:<br><br>
+                    <button type="button" onclick="startRealEffortPractice()" id="startRealEffortPracticeButton" hidden>Real Effort Practice</button> <br>
+                    <button type="button" onclick="startPractice()">Practice Periods</button> <br>
+                    <button type="button" onclick="startExperiment()">Experiment</button> <br>
                     <button type="button">Payment</button>
                 </div>
                 <div id="infoDiv"> 0 Subjects </div>
