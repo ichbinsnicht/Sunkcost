@@ -1,27 +1,33 @@
 var infoDiv = document.getElementById("infoDiv")
 var subjectsTable = document.getElementById("subjectsTable")
 var realEffortCheckbox = document.getElementById("realEffortCheckBox")
-var startRealEffortPracticeButton = document.getElementById("startRealEffortPracticeButton")
+var startPracticeTypingButton = document.getElementById("startPracticeTypingButton")
 var audio = new Audio("instructions.mp3")
 socket = io()
 
 var numSubjects = 0
 var ids = []
 var state = ""
-var practiceComplete = false
+var practiceTypingComplete = false
+var practicePeriodsComplete = false
 var experimentStarted = false
+var message = {}
 
+document.onmousedown = function(){
+    console.log(message)
+}
 socket.on("connected", function(msg){
     console.log(`connected`)
     setInterval(update,100)
 })
 socket.on("serverUpdateManager", function(msg){
+    message = msg
     numSubjects = msg.numSubjects
     ids = msg.ids
     state = msg.state
-    practiceComplete = msg.practiceComplete
+    practiceTypingComplete = msg.practiceTypingComplete
+    practicePeriodsComplete = msg.practicePeriodsComplete
     experimentStarted = msg.experimentStarted
-    startRealEffortPracticeButton.hidden = !msg.realEffort
     if(state != "startup") {
         realEffort = msg.realEffort
         realEffortCheckbox.disabled = true
@@ -50,25 +56,33 @@ const playAudio = function(){
     else alert("Show instructions first!")
 }
 const stopAudio = function(){
-    if (state=="instructions") {
-         audio.pause()
-        audio.currentTime = 0
+    audio.pause()
+    audio.currentTime = 0
+}
+const startPracticeTyping = function(){
+    if (experimentStarted) alert("Experiment already started!")
+    else if (practiceTypingComplete) alert("Typing Practice already complete!")
+    else if (state=="instructions"){
+        console.log("Start typing practice")
+        socket.emit("startPracticeTyping")    
     } else {
         alert("Show instructions first!")
     }
+
 }
 const startPracticePeriods = function(){
     if (experimentStarted) alert("Experiment already started!") 
+    else if (!practiceTypingComplete) alert("Complete typing Practice first!")
     else if (state=="instructions"){
-        console.log("Start practice")
-        socket.emit("startPractice")    
+        console.log("Start practice periods")
+        socket.emit("startPracticePeriods")    
     } else {
         alert("Show instructions first!")
     }
 }
 const startExperiment = function(){
     if (experimentStarted) alert("Experiment already started!") 
-    else if (state=="instructions" && practiceComplete){
+    else if (state=="instructions" && practicePeriodsComplete){
         console.log("Start experiment")
         socket.emit("startExperiment")    
     } else {

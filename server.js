@@ -29,15 +29,21 @@ var state = "startup"
 var period = 1
 var step = 1
 var stage = 1 
-var practiceComplete = false
+var practiceTypingComplete = false
+var practicePeriodsComplete = false
 var experimentStarted = false
 var countdown = step1Length
 var dataStream = {}
 var dateString = ""
 
 // TODO
-// - implement real effort treatments
+// implement real effort treatments
 // --> modify if conditions in manager buttons for realeffort
+// --> add typingPractice stage
+// --> add typing stage
+// --> update instructions for real effort
+// --> (potentially) collect time for real effort task
+
 // - update audio
 //
 // Lower Priority
@@ -105,7 +111,7 @@ const createDataFile = function(){
 const updateDataFile = function(){
   var csvString = ""
   Object.values(subjects).forEach(subject => {
-    csvString += `${dateString},${period},${1-practiceComplete},${subject.id},`
+    csvString += `${dateString},${period},${1-practicePeriodsComplete},${subject.id},`
     csvString += `${subject.hist[period].forced[1]},${subject.hist[period].forcedScore[1]},`
     csvString += `${subject.hist[period].multiplier[1]},${subject.hist[period].multiplier[2]},`
     csvString += `${subject.hist[period].choice[1]},${subject.hist[period].choice[2]},`    
@@ -134,12 +140,18 @@ io.on("connection",function(socket){
     console.log(`showInstructions`)
     if(state == "startup") state = "instructions"
   })
-  socket.on("startPractice", function(msg){
-    if(state == "instructions") {
+  socket.on("startPracticeTyping", function(msg){
+    if(state == "instructions" && practiceTypingComplete == false) {
+      state = "practiceTyping"
+      console.log(`startPracticeTyping`)
+      setInterval(update, 1000*timestep)
+      createDataFile()       
+    }
+  })  
+  socket.on("startPracticePeriods", function(msg){
+    if(state == "instructions" && practicePeriodsComplete == false && practiceTypingComplete == true) {
       state = "interface"
-      console.log(`startPractice`)
-      createDataFile()    
-      setInterval(update, 1000*timestep) 
+      console.log(`startPracticePeriods`)
     }
   })
   socket.on("startExperiment", function(msg){
@@ -153,7 +165,7 @@ io.on("connection",function(socket){
   socket.on("managerUpdate", function(msg){
     if(state == "startup") realEffort = msg.realEffort
     var ids = Object.keys(subjects)
-    var reply = {numSubjects, ids, state, countdown, experimentStarted, practiceComplete, realEffort}
+    var reply = {numSubjects, ids, state, countdown, experimentStarted, practiceTypingComplete, practicePeriodsComplete, realEffort}
     socket.emit("serverUpdateManager",reply)
   })
   socket.on("clientUpdate", function(msg){ // callback function; msg from client, send msg to client
@@ -171,7 +183,7 @@ io.on("connection",function(socket){
         step,
         stage,
         experimentStarted, 
-        practiceComplete,
+        practiceComplete: practicePeriodsComplete,
         numPracticePeriods,
         countdown, 
         endowment,      
@@ -255,6 +267,11 @@ const calculateOutcome = function(){
   })
 }
 const update = function(){
+  if(state == "practiceTyping"){
+    state = "instructions"
+    practiceTypingComplete = true
+    console.log("practiceTypingComplete", practiceTypingComplete)
+  }
   if(state == "interface"){
     countdown = countdown - 1
     if(step == 1 && countdown <= 0) {
@@ -281,7 +298,7 @@ const update = function(){
           console.log("Session Complete")
         } else{
           state = "instructions"
-          practiceComplete = true
+          practicePeriodsComplete = true
           period = 1
           step = 1
           countdown = step1Length
