@@ -3,17 +3,18 @@ var app         = express()
 var http        = require("http").Server(app)     // server-side socket (socket is for communication)
 var io          = require("socket.io")(http)      // io - input output
 var fs          = require("fs")                   // filesystem (to save stuff)
+var seedrandom        = require("seedrandom")
 
 var arange = x => [...Array(x).keys()] 
 var choose = x => x[Math.floor(Math.random()*x.length)]
 
 // parameters
-const numPracticePeriods  = 5 // 5 practice periods
+const numPracticePeriods  = 2 // 5 practice periods
 const numPeriods  = 1    // 1 period, numPeriods > numPracticePeriods
-const step1Length = 15   // 15 secs
-const step2Length = 15   // 15 secs
-const step3Length = 15   // 15 secs
-const step4Length = 15   // 15 secs
+const step1Length = 2   // 15 secs
+const step2Length = 2   // 15 secs
+const step3Length = 2   // 15 secs
+const step4Length = 2   // 15 secs
 const timestep = 1
 const endowment = 15
 const multiplier1Low = 1      // marginal cost of the score in period 1
@@ -32,13 +33,15 @@ var stage = 1
 var practiceTypingComplete = false
 var practicePeriodsComplete = false
 var experimentStarted = false
-var countdown = step1Length
+var countdown = 0
 var dataStream = {}
 var dateString = ""
+seedrandom(1, { global: true })
+var typingTarget = genRandomString(30)
+seedrandom()
 
 // TODO
 // implement real effort treatments
-// --> modify if conditions in manager buttons for realeffort
 // --> add typingPractice stage
 // --> add typing stage
 // --> update instructions for real effort
@@ -81,6 +84,12 @@ app.get("/client",function(req,res){
 app.get("/manager",function(req,res){ 
   res.sendFile(__dirname + "/public/manager.html")
 })
+
+function genRandomString(length){
+  var numbers = Array.from(Array(26)).map((e,i) => i )
+  var letters = numbers.map(i => String.fromCharCode(i+65))
+  return Array.from(Array(length)).map(i => choose(letters)).join("")
+}
 
 const formatTwo = function(x){
   var y = x.toFixed(0)
@@ -142,20 +151,23 @@ io.on("connection",function(socket){
   })
   socket.on("startPracticeTyping", function(msg){
     if(state == "instructions" && practiceTypingComplete == false) {
-      state = "practiceTyping"
+      state = "typing"
+      countdown = 10000
       console.log(`startPracticeTyping`)
       setInterval(update, 1000*timestep)
-      createDataFile()       
+      createDataFile() 
     }
   })  
   socket.on("startPracticePeriods", function(msg){
     if(state == "instructions" && practicePeriodsComplete == false && practiceTypingComplete == true) {
+      countdown = step1Length
       state = "interface"
       console.log(`startPracticePeriods`)
     }
   })
   socket.on("startExperiment", function(msg){
     if(state == "instructions") {
+      countdown = step1Length
       arange(numSubjects).forEach(i => setupHist(subjects[i+1]))
       state = "interface"
       experimentStarted = true
@@ -183,8 +195,9 @@ io.on("connection",function(socket){
         step,
         stage,
         experimentStarted, 
-        practiceComplete: practicePeriodsComplete,
+        practicePeriodsComplete,
         numPracticePeriods,
+        typingTarget,
         countdown, 
         endowment,      
         outcomePeriod: subjects[msg.id].outcomePeriod,
@@ -267,10 +280,14 @@ const calculateOutcome = function(){
   })
 }
 const update = function(){
-  if(state == "practiceTyping"){
-    state = "instructions"
-    practiceTypingComplete = true
-    console.log("practiceTypingComplete", practiceTypingComplete)
+  if(state == "typing"){
+    countdown = countdown - 1
+    if(countdown <= 0) {
+      countdown = 0
+      state = "instructions"
+      practiceTypingComplete = true
+      console.log("practiceTypingComplete", practiceTypingComplete)
+    }
   }
   if(state == "interface"){
     countdown = countdown - 1
@@ -297,11 +314,11 @@ const update = function(){
           writePaymentFile()
           console.log("Session Complete")
         } else{
+          console.log("endPracticePeriods")
           state = "instructions"
           practicePeriodsComplete = true
           period = 1
           step = 1
-          countdown = step1Length
         }
       } else{
         countdown = step1Length

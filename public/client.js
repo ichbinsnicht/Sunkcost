@@ -3,6 +3,9 @@ var instructionsDiv = document.getElementById("instructionsDiv")
 var idInput = document.getElementById("idInput")
 var pleaseWaitDiv = document.getElementById("pleaseWaitDiv")
 var interfaceDiv = document.getElementById("interfaceDiv")
+var typingDiv = document.getElementById("typingDiv")
+var targetTextbox = document.getElementById("targetTextbox")
+var responseTextbox = document.getElementById("responseTextbox")
 var outcomeDiv = document.getElementById("outcomeDiv")
 var idInput = document.getElementById("idInput")
 var canvas = document.getElementById("canvas")
@@ -64,7 +67,7 @@ var period = 1
 var step = 1
 var stage = 1
 var experimentStarted = false
-var practiceComplete = false
+var practicePeriodsComplete = false
 var numPracticePeriods = 0
 var choice = {1:0,2:0}
 var score = {1:0,2:0}
@@ -77,6 +80,8 @@ var message = {}
 var mouseEvent = {x:0,y:0}
 var earnings = 0
 var winPrize = 0
+var typingTarget = ""
+var typingProgress = 5
 
 document.onmousedown = function(event){
     msg = {
@@ -118,10 +123,11 @@ socket.on("serverUpdateClient", function(msg){
     step = msg.step
     stage = msg.stage
     experimentStarted = msg.experimentStarted
-    practiceComplete = msg.practiceComplete
+    practicePeriodsComplete = msg.practiceComplete
     numPracticePeriods = msg.numPracticePeriods
     countdown = msg.countdown
     period = msg.period
+    typingTarget = msg.typingTarget
     outcomePeriod = msg.outcomePeriod
     outcomeRandom = msg.outcomeRandom
     endowment = msg.endowment
@@ -134,7 +140,7 @@ socket.on("serverUpdateClient", function(msg){
     forced = msg.hist[msg.period].forced
     if(state!=msg.state){
         var practiceInstructionsString = baseInstructionsString + `First, you will participate in ${numPracticePeriods} practice periods. The practice periods will not affect your final earnings. They are just for practice. If you have any questions, raise your hand and we will come to assist you.`      
-        instructionsDiv.innerHTML = practiceComplete ? readyInstructionsString : practiceInstructionsString
+        instructionsDiv.innerHTML = practicePeriodsComplete ? readyInstructionsString : practiceInstructionsString
     }
     state = msg.state
 })
@@ -160,10 +166,19 @@ update = function(){
     instructionsDiv.style.display = "none"
     pleaseWaitDiv.style.display = "none"
     interfaceDiv.style.display = "none"
-    outcomeDiv.style.display = "none"       
+    outcomeDiv.style.display = "none" 
+    typingDiv.style.display = "none"    
     if(!joined){
         startupDiv.style.display = "block"
     }
+    if(joined&&state=="typing"){
+        typingDiv.style.display = "block"
+        var completeText = typingTarget.slice(0,typingProgress)
+        var incompleteText = typingTarget.slice(typingProgress,typingTarget.length)
+        targetTextbox.innerHTML = ``
+        targetTextbox.innerHTML += `<text style="color: blue">${completeText}</text>`
+        targetTextbox.innerHTML += `<text style="color: red">${incompleteText}</text>`
+    }      
     if(joined&&state=="startup"){
         pleaseWaitDiv.style.display = "block"
     }   

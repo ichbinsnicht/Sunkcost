@@ -2,6 +2,7 @@
     "name": "sunk-cost",
     "dependencies": {
         "express": "4.17.3",
+        "seedrandom": "^3.0.5",
         "socket.io": "4.4.1"
     }
 }

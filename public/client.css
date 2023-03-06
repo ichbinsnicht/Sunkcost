@@ -5,6 +5,41 @@ body {
     padding: 0;
     overflow: hidden;
 }
+#typingDiv {
+    display: none;
+    text-align: center;
+    font: 5vmin monospace;
+    margin-top: 10vh;
+}
+#targetTextbox {
+    width: 90%;
+    display: block;
+    text-align: justify;      
+    font: 5vmin monospace;
+    margin-left: 5vw;
+    margin-right: 5vw;
+    padding-top: 20;
+    padding-left: 20;
+    padding-right: 20;
+    padding-bottom: 20;
+    float: right;  
+    border-style: solid;
+}
+#responseTextbox {
+    width: 90%;
+    display: block;
+    text-align: justify;      
+    font: 5vmin monospace;
+    margin-left: 5vw;
+    margin-right: 5vw;
+    margin-top: 5vh;
+    padding-top: 20;
+    padding-left: 20;
+    padding-right: 20;
+    padding-bottom: 20;
+    float: right;  
+    border-style: solid;
+}
 #startupDiv {
     display: block;
     text-align: center;
