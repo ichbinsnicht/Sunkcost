@@ -8,7 +8,7 @@ socket = io()
 var numSubjects = 0
 var ids = []
 var state = ""
-var practiceTypingComplete = false
+var typingPracticeAllComplete = false
 var practicePeriodsComplete = false
 var experimentStarted = false
 var message = {}
@@ -26,7 +26,7 @@ socket.on("serverUpdateManager", function(msg){
     numSubjects = msg.numSubjects
     ids = msg.ids
     state = msg.state
-    practiceTypingComplete = msg.practiceTypingComplete
+    typingPracticeAllComplete = msg.typingPracticeAllComplete
     practicePeriodsComplete = msg.practicePeriodsComplete
     experimentStarted = msg.experimentStarted
     countdown = msg.countdown
@@ -64,7 +64,7 @@ const stopAudio = function(){
 }
 const startPracticeTyping = function(){
     if (experimentStarted) alert("Experiment already started!")
-    else if (practiceTypingComplete) alert("Typing Practice already complete!")
+    else if (typingPracticeAllComplete) alert("Typing Practice already complete!")
     else if (state=="instructions"){
         console.log("Start typing practice")
         socket.emit("startPracticeTyping")    
@@ -75,7 +75,7 @@ const startPracticeTyping = function(){
 }
 const startPracticePeriods = function(){
     if (experimentStarted) alert("Experiment already started!") 
-    else if (!practiceTypingComplete) alert("Complete typing Practice first!")
+    else if (!typingPracticeAllComplete) alert("Complete typing Practice first!")
     else if (state=="instructions"){
         console.log("Start practice periods")
         socket.emit("startPracticePeriods")    

@@ -4,8 +4,8 @@ var idInput = document.getElementById("idInput")
 var pleaseWaitDiv = document.getElementById("pleaseWaitDiv")
 var interfaceDiv = document.getElementById("interfaceDiv")
 var typingDiv = document.getElementById("typingDiv")
+var typingHeader = document.getElementById("typingHeader")
 var targetTextbox = document.getElementById("targetTextbox")
-var responseTextbox = document.getElementById("responseTextbox")
 var outcomeDiv = document.getElementById("outcomeDiv")
 var idInput = document.getElementById("idInput")
 var canvas = document.getElementById("canvas")
@@ -66,6 +66,7 @@ var outcomeRandom = [0,0]
 var period = 1
 var step = 1
 var stage = 1
+var typingPracticeSubjectComplete = false
 var experimentStarted = false
 var practicePeriodsComplete = false
 var numPracticePeriods = 0
@@ -81,14 +82,24 @@ var mouseEvent = {x:0,y:0}
 var earnings = 0
 var winPrize = 0
 var typingTarget = ""
-var typingProgress = 5
+var typingProgress = 0
+var completeText = ""
+var incompleteText = ""
 
 document.onmousedown = function(event){
-    msg = {
-        x : event.x,
-        y : event.y,   
+    console.log("message",message)
+}
+
+document.onkeydown = function(event){
+    if(joined){
+        targetLetter = incompleteText.slice(0,1)
+        eventLetter = event.key.toUpperCase()
+        if(targetLetter == eventLetter) typingProgress += 1
+        if(typingProgress >= typingTarget.length && !typingPracticeSubjectComplete){
+            var msg = {id}
+            socket.emit("typingPracticeSubjectComplete",msg)
+        }
     }
-    socket.emit("clientClick",msg)
 }
 
 socket.on("connected", function(msg){
@@ -123,6 +134,8 @@ socket.on("serverUpdateClient", function(msg){
     step = msg.step
     stage = msg.stage
     experimentStarted = msg.experimentStarted
+    typingPracticeSubjectComplete = msg.typingPracticeSubjectComplete
+    typingPracticeAllComplete = msg.typingPracticeAllComplete
     practicePeriodsComplete = msg.practiceComplete
     numPracticePeriods = msg.numPracticePeriods
     countdown = msg.countdown
@@ -142,6 +155,7 @@ socket.on("serverUpdateClient", function(msg){
         var practiceInstructionsString = baseInstructionsString + `First, you will participate in ${numPracticePeriods} practice periods. The practice periods will not affect your final earnings. They are just for practice. If you have any questions, raise your hand and we will come to assist you.`      
         instructionsDiv.innerHTML = practicePeriodsComplete ? readyInstructionsString : practiceInstructionsString
     }
+    if(typingPracticeSubjectComplete) typingProgress = typingTarget.length
     state = msg.state
 })
 socket.on("clicked",function(msg){
@@ -151,7 +165,7 @@ socket.on("clicked",function(msg){
 
 
 update = function(){
-    if(step<4) updateChoice()
+    if(step<5) updateChoice()
     var msg = {
         id,
         period,
@@ -167,14 +181,26 @@ update = function(){
     pleaseWaitDiv.style.display = "none"
     interfaceDiv.style.display = "none"
     outcomeDiv.style.display = "none" 
-    typingDiv.style.display = "none"    
+    typingDiv.style.display = "none"
     if(!joined){
         startupDiv.style.display = "block"
     }
-    if(joined&&state=="typing"){
+    var showTyping = state == "typingPractice"
+    showTyping = showTyping || (step == 2 && state == "interface")
+    showTyping = showTyping || (step == 5 && state == "interface")
+    if(joined&&showTyping){
         typingDiv.style.display = "block"
-        var completeText = typingTarget.slice(0,typingProgress)
-        var incompleteText = typingTarget.slice(typingProgress,typingTarget.length)
+        typingHeader.innerHTML = "Please type the following text:"
+        if(typingPracticeSubjectComplete && !experimentStarted){
+            typingHeader.innerHTML = "Please wait for the experiment to continue."
+        }
+        if(typingPracticeAllComplete&&!experimentStarted){
+            typingProgress = 0
+            typingHeader.innerHTML = `This is a practice period. <br>
+                                      If you were in a real period, this is the text you would type.`
+        }     
+        completeText = typingTarget.slice(0,typingProgress)
+        incompleteText = typingTarget.slice(typingProgress,typingTarget.length)
         targetTextbox.innerHTML = ``
         targetTextbox.innerHTML += `<text style="color: blue">${completeText}</text>`
         targetTextbox.innerHTML += `<text style="color: red">${incompleteText}</text>`
@@ -185,7 +211,7 @@ update = function(){
     if(joined&&state=="instructions"){
         instructionsDiv.style.display = "block"
     }
-    if(joined&&state=="interface"){
+    if(joined&&state=="interface"&&!showTyping){
         interfaceDiv.style.display = "block"
     }
     if(joined&&state=="end"){
@@ -243,20 +269,26 @@ updateChoice = function(){
     mouseX = (mouseEvent.offsetX-x0)*100/canvas.height
     mouseY = (y0 - mouseEvent.offsetY)*100/canvas.height
     const mouseGraphX = (mouseX - graphX)/graphWidth
-    if(step==1 || step==3){
+    if(step==1 || step==4){
         choice[stage] = 0.5*Math.max(0,Math.min(1,mouseGraphX))
         score[stage] = forced[stage]*forcedScore[stage] + (1-forced[stage])*choice[stage]
         cost[stage] = score[stage]*multiplier[stage]  
     }
 }
 drawInterface = function(){
+    // step1 choice1
+    // step2 typingTask2
+    // step3 feedback1
+    // step4 choice2
+    // step5 typingTask2
+    // step6 feedback2
     drawTop()
     if(step>=1) drawStep1Text()
-    if(step==2) drawStep2Text()
-    if(step>=3) drawBottom()
-    if(step>=3) drawStep3Text()
-    if(step>=2) drawBarTotalCost()
-    if(step>=2) drawBarWinProb()  
+    if(step==3) drawStep2Text()
+    if(step>=4) drawBottom()
+    if(step>=4) drawStep3Text()
+    if(step>=3) drawBarTotalCost()
+    if(step>=3) drawBarWinProb() 
 }
 drawTop = function(){
     context.fillStyle = black
@@ -298,7 +330,7 @@ drawTop = function(){
         context.fillText(xScoreLabel,x,yBottom+tickSpace)
     })
     context.font = labelFont
-    if(step>=2){
+    if(step>=3){
         context.textBaseline = "top"
         context.fillStyle = darkGreen
         context.fillText("Score 1",graphX+graphWidth*2*score[1],lineY1+tickLength+tickSpace+2)
@@ -390,7 +422,7 @@ drawBottom = function(){
     const multiplier2String = `Multiplier 2: $${(multiplier[2]).toFixed(0)}`
     context.fillText(multiplier2String,graphX+graphWidth+10,lineY2)    
     context.textBaseline = "top"
-    if(step==4){
+    if(step==5){
         const line1 = "This was a practice period"
         const line2A = "You would have won the $15 Starbucks gift card"
         const line2B = "You would not have won the $15 Starbucks gift card"
@@ -487,7 +519,7 @@ drawBarTotalCost = function(){
     context.textAlign = "center"    
     const costString1 = `Cost 1: $${totalCost.toFixed(0)}`
     const costString2 = `Total Cost: $${totalCost.toFixed(0)}`
-    const costString = step<3 ? costString1 : costString2
+    const costString = step<4 ? costString1 : costString2
     context.fillText(costString,barX,baseY+5)
 
 }
@@ -546,7 +578,7 @@ drawBarWinProb = function(){
     context.textAlign = "center"    
     const winProbString1 = `Score 1: ${winProb.toFixed(0)}%`
     const winProbString2 = `Win Prob: ${winProb.toFixed(0)}%`    
-    const winProbString = step<3 ? winProbString1 : winProbString2
+    const winProbString = step<4 ? winProbString1 : winProbString2
     context.fillText(winProbString,barX,baseY+5)
 }
 drawOutcome = function(){

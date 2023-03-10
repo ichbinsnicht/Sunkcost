@@ -11,10 +11,12 @@ var choose = x => x[Math.floor(Math.random()*x.length)]
 // parameters
 const numPracticePeriods  = 2 // 5 practice periods
 const numPeriods  = 1    // 1 period, numPeriods > numPracticePeriods
-const step1Length = 2   // 15 secs
-const step2Length = 2   // 15 secs
-const step3Length = 2   // 15 secs
-const step4Length = 2   // 15 secs
+const step1Length = 3   // 15 secs choice1
+const step2Length = 20   // 15 secs typingTask2
+const step3Length = 3   // 15 secs feedback1
+const step4Length = 3   // 15 secs choice2
+const step5Length = 3   // 15 secs typingTask2
+const step6Length = 3   // 15 secs feedback2
 const timestep = 1
 const endowment = 15
 const multiplier1Low = 1      // marginal cost of the score in period 1
@@ -30,6 +32,7 @@ var state = "startup"
 var period = 1
 var step = 1
 var stage = 1 
+var typingPracticeAllComplete = false
 var practiceTypingComplete = false
 var practicePeriodsComplete = false
 var experimentStarted = false
@@ -37,13 +40,14 @@ var countdown = 0
 var dataStream = {}
 var dateString = ""
 seedrandom(1, { global: true })
-var typingTarget = genRandomString(30)
+var typingTarget = genRandomString(3)
 seedrandom()
 
 // TODO
 // implement real effort treatments
-// --> add typingPractice stage
-// --> add typing stage
+// --> countdown in typingTask (step2,5) on client
+// --> in practice, and real experiment: choice-dependent typingTarget string
+// --> add real typing task (for experimentStarted)
 // --> update instructions for real effort
 // --> (potentially) collect time for real effort task
 
@@ -151,15 +155,18 @@ io.on("connection",function(socket){
   })
   socket.on("startPracticeTyping", function(msg){
     if(state == "instructions" && practiceTypingComplete == false) {
-      state = "typing"
+      state = "typingPractice"
       countdown = 10000
       console.log(`startPracticeTyping`)
       setInterval(update, 1000*timestep)
       createDataFile() 
     }
   })  
+  socket.on("typingPracticeSubjectComplete", function(msg){
+    subjects[msg.id].typingPracticeComplete = true
+  })
   socket.on("startPracticePeriods", function(msg){
-    if(state == "instructions" && practicePeriodsComplete == false && practiceTypingComplete == true) {
+    if(state == "instructions" && practicePeriodsComplete == false && typingPracticeAllComplete == true) {
       countdown = step1Length
       state = "interface"
       console.log(`startPracticePeriods`)
@@ -177,7 +184,7 @@ io.on("connection",function(socket){
   socket.on("managerUpdate", function(msg){
     if(state == "startup") realEffort = msg.realEffort
     var ids = Object.keys(subjects)
-    var reply = {numSubjects, ids, state, countdown, experimentStarted, practiceTypingComplete, practicePeriodsComplete, realEffort}
+    var reply = {numSubjects, ids, state, countdown, experimentStarted, typingPracticeAllComplete, practicePeriodsComplete, realEffort}
     socket.emit("serverUpdateManager",reply)
   })
   socket.on("clientUpdate", function(msg){ // callback function; msg from client, send msg to client
@@ -199,7 +206,9 @@ io.on("connection",function(socket){
         numPracticePeriods,
         typingTarget,
         countdown, 
-        endowment,      
+        endowment,
+        typingPracticeAllComplete: typingPracticeAllComplete,
+        typingPracticeSubjectComplete: subjects[msg.id].typingPracticeComplete,
         outcomePeriod: subjects[msg.id].outcomePeriod,
         outcomeRandom: subjects[msg.id].outcomeRandom,
         winPrize: subjects[msg.id].winPrize,
@@ -253,6 +262,7 @@ const createSubject = function(id, socket){
   const subject = {
     id: id,
     socket: socket,
+    typingPracticeComplete: false,
     choice1: 0,
     investment2: 0,
     outcomePeriod: 1,
@@ -280,31 +290,46 @@ const calculateOutcome = function(){
   })
 }
 const update = function(){
-  if(state == "typing"){
-    countdown = countdown - 1
-    if(countdown <= 0) {
-      countdown = 0
-      state = "instructions"
-      practiceTypingComplete = true
-      console.log("practiceTypingComplete", practiceTypingComplete)
-    }
+  if(state == "typingPractice"){
+    subjectsArray = Object.values(subjects)
+    typingPracticeAllComplete = subjectsArray.every(subject => subject.typingPracticeComplete) 
+    if(typingPracticeAllComplete) state = "instructions"
   }
   if(state == "interface"){
     countdown = countdown - 1
     if(step == 1 && countdown <= 0) {
-      countdown = step2Length
-      step = 2
+      if(realEffort){
+        countdown = step2Length
+        step = 2  
+      } else {
+        countdown = step3Length
+        step = 3        
+      }
+  
     }
     if(step == 2 && countdown <= 0) {
       countdown = step3Length
       step = 3
-    }    
+    }   
     if(step == 3 && countdown <= 0) {
-      calculateOutcome()
       countdown = step4Length
-      step = 4 
-    }
+      step = 4
+    }    
     if(step == 4 && countdown <= 0) {
+      calculateOutcome()
+      if(realEffort){
+        countdown = step5Length
+        step = 5 
+      } else {
+        countdown = step6Length
+        step = 6       
+      }
+    }             
+    if(step == 5 && countdown <= 0) { 
+      countdown = step6Length
+      step = 6 
+    }
+    if(step == 6 && countdown <= 0) {
       updateDataFile()
       const maxPeriod = experimentStarted ? numPeriods : numPracticePeriods
       if(period>=maxPeriod){
