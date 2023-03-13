@@ -6,6 +6,7 @@ var interfaceDiv = document.getElementById("interfaceDiv")
 var typingDiv = document.getElementById("typingDiv")
 var typingHeader = document.getElementById("typingHeader")
 var targetTextbox = document.getElementById("targetTextbox")
+var countdownDiv = document.getElementById("countdownDiv")
 var outcomeDiv = document.getElementById("outcomeDiv")
 var idInput = document.getElementById("idInput")
 var canvas = document.getElementById("canvas")
@@ -169,8 +170,9 @@ update = function(){
     var msg = {
         id,
         period,
-        step: step,
-        stage: stage,
+        step,
+        stage,
+        typingProgress,
         currentChoice: choice[stage],
         currentScore: score[stage],
         currentCost: cost[stage],                  
@@ -186,6 +188,7 @@ update = function(){
         startupDiv.style.display = "block"
     }
     var showTyping = state == "typingPractice"
+    countdownDiv.innerHTML = ""
     showTyping = showTyping || (step == 2 && state == "interface")
     showTyping = showTyping || (step == 5 && state == "interface")
     if(joined&&showTyping){
@@ -198,7 +201,8 @@ update = function(){
             typingProgress = 0
             typingHeader.innerHTML = `This is a practice period. <br>
                                       If you were in a real period, this is the text you would type.`
-        }     
+            countdownDiv.innerHTML = `Countdown: ${countdown}`
+        }
         completeText = typingTarget.slice(0,typingProgress)
         incompleteText = typingTarget.slice(typingProgress,typingTarget.length)
         targetTextbox.innerHTML = ``
@@ -277,7 +281,7 @@ updateChoice = function(){
 }
 drawInterface = function(){
     // step1 choice1
-    // step2 typingTask2
+    // step2 typingTask1
     // step3 feedback1
     // step4 choice2
     // step5 typingTask2
@@ -422,7 +426,7 @@ drawBottom = function(){
     const multiplier2String = `Multiplier 2: $${(multiplier[2]).toFixed(0)}`
     context.fillText(multiplier2String,graphX+graphWidth+10,lineY2)    
     context.textBaseline = "top"
-    if(step==5){
+    if(step==6){
         const line1 = "This was a practice period"
         const line2A = "You would have won the $15 Starbucks gift card"
         const line2B = "You would not have won the $15 Starbucks gift card"

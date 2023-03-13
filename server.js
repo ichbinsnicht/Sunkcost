@@ -12,7 +12,7 @@ var choose = x => x[Math.floor(Math.random()*x.length)]
 const numPracticePeriods  = 2 // 5 practice periods
 const numPeriods  = 1    // 1 period, numPeriods > numPracticePeriods
 const step1Length = 3   // 15 secs choice1
-const step2Length = 20   // 15 secs typingTask2
+const step2Length = 3   // 15 secs typingTask1
 const step3Length = 3   // 15 secs feedback1
 const step4Length = 3   // 15 secs choice2
 const step5Length = 3   // 15 secs typingTask2
@@ -40,14 +40,14 @@ var countdown = 0
 var dataStream = {}
 var dateString = ""
 seedrandom(1, { global: true })
-var typingTarget = genRandomString(3)
+var typingTarget = genRandomString(1) // 1000
 seedrandom()
 
 // TODO
 // implement real effort treatments
-// --> countdown in typingTask (step2,5) on client
-// --> in practice, and real experiment: choice-dependent typingTarget string
-// --> add real typing task (for experimentStarted)
+// --> set up steps on the subject level so that subjects can move independently
+// --> in practice, and real experiment: choice-dependent typingTarget string 
+// (which also depends on multiplier)
 // --> update instructions for real effort
 // --> (potentially) collect time for real effort task
 
@@ -194,6 +194,7 @@ io.on("connection",function(socket){
         subjects[msg.id].hist[msg.period].choice[msg.stage] = msg.currentChoice
         subjects[msg.id].hist[msg.period].score[msg.stage] = msg.currentScore      
         subjects[msg.id].hist[msg.period].cost[msg.stage] = msg.currentCost
+        subjects[msg.id].hist[msg.period].typingProgress[msg.stage] = msg.typingProgress
       }  
       var reply = {
         realEffort,
@@ -249,6 +250,7 @@ const setupHist = function(subject) {
       choice: {1:0,2:0},
       score: {1:0,2:0},      
       cost: {1:0,2:0},
+      typingProgress: {1:0,2:0},
       forcedScore: {1:Math.random()*0.5,2:0},
       forced: {1:1*(Math.random()>0.5),2:0},
       outcomeRandom: Math.random(),
@@ -297,7 +299,7 @@ const update = function(){
   }
   if(state == "interface"){
     countdown = countdown - 1
-    if(step == 1 && countdown <= 0) {
+    if(step == 1 && countdown <= 0) { // end step1 choice1
       if(realEffort){
         countdown = step2Length
         step = 2  
@@ -305,17 +307,19 @@ const update = function(){
         countdown = step3Length
         step = 3        
       }
-  
     }
-    if(step == 2 && countdown <= 0) {
-      countdown = step3Length
-      step = 3
+    if(step == 2 && countdown <= 0) { // end step2 typingTask1 
+      var typingComplete = experimentStarted && typingProgress==typingTarget.length
+      if(typingComplete || !experimentStarted){
+        countdown = step3Length
+        step = 3
+      }
     }   
-    if(step == 3 && countdown <= 0) {
+    if(step == 3 && countdown <= 0) { // end step3 feedback1
       countdown = step4Length
       step = 4
     }    
-    if(step == 4 && countdown <= 0) {
+    if(step == 4 && countdown <= 0) { // end step4 choice2
       calculateOutcome()
       if(realEffort){
         countdown = step5Length
@@ -325,11 +329,14 @@ const update = function(){
         step = 6       
       }
     }             
-    if(step == 5 && countdown <= 0) { 
-      countdown = step6Length
-      step = 6 
+    if(step == 5 && countdown <= 0) { // end step5 typingTask2
+      var typingComplete = experimentStarted && typingProgress==typingTarget.length
+      if(typingComplete || !experimentStarted){
+        countdown = step6Length
+        step = 6 
+      }
     }
-    if(step == 6 && countdown <= 0) {
+    if(step == 6 && countdown <= 0) { // end step6 feedback2
       updateDataFile()
       const maxPeriod = experimentStarted ? numPeriods : numPracticePeriods
       if(period>=maxPeriod){
