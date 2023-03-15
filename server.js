@@ -30,8 +30,6 @@ var subjects = {}
 var numSubjects = 0
 var state = "startup"
 var period = 1
-var step = 1
-var stage = 1 
 var typingPracticeAllComplete = false
 var practiceTypingComplete = false
 var practicePeriodsComplete = false
@@ -40,13 +38,16 @@ var countdown = 0
 var dataStream = {}
 var dateString = ""
 seedrandom(1, { global: true })
-var typingTarget = genRandomString(1) // 1000
+var practiceTypingTarget = genRandomString(1) // 1000
 seedrandom()
 
 // TODO
 // implement real effort treatments
-// --> set up steps on the subject level so that subjects can move independently
-// --> in practice, and real experiment: choice-dependent typingTarget string 
+// --> set up steps on the subject level so that subjects can move independently (only in realExperiment!)
+//    --> make update function client-specific
+//    --> subject-specific calculateOutcome(), updateDataFile() and writePaymentFile()
+//    --> in practice, and real experiment: choice-dependent typingTarget string 
+// -> think about it: feedback in first stage needs to happen prior to typingtask1
 // (which also depends on multiplier)
 // --> update instructions for real effort
 // --> (potentially) collect time for real effort task
@@ -188,38 +189,42 @@ io.on("connection",function(socket){
     socket.emit("serverUpdateManager",reply)
   })
   socket.on("clientUpdate", function(msg){ // callback function; msg from client, send msg to client
-    if(subjects[msg.id]){
+    const subject = subjects[msg.id]
+    if(subject){
+      const step = subject.step
+      const histPeriod = subject.hist[msg.period]
       const choosing = step==1 || step==3
       if(period == msg.period && step == msg.step && choosing ) {
-        subjects[msg.id].hist[msg.period].choice[msg.stage] = msg.currentChoice
-        subjects[msg.id].hist[msg.period].score[msg.stage] = msg.currentScore      
-        subjects[msg.id].hist[msg.period].cost[msg.stage] = msg.currentCost
-        subjects[msg.id].hist[msg.period].typingProgress[msg.stage] = msg.typingProgress
+        histPeriod.choice[msg.stage] = msg.currentChoice
+        histPeriod.score[msg.stage] = msg.currentScore      
+        histPeriod.cost[msg.stage] = msg.currentCost
+        histPeriod.typingProgress[msg.stage] = msg.typingProgress
       }  
       var reply = {
         realEffort,
         period,
         state,
-        step,
-        stage,
         experimentStarted, 
         practicePeriodsComplete,
         numPracticePeriods,
-        typingTarget,
-        countdown, 
+        practiceTypingTarget,
         endowment,
+        typingTarget: histPeriod.typingTarget[msg.stage],
+        step: histPeriod.step[msg.stage],
+        stage: subject.stage,
+        countdown: subject.countdown,    
         typingPracticeAllComplete: typingPracticeAllComplete,
-        typingPracticeSubjectComplete: subjects[msg.id].typingPracticeComplete,
-        outcomePeriod: subjects[msg.id].outcomePeriod,
-        outcomeRandom: subjects[msg.id].outcomeRandom,
-        winPrize: subjects[msg.id].winPrize,
-        totalCost: subjects[msg.id].totalCost,
-        earnings: subjects[msg.id].earnings,
-        hist: subjects[msg.id].hist,
+        typingPracticeSubjectComplete: subject.typingPracticeComplete,
+        outcomePeriod: subject.outcomePeriod,
+        outcomeRandom: subject.outcomeRandom,
+        winPrize: subject.winPrize,
+        totalCost: subject.totalCost,
+        earnings: subject.earnings,
+        hist: subject.hist,
       } 
       socket.emit("serverUpdateClient",reply)
     } else {
-      if(!subjects[msg.id]) createSubject(msg.id,socket)
+      if(!subject) createSubject(msg.id,socket)
       socket.emit("clientJoined",{id: msg.id})
     }
   })
@@ -251,6 +256,7 @@ const setupHist = function(subject) {
       score: {1:0,2:0},      
       cost: {1:0,2:0},
       typingProgress: {1:0,2:0},
+      typingTarget: {1:"",2:""},
       forcedScore: {1:Math.random()*0.5,2:0},
       forced: {1:1*(Math.random()>0.5),2:0},
       outcomeRandom: Math.random(),
@@ -265,6 +271,9 @@ const createSubject = function(id, socket){
     id: id,
     socket: socket,
     typingPracticeComplete: false,
+    step: 1,
+    stage: 1,
+    countdown: 0,
     choice1: 0,
     investment2: 0,
     outcomePeriod: 1,
@@ -309,7 +318,7 @@ const update = function(){
       }
     }
     if(step == 2 && countdown <= 0) { // end step2 typingTask1 
-      var typingComplete = experimentStarted && typingProgress==typingTarget.length
+      var typingComplete = experimentStarted && typingProgress==practiceTypingTarget.length
       if(typingComplete || !experimentStarted){
         countdown = step3Length
         step = 3
@@ -320,7 +329,7 @@ const update = function(){
       step = 4
     }    
     if(step == 4 && countdown <= 0) { // end step4 choice2
-      calculateOutcome()
+      calculateOutcome()        // change to subject-specific
       if(realEffort){
         countdown = step5Length
         step = 5 
@@ -330,7 +339,7 @@ const update = function(){
       }
     }             
     if(step == 5 && countdown <= 0) { // end step5 typingTask2
-      var typingComplete = experimentStarted && typingProgress==typingTarget.length
+      var typingComplete = experimentStarted && typingProgress==practiceTypingTarget.length
       if(typingComplete || !experimentStarted){
         countdown = step6Length
         step = 6 

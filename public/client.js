@@ -83,6 +83,7 @@ var mouseEvent = {x:0,y:0}
 var earnings = 0
 var winPrize = 0
 var typingTarget = ""
+var practiceTypingTarget = ""
 var typingProgress = 0
 var completeText = ""
 var incompleteText = ""
@@ -96,7 +97,8 @@ document.onkeydown = function(event){
         targetLetter = incompleteText.slice(0,1)
         eventLetter = event.key.toUpperCase()
         if(targetLetter == eventLetter) typingProgress += 1
-        if(typingProgress >= typingTarget.length && !typingPracticeSubjectComplete){
+        var targetLength = practicePeriodsComplete ? typingTarget.length : practiceTypingTarget.length
+        if(typingProgress >= targetLength && !typingPracticeSubjectComplete){
             var msg = {id}
             socket.emit("typingPracticeSubjectComplete",msg)
         }
@@ -173,6 +175,7 @@ update = function(){
         step,
         stage,
         typingProgress,
+        practiceTypingTarget,
         currentChoice: choice[stage],
         currentScore: score[stage],
         currentCost: cost[stage],                  
@@ -203,8 +206,9 @@ update = function(){
                                       If you were in a real period, this is the text you would type.`
             countdownDiv.innerHTML = `Countdown: ${countdown}`
         }
-        completeText = typingTarget.slice(0,typingProgress)
-        incompleteText = typingTarget.slice(typingProgress,typingTarget.length)
+        var target = practicePeriodsComplete ? typingTarget : practiceTypingTarget
+        completeText = target.slice(0,typingProgress)
+        incompleteText = target.slice(typingProgress,target.length)
         targetTextbox.innerHTML = ``
         targetTextbox.innerHTML += `<text style="color: blue">${completeText}</text>`
         targetTextbox.innerHTML += `<text style="color: red">${incompleteText}</text>`
