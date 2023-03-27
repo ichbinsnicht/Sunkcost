@@ -34,7 +34,6 @@ var typingPracticeAllComplete = false
 var practiceTypingComplete = false
 var practicePeriodsComplete = false
 var experimentStarted = false
-var countdown = 0
 var dataStream = {}
 var dateString = ""
 seedrandom(1, { global: true })
@@ -185,7 +184,24 @@ io.on("connection",function(socket){
   socket.on("managerUpdate", function(msg){
     if(state == "startup") realEffort = msg.realEffort
     var ids = Object.keys(subjects)
-    var reply = {numSubjects, ids, state, countdown, experimentStarted, typingPracticeAllComplete, practicePeriodsComplete, realEffort}
+    var subjectsArray = Object.values(subjects)
+    var subjectsData = subjectsArray.map(subject => {
+      return {
+        id: subject.id,
+        step: subject.step,
+        countdown: subject.countdown
+      }
+    })
+    var reply = {
+      numSubjects, 
+      ids, 
+      state, 
+      subjectsData, 
+      experimentStarted, 
+      typingPracticeAllComplete, 
+      practicePeriodsComplete,
+      realEffort
+    }
     socket.emit("serverUpdateManager",reply)
   })
   socket.on("clientUpdate", function(msg){ // callback function; msg from client, send msg to client
@@ -210,7 +226,7 @@ io.on("connection",function(socket){
         practiceTypingTarget,
         endowment,
         typingTarget: histPeriod.typingTarget[msg.stage],
-        step: histPeriod.step[msg.stage],
+        step: subject.step,
         stage: subject.stage,
         countdown: subject.countdown,    
         typingPracticeAllComplete: typingPracticeAllComplete,
@@ -301,73 +317,76 @@ const calculateOutcome = function(){
   })
 }
 const update = function(){
+  var subjectsArray = Object.values(subjects)
   if(state == "typingPractice"){
-    subjectsArray = Object.values(subjects)
     typingPracticeAllComplete = subjectsArray.every(subject => subject.typingPracticeComplete) 
     if(typingPracticeAllComplete) state = "instructions"
   }
   if(state == "interface"){
-    countdown = countdown - 1
-    if(step == 1 && countdown <= 0) { // end step1 choice1
-      if(realEffort){
-        countdown = step2Length
-        step = 2  
-      } else {
-        countdown = step3Length
-        step = 3        
-      }
-    }
-    if(step == 2 && countdown <= 0) { // end step2 typingTask1 
-      var typingComplete = experimentStarted && typingProgress==practiceTypingTarget.length
-      if(typingComplete || !experimentStarted){
-        countdown = step3Length
-        step = 3
-      }
-    }   
-    if(step == 3 && countdown <= 0) { // end step3 feedback1
-      countdown = step4Length
-      step = 4
-    }    
-    if(step == 4 && countdown <= 0) { // end step4 choice2
-      calculateOutcome()        // change to subject-specific
-      if(realEffort){
-        countdown = step5Length
-        step = 5 
-      } else {
-        countdown = step6Length
-        step = 6       
-      }
-    }             
-    if(step == 5 && countdown <= 0) { // end step5 typingTask2
-      var typingComplete = experimentStarted && typingProgress==practiceTypingTarget.length
-      if(typingComplete || !experimentStarted){
-        countdown = step6Length
-        step = 6 
-      }
-    }
-    if(step == 6 && countdown <= 0) { // end step6 feedback2
-      updateDataFile()
-      const maxPeriod = experimentStarted ? numPeriods : numPracticePeriods
-      if(period>=maxPeriod){
-        countdown = 0
-        if(experimentStarted){
-          state = "end" 
-          writePaymentFile()
-          console.log("Session Complete")
-        } else{
-          console.log("endPracticePeriods")
-          state = "instructions"
-          practicePeriodsComplete = true
-          period = 1
-          step = 1
+    subjectsArray.forEach(subject => {
+      subject.countdown = subject.countdown - 1
+      if(subject.step == 1 && subject.countdown <= 0) { // end subject.step1 choice1
+        if(realEffort){
+          subject.countdown = step2Length
+          subject.step = 2  
+        } else {
+          subject.countdown = step3Length
+          subject.step = 3        
         }
-      } else{
-        countdown = step1Length
-        period += 1
-        state = "interface"
-        step = 1
-       } 
-    }
-    stage = step < 3 ? 1 : 2 
+      }
+      if(subject.step == 2) { // end subject.step2 typingTask1 
+        var feedbackComplete = !experimentStarted && subject.countdown <= 0
+        var typingComplete = experimentStarted && typingProgress==practiceTypingTarget.length
+        if(typingComplete || feedbackComplete){
+          subject.countdown = step3Length
+          subject.step = 3
+        }
+      }   
+      if(subject.step == 3 && subject.countdown <= 0) { // end subject.step3 feedback1
+        subject.countdown = step4Length
+        subject.step = 4
+      }    
+      if(subject.step == 4 && subject.countdown <= 0) { // end subject.step4 choice2
+        calculateOutcome()        // change to subject-specific
+        if(realEffort){
+          subject.countdown = step5Length
+          subject.step = 5 
+        } else {
+          subject.countdown = step6Length
+          subject.step = 6       
+        }
+      }
+      if(subject.step == 5) { // end subject.step5 typingTask2 
+        var feedbackComplete = !experimentStarted && subject.countdown <= 0
+        var typingComplete = experimentStarted && typingProgress==practiceTypingTarget.length
+        if(typingComplete || feedbackComplete){
+          subject.countdown = step6Length
+          subject.step = 6
+        }
+      }
+      if(subject.step == 6 && subject.countdown <= 0) { // end subject.step6 feedback2
+        updateDataFile()          // change to subject-specific
+        const maxPeriod = experimentStarted ? numPeriods : numPracticePeriods
+        if(period>=maxPeriod){
+          subject.countdown = 0
+          if(experimentStarted){
+            subject.step = 7
+            writePaymentFile()    // change to subject-specific
+            console.log("Session Complete")
+          } else{
+            console.log("endPracticePeriods")
+            state = "instructions"
+            practicePeriodsComplete = true
+            period = 1
+            subject.step = 1
+          }
+        } else{
+          subject.countdown = step1Length
+          period += 1
+          subject.step = 1
+         } 
+      }
+      subject.stage = subject.step < 3 ? 1 : 2 
+    })
   }
 }
