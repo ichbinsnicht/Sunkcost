@@ -12,7 +12,7 @@ var typingPracticeAllComplete = false
 var practicePeriodsComplete = false
 var experimentStarted = false
 var message = {}
-var countdown = 0
+var subjects = []
 
 document.onmousedown = function(){
     console.log(message)
@@ -26,10 +26,10 @@ socket.on("serverUpdateManager", function(msg){
     numSubjects = msg.numSubjects
     ids = msg.ids
     state = msg.state
+    subjects = msg.subjectsData
     typingPracticeAllComplete = msg.typingPracticeAllComplete
     practicePeriodsComplete = msg.practicePeriodsComplete
     experimentStarted = msg.experimentStarted
-    countdown = msg.countdown
     if(state != "startup") {
         realEffort = msg.realEffort
         realEffortCheckbox.disabled = true
@@ -38,10 +38,9 @@ socket.on("serverUpdateManager", function(msg){
     var infoString = ""
     infoString += `${numSubjects} Subjects <br>`
     infoString += `State: ${state} <br>`
-    infoString += `Countdown: ${countdown} <br>`
     infoDiv.innerHTML = infoString
     var tableString = ""
-    ids.forEach(id => tableString += `<tr><td>${id}</td></tr>`)
+    subjects.forEach(subject => tableString += `<tr><td>${subject.id}</td><td>${subject.countdown}</td></tr>`)
     subjectsTable.innerHTML = tableString
 })
 const showInstructions = function() {

@@ -83,7 +83,6 @@ var mouseEvent = {x:0,y:0}
 var earnings = 0
 var winPrize = 0
 var typingTarget = ""
-var practiceTypingTarget = ""
 var typingProgress = 0
 var completeText = ""
 var incompleteText = ""
@@ -97,8 +96,7 @@ document.onkeydown = function(event){
         targetLetter = incompleteText.slice(0,1)
         eventLetter = event.key.toUpperCase()
         if(targetLetter == eventLetter) typingProgress += 1
-        var targetLength = practicePeriodsComplete ? typingTarget.length : practiceTypingTarget.length
-        if(typingProgress >= targetLength && !typingPracticeSubjectComplete){
+        if(typingProgress >= typingTarget.length && !typingPracticeSubjectComplete){
             var msg = {id}
             socket.emit("typingPracticeSubjectComplete",msg)
         }
@@ -122,13 +120,15 @@ socket.on("clientJoined",function(msg){
     setInterval(update, 10)
 })
 socket.on("serverUpdateClient", function(msg){
-    if(period != msg.period){
-        console.log("mouseEvent",mouseEvent)
+    if(stage != msg.stage) {
         console.log("period",period)
-        console.log("choice",choice)
-        console.log("score",score)
-        console.log("cost",cost)
-        console.log(period,msg.period)
+        console.log("stage",stage)
+        console.log("choice",choice[stage])
+        console.log("score",score[stage])
+        console.log("cost",cost[stage])
+        console.log("typingTarget",typingTarget)
+    }
+    if(period != msg.period){
         cost = {1:0, 2:0}
         score = {1:0, 2:0}
     }
@@ -161,11 +161,6 @@ socket.on("serverUpdateClient", function(msg){
     if(typingPracticeSubjectComplete) typingProgress = typingTarget.length
     state = msg.state
 })
-socket.on("clicked",function(msg){
-    console.log(`The server says: clicked`, msg)
-    console.log(`State:`, state)
-})
-
 
 update = function(){
     if(step<5) updateChoice()
@@ -175,7 +170,6 @@ update = function(){
         step,
         stage,
         typingProgress,
-        practiceTypingTarget,
         currentChoice: choice[stage],
         currentScore: score[stage],
         currentCost: cost[stage],                  
@@ -206,9 +200,8 @@ update = function(){
                                       If you were in a real period, this is the text you would type.`
             countdownDiv.innerHTML = `Countdown: ${countdown}`
         }
-        var target = practicePeriodsComplete ? typingTarget : practiceTypingTarget
-        completeText = target.slice(0,typingProgress)
-        incompleteText = target.slice(typingProgress,target.length)
+        completeText = typingTarget.slice(0,typingProgress)
+        incompleteText = typingTarget.slice(typingProgress,typingTarget.length)
         targetTextbox.innerHTML = ``
         targetTextbox.innerHTML += `<text style="color: blue">${completeText}</text>`
         targetTextbox.innerHTML += `<text style="color: red">${incompleteText}</text>`
@@ -281,6 +274,7 @@ updateChoice = function(){
         choice[stage] = 0.5*Math.max(0,Math.min(1,mouseGraphX))
         score[stage] = forced[stage]*forcedScore[stage] + (1-forced[stage])*choice[stage]
         cost[stage] = score[stage]*multiplier[stage]  
+        typingProgress = 0
     }
 }
 drawInterface = function(){

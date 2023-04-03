@@ -23,6 +23,7 @@ const multiplier1Low = 1      // marginal cost of the score in period 1
 const multiplier1High = 10      // marginal cost of the score in period 1
 const multiplier2Low = 1   // calibrate the high costs!
 const multiplier2High = 10  // cost2 = sunk cost in period 2 (high cost shock)
+const cost2Text = 10
 
 // variables
 var realEffort = false
@@ -41,6 +42,7 @@ var practiceTypingTarget = genRandomString(1) // 1000
 seedrandom()
 
 // TODO
+// - fix cost in stage 2 issue
 // implement real effort treatments
 // --> set up steps on the subject level so that subjects can move independently (only in realExperiment!)
 //    --> make update function client-specific
@@ -204,7 +206,7 @@ io.on("connection",function(socket){
     }
     socket.emit("serverUpdateManager",reply)
   })
-  socket.on("clientUpdate", function(msg){ // callback function; msg from client, send msg to client
+  socket.on("clientUpdate", function(msg){ // callback function; msg from client, send msg to client 
     const subject = subjects[msg.id]
     if(subject){
       const step = subject.step
@@ -213,8 +215,9 @@ io.on("connection",function(socket){
       if(period == msg.period && step == msg.step && choosing ) {
         histPeriod.choice[msg.stage] = msg.currentChoice
         histPeriod.score[msg.stage] = msg.currentScore      
-        histPeriod.cost[msg.stage] = msg.currentCost
-        histPeriod.typingProgress[msg.stage] = msg.typingProgress
+        histPeriod.cost[msg.stage] = msg.currentCost // code broken here!!!
+        console.log(`histPeriod.cost[${msg.stage}]`,histPeriod.cost[msg.stage])
+        subject.typingProgress = msg.typingProgress
       }  
       var reply = {
         realEffort,
@@ -223,9 +226,8 @@ io.on("connection",function(socket){
         experimentStarted, 
         practicePeriodsComplete,
         numPracticePeriods,
-        practiceTypingTarget,
+        typingTarget: practiceTypingComplete ? subject.typingTarget : practiceTypingTarget,
         endowment,
-        typingTarget: histPeriod.typingTarget[msg.stage],
         step: subject.step,
         stage: subject.stage,
         countdown: subject.countdown,    
@@ -271,8 +273,6 @@ const setupHist = function(subject) {
       choice: {1:0,2:0},
       score: {1:0,2:0},      
       cost: {1:0,2:0},
-      typingProgress: {1:0,2:0},
-      typingTarget: {1:"",2:""},
       forcedScore: {1:Math.random()*0.5,2:0},
       forced: {1:1*(Math.random()>0.5),2:0},
       outcomeRandom: Math.random(),
@@ -287,6 +287,8 @@ const createSubject = function(id, socket){
     id: id,
     socket: socket,
     typingPracticeComplete: false,
+    typingTarget: "",
+    typingProgress: 0,
     step: 1,
     stage: 1,
     countdown: 0,
@@ -320,15 +322,26 @@ const update = function(){
   var subjectsArray = Object.values(subjects)
   if(state == "typingPractice"){
     typingPracticeAllComplete = subjectsArray.every(subject => subject.typingPracticeComplete) 
-    if(typingPracticeAllComplete) state = "instructions"
+    if(typingPracticeAllComplete){
+      practiceTypingComplete = true
+      state = "instructions"
+    }
   }
   if(state == "interface"){
     subjectsArray.forEach(subject => {
       subject.countdown = subject.countdown - 1
       if(subject.step == 1 && subject.countdown <= 0) { // end subject.step1 choice1
         if(realEffort){
+          const currentCost = subject.hist[period].cost[subject.stage]
+          const currentLength = Math.round(currentCost*cost2Text)
+          subject.typingTarget = genRandomString(currentLength)
+          console.log("subject.stage",subject.stage)
+          console.log("currentCost",currentCost)
+          console.log("currentLength",currentLength)
+          console.log("subject.typingTarget",subject.typingTarget)
           subject.countdown = step2Length
           subject.step = 2  
+          
         } else {
           subject.countdown = step3Length
           subject.step = 3        
@@ -336,19 +349,26 @@ const update = function(){
       }
       if(subject.step == 2) { // end subject.step2 typingTask1 
         var feedbackComplete = !experimentStarted && subject.countdown <= 0
-        var typingComplete = experimentStarted && typingProgress==practiceTypingTarget.length
+        var typingComplete = experimentStarted && subject.typingProgress==practiceTypingTarget.length
         if(typingComplete || feedbackComplete){
           subject.countdown = step3Length
           subject.step = 3
         }
       }   
-      if(subject.step == 3 && subject.countdown <= 0) { // end subject.step3 feedback1
+      if(subject.step == 3 && subject.countdown <= 0) { // end subject.step3 feedback1        
         subject.countdown = step4Length
         subject.step = 4
       }    
       if(subject.step == 4 && subject.countdown <= 0) { // end subject.step4 choice2
         calculateOutcome()        // change to subject-specific
         if(realEffort){
+          const currentCost = subject.hist[period].cost[subject.stage]
+          const currentLength = Math.round(currentCost*cost2Text)
+          subject.typingTarget = genRandomString(currentLength)
+          console.log("subject.stage",subject.stage)
+          console.log("currentCost",currentCost)
+          console.log("currentLength",currentLength)
+          console.log("subject.typingTarget",subject.typingTarget)
           subject.countdown = step5Length
           subject.step = 5 
         } else {
@@ -358,7 +378,7 @@ const update = function(){
       }
       if(subject.step == 5) { // end subject.step5 typingTask2 
         var feedbackComplete = !experimentStarted && subject.countdown <= 0
-        var typingComplete = experimentStarted && typingProgress==practiceTypingTarget.length
+        var typingComplete = experimentStarted && subject.typingProgress==practiceTypingTarget.length
         if(typingComplete || feedbackComplete){
           subject.countdown = step6Length
           subject.step = 6
