@@ -120,14 +120,6 @@ socket.on("clientJoined",function(msg){
     setInterval(update, 10)
 })
 socket.on("serverUpdateClient", function(msg){
-    if(stage != msg.stage) {
-        console.log("period",period)
-        console.log("stage",stage)
-        console.log("choice",choice[stage])
-        console.log("score",score[stage])
-        console.log("cost",cost[stage])
-        console.log("typingTarget",typingTarget)
-    }
     if(period != msg.period){
         cost = {1:0, 2:0}
         score = {1:0, 2:0}
@@ -162,8 +154,8 @@ socket.on("serverUpdateClient", function(msg){
     state = msg.state
 })
 
-update = function(){
-    if(step<5) updateChoice()
+const update = function(){
+    if(step==1 || step==4) updateChoice()
     var msg = {
         id,
         period,
@@ -247,14 +239,14 @@ window.onkeydown = function(e){
     if(e.key=="Enter" && state =="startup") joinGame()
 }
 
-draw = function(){
+const draw = function(){
     requestAnimationFrame(draw)
     setupCanvas()
     context.clearRect(0,0,canvas.width,canvas.height)   
     if(state=="interface") drawInterface() 
     if(state=="end") drawOutcome()
 }
-setupCanvas = function(){
+const setupCanvas = function(){
     xScale = 1*window.innerWidth
     yScale = 1*window.innerHeight                                  
     canvas.width = xScale
@@ -262,14 +254,13 @@ setupCanvas = function(){
     var xTranslate = xScale/2 - yScale/2 - .1*xScale
     var yTranslate = yScale                                                                          
     context.setTransform(yScale/100,0,0,yScale/100,xTranslate,yTranslate)
-    //console.log("setupCanvas")
 }
-updateChoice = function(){
+const updateChoice = function(){
     const x0 = canvas.width/2-canvas.height/2 - .1*canvas.width
     const y0 = canvas.height
     mouseX = (mouseEvent.offsetX-x0)*100/canvas.height
     mouseY = (y0 - mouseEvent.offsetY)*100/canvas.height
-    const mouseGraphX = (mouseX - graphX)/graphWidth
+    const mouseGraphX = (mouseX - graphX)/graphWidth 
     if(step==1 || step==4){
         choice[stage] = 0.5*Math.max(0,Math.min(1,mouseGraphX))
         score[stage] = forced[stage]*forcedScore[stage] + (1-forced[stage])*choice[stage]
@@ -277,7 +268,7 @@ updateChoice = function(){
         typingProgress = 0
     }
 }
-drawInterface = function(){
+const drawInterface = function(){
     // step1 choice1
     // step2 typingTask1
     // step3 feedback1
@@ -286,13 +277,12 @@ drawInterface = function(){
     // step6 feedback2
     drawTop()
     if(step>=1) drawStep1Text()
-    if(step==3) drawStep2Text()
+    if(step==3) drawStep3Text()
     if(step>=4) drawBottom()
-    if(step>=4) drawStep3Text()
     if(step>=3) drawBarTotalCost()
     if(step>=3) drawBarWinProb() 
 }
-drawTop = function(){
+const drawTop = function(){
     context.fillStyle = black
     context.strokeStyle = "black"
     context.lineWidth = 0.25
@@ -335,13 +325,15 @@ drawTop = function(){
     if(step>=3){
         context.textBaseline = "top"
         context.fillStyle = darkGreen
-        context.fillText("Score 1",graphX+graphWidth*2*score[1],lineY1+tickLength+tickSpace+2)
+        const score1String = `${(score[1]*100).toFixed(0)}%`
+        context.fillText(`Score 1: ${score1String}`,graphX+graphWidth*2*score[1],lineY1+tickLength+tickSpace+2)
         context.beginPath()
         context.arc(graphX+graphWidth*2*score[1],lineY1,1.5,0,2*Math.PI)
         context.fill()
         context.fillStyle = darkRed
         context.textBaseline = "bottom"
-        context.fillText("Cost 1",graphX+graphWidth*2*score[1],lineY1-tickLength-tickSpace-2)
+        const cost1String = `$${cost[1].toFixed(2)}`
+        context.fillText(`Cost 1: ${cost1String}`,graphX+graphWidth*2*score[1],lineY1-tickLength-tickSpace-2)
         context.textBaseline = "top"        
         context.beginPath()
         context.arc(graphX+graphWidth*2*score[1],lineY1,1.5,Math.PI,2*Math.PI)
@@ -349,7 +341,8 @@ drawTop = function(){
     }
     context.fillStyle = blue
     context.textBaseline = "top"
-    context.fillText("Choice 1",graphX+graphWidth*2*choice[1],lineY1+tickLength+tickSpace+4.5)
+    const choice1String = `${(choice[1]*100).toFixed(0)}%`
+    context.fillText(`Choice 1: ${choice1String}`,graphX+graphWidth*2*choice[1],lineY1+tickLength+tickSpace+4.5)
     context.beginPath()
     context.arc(graphX+graphWidth*2*choice[1],lineY1,1,0,2*Math.PI)
     context.fill()
@@ -359,7 +352,7 @@ drawTop = function(){
     const multiplier1String = `Multiplier 1: $${(multiplier[1]).toFixed(0)}`
     context.fillText(multiplier1String,graphX+graphWidth+10,lineY1)    
 }
-drawBottom = function(){
+const drawBottom = function(){
     context.fillStyle = black
     context.strokeStyle = "black"
     context.lineWidth = 0.25
@@ -400,21 +393,24 @@ drawBottom = function(){
     }) 
     context.font = labelFont
     context.textBaseline = "top"
-    context.fillStyle = green    
-    context.fillText("Score 2",graphX+graphWidth*2*score[2],lineY2+tickLength+tickSpace+2)
+    context.fillStyle = green
+    const score2String = `${(score[2]*100).toFixed(0)}%` 
+    context.fillText(`Score 2: ${score2String}`,graphX+graphWidth*2*score[2],lineY2+tickLength+tickSpace+2)
     context.beginPath()
     context.arc(graphX+graphWidth*2*score[2],lineY2,1.5,0,2*Math.PI)
     context.fill()
     context.fillStyle = red
     context.textBaseline = "bottom"
-    context.fillText("Cost 2",graphX+graphWidth*2*score[2],lineY2-tickLength-tickSpace-2)
+    const cost2String = `$${cost[2].toFixed(2)}`
+    context.fillText(`Cost 2: ${cost2String}`,graphX+graphWidth*2*score[2],lineY2-tickLength-tickSpace-2)
     context.textBaseline = "top"
     context.beginPath()
     context.arc(graphX+graphWidth*2*score[2],lineY2,1.5,Math.PI,2*Math.PI)
     context.fill()
     context.fillStyle = blue
     context.textBaseline = "top"
-    context.fillText("Choice 2",graphX+graphWidth*2*choice[2],lineY2+tickLength+tickSpace+4.5)
+    const choice2String = `${(choice[2]*100).toFixed(0)}%`
+    context.fillText(`Choice 2: ${choice2String}`,graphX+graphWidth*2*choice[2],lineY2+tickLength+tickSpace+4.5)
     context.beginPath()
     context.arc(graphX+graphWidth*2*choice[2],lineY2,1,0,2*Math.PI)
     context.fill()
@@ -441,32 +437,20 @@ drawBottom = function(){
         context.fillText(lineComplete,graphX+0.5*graphWidth,lineY2+21)       
     }
 }
-drawStep1Text = function(){
+const drawStep1Text = function(){
     context.fillStyle = "black"
     context.textBaseline = "top"
     context.textAlign = "center"
-    const choice1String = `${(choice[1]*100).toFixed(0)}%`
     context.fillText(`Countdown: ${countdown}`,graphX+0.5*graphWidth,lineY2+18)
-    context.fillStyle = blue
-    context.fillText(`Choice 1: ${choice1String}`,graphX+0.5*graphWidth,lineY1+10)
 }
-drawStep2Text = function(){
+const drawStep3Text = function(){
     context.fillStyle = "green"
     context.textBaseline = "top"
     context.textAlign = "center"
     const stage1CompleteString = `Stage 1 Complete`
     context.fillText(stage1CompleteString,graphX+0.5*graphWidth,lineY2+5)
 }
-drawStep3Text = function(){
-    context.fillStyle = "black"
-    context.textBaseline = "top"
-    context.textAlign = "center"
-    const choice2String = `${(choice[2]*100).toFixed(0)}%`
-    context.fillStyle = blue
-    context.fillText(`Choice 2: ${choice2String}`,graphX+0.5*graphWidth,lineY2+10)
-    context.fillStyle = "black"
-}
-drawBarTotalCost = function(){
+const drawBarTotalCost = function(){
     context.fillStyle = black
     context.strokeStyle = "black"
     context.lineWidth = 0.25
@@ -525,7 +509,7 @@ drawBarTotalCost = function(){
     context.fillText(costString,barX,baseY+5)
 
 }
-drawBarWinProb = function(){
+const drawBarWinProb = function(){
     context.fillStyle = black
     context.strokeStyle = "black"
     context.lineWidth = 0.25
@@ -583,7 +567,7 @@ drawBarWinProb = function(){
     const winProbString = step<4 ? winProbString1 : winProbString2
     context.fillText(winProbString,barX,baseY+5)
 }
-drawOutcome = function(){
+const drawOutcome = function(){
     console.log("drawOutcome")
     context.fillStyle = black
     context.textAlign = "center"

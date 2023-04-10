@@ -11,9 +11,9 @@ var choose = x => x[Math.floor(Math.random()*x.length)]
 // parameters
 const numPracticePeriods  = 2 // 5 practice periods
 const numPeriods  = 1    // 1 period, numPeriods > numPracticePeriods
-const step1Length = 3   // 15 secs choice1
-const step2Length = 3   // 15 secs typingTask1
-const step3Length = 3   // 15 secs feedback1
+const step1Length = 10   // 15 secs choice1
+const step2Length = 1   // 15 secs typingTask1
+const step3Length = 20   // 15 secs feedback1
 const step4Length = 3   // 15 secs choice2
 const step5Length = 3   // 15 secs typingTask2
 const step6Length = 3   // 15 secs feedback2
@@ -37,9 +37,11 @@ var practicePeriodsComplete = false
 var experimentStarted = false
 var dataStream = {}
 var dateString = ""
-seedrandom(1, { global: true })
-var practiceTypingTarget = genRandomString(1) // 1000
-seedrandom()
+var randomSeed = Math.random()
+seedrandom("seed", {global: true})
+var practiceTypingTarget = genRandomString(1)
+seedrandom(randomSeed, {global: true})
+
 
 // TODO
 // - fix cost in stage 2 issue
@@ -216,7 +218,10 @@ io.on("connection",function(socket){
         histPeriod.choice[msg.stage] = msg.currentChoice
         histPeriod.score[msg.stage] = msg.currentScore      
         histPeriod.cost[msg.stage] = msg.currentCost // code broken here!!!
-        console.log(`histPeriod.cost[${msg.stage}]`,histPeriod.cost[msg.stage])
+        if(msg.stage == 2 && msg.currentCost == 0){
+          console.log(`msg.currentCost ${msg.stage}`,msg.currentCost)
+        }
+        // console.log(`histPeriod.cost[${msg.stage}]`,histPeriod.cost[msg.stage])
         subject.typingProgress = msg.typingProgress
       }  
       var reply = {
@@ -278,6 +283,7 @@ const setupHist = function(subject) {
       outcomeRandom: Math.random(),
       multiplier: {1:choose([multiplier1Low,multiplier1High]),2:choose([multiplier2Low,multiplier2High])},
     }
+    console.log("subject.hist[i+1].forcedScore", subject.hist[i+1].forcedScore)
   })
 } 
 
@@ -291,7 +297,7 @@ const createSubject = function(id, socket){
     typingProgress: 0,
     step: 1,
     stage: 1,
-    countdown: 0,
+    countdown: step1Length,
     choice1: 0,
     investment2: 0,
     outcomePeriod: 1,
@@ -335,10 +341,6 @@ const update = function(){
           const currentCost = subject.hist[period].cost[subject.stage]
           const currentLength = Math.round(currentCost*cost2Text)
           subject.typingTarget = genRandomString(currentLength)
-          console.log("subject.stage",subject.stage)
-          console.log("currentCost",currentCost)
-          console.log("currentLength",currentLength)
-          console.log("subject.typingTarget",subject.typingTarget)
           subject.countdown = step2Length
           subject.step = 2  
           
@@ -406,7 +408,7 @@ const update = function(){
           subject.step = 1
          } 
       }
-      subject.stage = subject.step < 3 ? 1 : 2 
+      subject.stage = subject.step < 4 ? 1 : 2 
     })
   }
 }
