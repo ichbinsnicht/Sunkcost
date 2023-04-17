@@ -11,9 +11,9 @@ var choose = x => x[Math.floor(Math.random()*x.length)]
 // parameters
 const numPracticePeriods  = 2 // 5 practice periods
 const numPeriods  = 1    // 1 period, numPeriods > numPracticePeriods
-const step1Length = 10   // 15 secs choice1
-const step2Length = 1   // 15 secs typingTask1
-const step3Length = 20   // 15 secs feedback1
+const step1Length = 5   // 15 secs choice1
+const step2Length = 5   // 15 secs typingTask1
+const step3Length = 5   // 15 secs feedback1
 const step4Length = 3   // 15 secs choice2
 const step5Length = 3   // 15 secs typingTask2
 const step6Length = 3   // 15 secs feedback2
@@ -42,9 +42,7 @@ seedrandom("seed", {global: true})
 var practiceTypingTarget = genRandomString(1)
 seedrandom(randomSeed, {global: true})
 
-
 // TODO
-// - fix cost in stage 2 issue
 // implement real effort treatments
 // --> set up steps on the subject level so that subjects can move independently (only in realExperiment!)
 //    --> make update function client-specific
@@ -213,15 +211,11 @@ io.on("connection",function(socket){
     if(subject){
       const step = subject.step
       const histPeriod = subject.hist[msg.period]
-      const choosing = step==1 || step==3
+      const choosing = step==1 || step==4
       if(period == msg.period && step == msg.step && choosing ) {
         histPeriod.choice[msg.stage] = msg.currentChoice
         histPeriod.score[msg.stage] = msg.currentScore      
-        histPeriod.cost[msg.stage] = msg.currentCost // code broken here!!!
-        if(msg.stage == 2 && msg.currentCost == 0){
-          console.log(`msg.currentCost ${msg.stage}`,msg.currentCost)
-        }
-        // console.log(`histPeriod.cost[${msg.stage}]`,histPeriod.cost[msg.stage])
+        histPeriod.cost[msg.stage] = msg.currentCost
         subject.typingProgress = msg.typingProgress
       }  
       var reply = {
@@ -337,36 +331,43 @@ const update = function(){
     subjectsArray.forEach(subject => {
       subject.countdown = subject.countdown - 1
       if(subject.step == 1 && subject.countdown <= 0) { // end subject.step1 choice1
+          subject.countdown = step2Length
+          subject.step = 2  
+      }
+      if(subject.step == 2 && subject.countdown <= 0) { // end subject.step2 feedback1  
         if(realEffort){
           const currentCost = subject.hist[period].cost[subject.stage]
           const currentLength = Math.round(currentCost*cost2Text)
           subject.typingTarget = genRandomString(currentLength)
-          subject.countdown = step2Length
-          subject.step = 2  
-          
-        } else {
+          console.log("period",period)
+          console.log("subject.step",subject.step)
+          console.log("subject.stage",subject.stage)
+          console.log("currentCost",currentCost)
+          console.log("currentLength",currentLength)
+          console.log("subject.typingTarget",subject.typingTarget)
           subject.countdown = step3Length
-          subject.step = 3        
+          subject.step = 3
+        } else {
+          subject.countdown = step4Length
+          subject.step = 4        
         }
-      }
-      if(subject.step == 2) { // end subject.step2 typingTask1 
+      }    
+      if(subject.step == 3) { // end subject.step3 typingTask1 
         var feedbackComplete = !experimentStarted && subject.countdown <= 0
         var typingComplete = experimentStarted && subject.typingProgress==practiceTypingTarget.length
         if(typingComplete || feedbackComplete){
-          subject.countdown = step3Length
-          subject.step = 3
+          subject.countdown = step4Length
+          subject.step = 4
         }
       }   
-      if(subject.step == 3 && subject.countdown <= 0) { // end subject.step3 feedback1        
-        subject.countdown = step4Length
-        subject.step = 4
-      }    
       if(subject.step == 4 && subject.countdown <= 0) { // end subject.step4 choice2
-        calculateOutcome()        // change to subject-specific
+        calculateOutcome()
         if(realEffort){
           const currentCost = subject.hist[period].cost[subject.stage]
           const currentLength = Math.round(currentCost*cost2Text)
           subject.typingTarget = genRandomString(currentLength)
+          console.log("period",period)
+          console.log("subject.step",subject.step)
           console.log("subject.stage",subject.stage)
           console.log("currentCost",currentCost)
           console.log("currentLength",currentLength)

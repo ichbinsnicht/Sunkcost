@@ -123,6 +123,9 @@ socket.on("serverUpdateClient", function(msg){
     if(period != msg.period){
         cost = {1:0, 2:0}
         score = {1:0, 2:0}
+        console.log("msg",msg)
+        console.log("period",period)
+        console.log("stage",stage)        
     }
     realEffort = msg.realEffort
     message = msg
@@ -164,7 +167,7 @@ const update = function(){
         typingProgress,
         currentChoice: choice[stage],
         currentScore: score[stage],
-        currentCost: cost[stage],                  
+        currentCost: cost[stage],
     }
     socket.emit("clientUpdate",msg)
     startupDiv.style.display = "none"
@@ -178,7 +181,7 @@ const update = function(){
     }
     var showTyping = state == "typingPractice"
     countdownDiv.innerHTML = ""
-    showTyping = showTyping || (step == 2 && state == "interface")
+    showTyping = showTyping || (step == 3 && state == "interface")
     showTyping = showTyping || (step == 5 && state == "interface")
     if(joined&&showTyping){
         typingDiv.style.display = "block"
@@ -228,7 +231,8 @@ window.onmousemove = function(e){
 
 window.onmousedown = function(e){
     mouseDown = true
-    console.log("Choice",choice)   
+    console.log("Choice",choice)
+    console.log("Cost",cost)  
     console.log("Score", score)
     console.log("Forced",forced)  
 }
@@ -277,10 +281,10 @@ const drawInterface = function(){
     // step6 feedback2
     drawTop()
     if(step>=1) drawStep1Text()
-    if(step==3) drawStep3Text()
+    if(step==2) drawStep2Text()
     if(step>=4) drawBottom()
-    if(step>=3) drawBarTotalCost()
-    if(step>=3) drawBarWinProb() 
+    if(step>=2) drawBarTotalCost()
+    if(step>=2) drawBarWinProb() 
 }
 const drawTop = function(){
     context.fillStyle = black
@@ -322,7 +326,7 @@ const drawTop = function(){
         context.fillText(xScoreLabel,x,yBottom+tickSpace)
     })
     context.font = labelFont
-    if(step>=3){
+    if(step>=2){
         context.textBaseline = "top"
         context.fillStyle = darkGreen
         const score1String = `${(score[1]*100).toFixed(0)}%`
@@ -443,12 +447,15 @@ const drawStep1Text = function(){
     context.textAlign = "center"
     context.fillText(`Countdown: ${countdown}`,graphX+0.5*graphWidth,lineY2+18)
 }
-const drawStep3Text = function(){
-    context.fillStyle = "green"
+const drawStep2Text = function(){
     context.textBaseline = "top"
     context.textAlign = "center"
-    const stage1CompleteString = `Stage 1 Complete`
-    context.fillText(stage1CompleteString,graphX+0.5*graphWidth,lineY2+5)
+    context.fillStyle = darkRed
+    const cost1CompleteString = `Cost 1 Implemented`
+    context.fillText(cost1CompleteString,graphX+0.5*graphWidth,lineY2+5)
+    context.fillStyle = darkGreen
+    const score1CompleteString = `Score 1 Implemented`
+    context.fillText(score1CompleteString,graphX+0.5*graphWidth,lineY2+10)
 }
 const drawBarTotalCost = function(){
     context.fillStyle = black
