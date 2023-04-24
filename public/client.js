@@ -86,19 +86,25 @@ var typingTarget = ""
 var typingProgress = 0
 var completeText = ""
 var incompleteText = ""
+var showTyping = false
 
 document.onmousedown = function(event){
     console.log("message",message)
 }
 
 document.onkeydown = function(event){
-    if(joined){
+    console.log("showTyping",showTyping)
+    if(joined && showTyping){
         targetLetter = incompleteText.slice(0,1)
         eventLetter = event.key.toUpperCase()
+        console.log("eventLetter",eventLetter)
+        console.log("targetLetter",targetLetter)
         if(targetLetter == eventLetter) typingProgress += 1
+        console.log("typingProgress",typingProgress)
         if(typingProgress >= typingTarget.length && !typingPracticeSubjectComplete){
             var msg = {id}
             socket.emit("typingPracticeSubjectComplete",msg)
+            console.log("typingPracticeSubjectComplete")
         }
     }
 }
@@ -122,10 +128,12 @@ socket.on("clientJoined",function(msg){
 socket.on("serverUpdateClient", function(msg){
     if(period != msg.period){
         cost = {1:0, 2:0}
-        score = {1:0, 2:0}
-        console.log("msg",msg)
-        console.log("period",period)
-        console.log("stage",stage)        
+        score = {1:0, 2:0}      
+    }
+    if(step != msg.step){
+        console.log("msg.ExperimentStarted", msg.experimentStarted)
+        console.log("msg.period",msg.period)
+        console.log("msg.step",msg.step)  
     }
     realEffort = msg.realEffort
     message = msg
@@ -153,7 +161,6 @@ socket.on("serverUpdateClient", function(msg){
         var practiceInstructionsString = baseInstructionsString + `First, you will participate in ${numPracticePeriods} practice periods. The practice periods will not affect your final earnings. They are just for practice. If you have any questions, raise your hand and we will come to assist you.`      
         instructionsDiv.innerHTML = practicePeriodsComplete ? readyInstructionsString : practiceInstructionsString
     }
-    if(typingPracticeSubjectComplete) typingProgress = typingTarget.length
     state = msg.state
 })
 
@@ -179,10 +186,10 @@ const update = function(){
     if(!joined){
         startupDiv.style.display = "block"
     }
-    var showTyping = state == "typingPractice"
-    countdownDiv.innerHTML = ""
+    showTyping = state == "typingPractice"
     showTyping = showTyping || (step == 3 && state == "interface")
     showTyping = showTyping || (step == 5 && state == "interface")
+    countdownDiv.innerHTML = ""
     if(joined&&showTyping){
         typingDiv.style.display = "block"
         typingHeader.innerHTML = "Please type the following text:"
@@ -190,10 +197,14 @@ const update = function(){
             typingHeader.innerHTML = "Please wait for the experiment to continue."
         }
         if(typingPracticeAllComplete&&!experimentStarted){
-            typingProgress = 0
             typingHeader.innerHTML = `This is a practice period. <br>
                                       If you were in a real period, this is the text you would type.`
             countdownDiv.innerHTML = `Countdown: ${countdown}`
+            console.log("typingProgress",typingProgress)
+        }
+        if(experimentStarted){
+            typingHeader.innerHTML = "Please type the following text:"
+            console.log("typingProgress",typingProgress)            
         }
         completeText = typingTarget.slice(0,typingProgress)
         incompleteText = typingTarget.slice(typingProgress,typingTarget.length)
@@ -208,10 +219,11 @@ const update = function(){
         instructionsDiv.style.display = "block"
     }
     if(joined&&state=="interface"&&!showTyping){
+        typingProgress = 0
         interfaceDiv.style.display = "block"
     }
     if(joined&&state=="end"){
-        interfaceDiv.style.display = "block"
+        outcomeDiv.style.display = "block"
     }
 }
 joinGame = function(){
@@ -231,10 +243,10 @@ window.onmousemove = function(e){
 
 window.onmousedown = function(e){
     mouseDown = true
-    console.log("Choice",choice)
+    /* console.log("Choice",choice)
     console.log("Cost",cost)  
     console.log("Score", score)
-    console.log("Forced",forced)  
+    console.log("Forced",forced)  */
 }
 window.onmouseup = function(e){
     mouseDown = false
@@ -268,8 +280,7 @@ const updateChoice = function(){
     if(step==1 || step==4){
         choice[stage] = 0.5*Math.max(0,Math.min(1,mouseGraphX))
         score[stage] = forced[stage]*forcedScore[stage] + (1-forced[stage])*choice[stage]
-        cost[stage] = score[stage]*multiplier[stage]  
-        typingProgress = 0
+        cost[stage] = score[stage]*multiplier[stage]
     }
 }
 const drawInterface = function(){
@@ -425,12 +436,20 @@ const drawBottom = function(){
     context.fillText(multiplier2String,graphX+graphWidth+10,lineY2)    
     context.textBaseline = "top"
     if(step==6){
-        const line1 = "This was a practice period"
-        const line2A = "You would have won the $15 Starbucks gift card"
-        const line2B = "You would not have won the $15 Starbucks gift card"
-        const line2 = winPrize == 1 ? line2A : line2B
-        const line3 = `Your total cost would have been $${(cost[1]+cost[2]).toFixed(2)}`
-        const line4 = `Your earnings would have been $${earnings.toFixed(2)}`
+        var line1 = "This was a practice period"
+        var line2A = "You would have won the $15 Starbucks gift card"
+        var line2B = "You would not have won the $15 Starbucks gift card"
+        var line2 = winPrize == 1 ? line2A : line2B
+        var line3 = `Your total cost would have been $${(cost[1]+cost[2]).toFixed(2)}`
+        var line4 = `Your earnings would have been $${earnings.toFixed(2)}`
+        if(experimentStarted){
+            var line1 = ""
+            var line2A = "You won the $15 Starbucks gift card"
+            var line2B = "You did not win the $15 Starbucks gift card"
+            var line2 = winPrize == 1 ? line2A : line2B
+            var line3 = `Your total cost was $${(cost[1]+cost[2]).toFixed(2)}`
+            var line4 = `Your earnings are $${earnings.toFixed(2)}`            
+        }
         context.fillText(line1,graphX+graphWidth+10,lineY2+21) 
         context.fillText(line2,graphX+graphWidth+10,lineY2+29) 
         context.fillText(line3,graphX+graphWidth+10,lineY2+33) 

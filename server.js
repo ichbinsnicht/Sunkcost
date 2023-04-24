@@ -9,11 +9,11 @@ var arange = x => [...Array(x).keys()]
 var choose = x => x[Math.floor(Math.random()*x.length)]
 
 // parameters
-const numPracticePeriods  = 2 // 5 practice periods
+const numPracticePeriods  = 1 // 5 practice periods
 const numPeriods  = 1    // 1 period, numPeriods > numPracticePeriods
-const step1Length = 5   // 15 secs choice1
-const step2Length = 5   // 15 secs typingTask1
-const step3Length = 5   // 15 secs feedback1
+const step1Length = 3   // 15 secs choice1
+const step2Length = 3   // 15 secs typingTask1
+const step3Length = 3   // 15 secs feedback1
 const step4Length = 3   // 15 secs choice2
 const step5Length = 3   // 15 secs typingTask2
 const step6Length = 3   // 15 secs feedback2
@@ -39,21 +39,16 @@ var dataStream = {}
 var dateString = ""
 var randomSeed = Math.random()
 seedrandom("seed", {global: true})
-var practiceTypingTarget = genRandomString(1)
+var practiceTypingTarget = genRandomString(2)
 seedrandom(randomSeed, {global: true})
 
 // TODO
 // implement real effort treatments
 // --> set up steps on the subject level so that subjects can move independently (only in realExperiment!)
-//    --> make update function client-specific
+//    --> in practice, and real experiment: choice-dependent typingTarget string (length)
 //    --> subject-specific calculateOutcome(), updateDataFile() and writePaymentFile()
-//    --> in practice, and real experiment: choice-dependent typingTarget string 
-// -> think about it: feedback in first stage needs to happen prior to typingtask1
-// (which also depends on multiplier)
 // --> update instructions for real effort
-// --> (potentially) collect time for real effort task
-
-// - update audio
+// --> update audio
 //
 // Lower Priority
 // - interface and language improvement
@@ -212,11 +207,16 @@ io.on("connection",function(socket){
       const step = subject.step
       const histPeriod = subject.hist[msg.period]
       const choosing = step==1 || step==4
-      if(period == msg.period && step == msg.step && choosing ) {
-        histPeriod.choice[msg.stage] = msg.currentChoice
-        histPeriod.score[msg.stage] = msg.currentScore      
-        histPeriod.cost[msg.stage] = msg.currentCost
-        subject.typingProgress = msg.typingProgress
+      const typing = step == 3 || step==5
+      if(period == msg.period && step == msg.step) {
+        if(choosing){
+          histPeriod.choice[msg.stage] = msg.currentChoice
+          histPeriod.score[msg.stage] = msg.currentScore      
+          histPeriod.cost[msg.stage] = msg.currentCost
+        }
+        if(typing){
+          subject.typingProgress = msg.typingProgress
+        }
       }  
       var reply = {
         realEffort,
@@ -330,34 +330,34 @@ const update = function(){
   if(state == "interface"){
     subjectsArray.forEach(subject => {
       subject.countdown = subject.countdown - 1
+      console.log("subject.countdown",subject.countdown)
       if(subject.step == 1 && subject.countdown <= 0) { // end subject.step1 choice1
           subject.countdown = step2Length
           subject.step = 2  
+          console.log("period",period)
+          console.log("subject.step",subject.step)
       }
       if(subject.step == 2 && subject.countdown <= 0) { // end subject.step2 feedback1  
         if(realEffort){
           const currentCost = subject.hist[period].cost[subject.stage]
           const currentLength = Math.round(currentCost*cost2Text)
           subject.typingTarget = genRandomString(currentLength)
-          console.log("period",period)
-          console.log("subject.step",subject.step)
-          console.log("subject.stage",subject.stage)
-          console.log("currentCost",currentCost)
-          console.log("currentLength",currentLength)
-          console.log("subject.typingTarget",subject.typingTarget)
           subject.countdown = step3Length
           subject.step = 3
+          console.log("subject.step",subject.step)
         } else {
           subject.countdown = step4Length
-          subject.step = 4        
+          subject.step = 4
+          console.log("subject.step",subject.step)    
         }
       }    
       if(subject.step == 3) { // end subject.step3 typingTask1 
         var feedbackComplete = !experimentStarted && subject.countdown <= 0
-        var typingComplete = experimentStarted && subject.typingProgress==practiceTypingTarget.length
+        var typingComplete = experimentStarted && subject.typingProgress==subject.typingTarget.length
         if(typingComplete || feedbackComplete){
           subject.countdown = step4Length
           subject.step = 4
+          console.log("subject.step",subject.step)
         }
       }   
       if(subject.step == 4 && subject.countdown <= 0) { // end subject.step4 choice2
@@ -366,35 +366,34 @@ const update = function(){
           const currentCost = subject.hist[period].cost[subject.stage]
           const currentLength = Math.round(currentCost*cost2Text)
           subject.typingTarget = genRandomString(currentLength)
-          console.log("period",period)
-          console.log("subject.step",subject.step)
-          console.log("subject.stage",subject.stage)
-          console.log("currentCost",currentCost)
-          console.log("currentLength",currentLength)
-          console.log("subject.typingTarget",subject.typingTarget)
           subject.countdown = step5Length
           subject.step = 5 
+          console.log("subject.step",subject.step)
         } else {
           subject.countdown = step6Length
           subject.step = 6       
+          console.log("subject.step",subject.step)
         }
       }
       if(subject.step == 5) { // end subject.step5 typingTask2 
         var feedbackComplete = !experimentStarted && subject.countdown <= 0
-        var typingComplete = experimentStarted && subject.typingProgress==practiceTypingTarget.length
+        var typingComplete = experimentStarted && subject.typingProgress==subject.typingTarget.length
         if(typingComplete || feedbackComplete){
           subject.countdown = step6Length
           subject.step = 6
+          console.log("subject.step",subject.step)
         }
       }
       if(subject.step == 6 && subject.countdown <= 0) { // end subject.step6 feedback2
         updateDataFile()          // change to subject-specific
         const maxPeriod = experimentStarted ? numPeriods : numPracticePeriods
         if(period>=maxPeriod){
-          subject.countdown = 0
           if(experimentStarted){
             subject.step = 7
+            console.log("period",period)
+            console.log("subject.step",subject.step)
             writePaymentFile()    // change to subject-specific
+            state = "end"
             console.log("Session Complete")
           } else{
             console.log("endPracticePeriods")
@@ -402,11 +401,16 @@ const update = function(){
             practicePeriodsComplete = true
             period = 1
             subject.step = 1
+            subject.countdown = step1Length
+            console.log("period",period)
+            console.log("subject.step",subject.step)
           }
         } else{
           subject.countdown = step1Length
           period += 1
           subject.step = 1
+          console.log("period",period)
+          console.log("subject.step",subject.step)
          } 
       }
       subject.stage = subject.step < 4 ? 1 : 2 
