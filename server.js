@@ -49,6 +49,7 @@ seedrandom(randomSeed, {global: true})
 //    --> subject-specific calculateOutcome(), updateDataFile() and writePaymentFile()
 // --> update instructions for real effort
 // --> update audio
+// --> survey required for machine-learning approach
 //
 // Lower Priority
 // - interface and language improvement
