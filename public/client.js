@@ -70,6 +70,7 @@ var stage = 1
 var typingPracticeSubjectComplete = false
 var experimentStarted = false
 var practicePeriodsComplete = false
+var experimentComplete = false
 var numPracticePeriods = 0
 var choice = {1:0,2:0}
 var score = {1:0,2:0}
@@ -143,6 +144,7 @@ socket.on("serverUpdateClient", function(msg){
     typingPracticeSubjectComplete = msg.typingPracticeSubjectComplete
     typingPracticeAllComplete = msg.typingPracticeAllComplete
     practicePeriodsComplete = msg.practiceComplete
+    experimentComplete = msg.experimentComplete
     numPracticePeriods = msg.numPracticePeriods
     countdown = msg.countdown
     period = msg.period
@@ -222,8 +224,22 @@ const update = function(){
         typingProgress = 0
         interfaceDiv.style.display = "block"
     }
-    if(joined&&state=="end"){
+    if(joined&&experimentComplete){
+        interfaceDiv.style.display = "none"
         outcomeDiv.style.display = "block"
+        const line1 = "The experiment is complete"
+        const line2 = `Period ${outcomePeriod} was randomly selected`
+        const line3A = "You won the $15 Starbucks gift card"
+        const line3B = "You did not win the $15 Starbucks gift card"
+        const line3 = winPrize == 1 ? line3A : line3B
+        const line4 = `You earned $${earnings.toFixed(2)}`
+        const line5 = "Please wait while your payment is prepared"
+        outcomeDiv.innerHTML = ""
+        outcomeDiv.innerHTML += line1 + "<br><br>"
+        outcomeDiv.innerHTML += line2 + "<br>"
+        outcomeDiv.innerHTML += line3 + "<br>"
+        outcomeDiv.innerHTML += line4 + "<br><br>"
+        outcomeDiv.innerHTML += line5
     }
 }
 joinGame = function(){
@@ -260,7 +276,7 @@ const draw = function(){
     setupCanvas()
     context.clearRect(0,0,canvas.width,canvas.height)   
     if(state=="interface") drawInterface() 
-    if(state=="end") drawOutcome()
+    if(experimentComplete) drawOutcome()
 }
 const setupCanvas = function(){
     xScale = 1*window.innerWidth

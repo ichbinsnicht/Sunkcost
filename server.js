@@ -5,6 +5,10 @@ var io          = require("socket.io")(http)      // io - input output
 var fs          = require("fs")                   // filesystem (to save stuff)
 var seedrandom        = require("seedrandom")
 
+// first time;
+// set-up: after cloning, run npm install to install dependencies
+// manually create data folder
+
 var arange = x => [...Array(x).keys()] 
 var choose = x => x[Math.floor(Math.random()*x.length)]
 
@@ -44,24 +48,19 @@ seedrandom(randomSeed, {global: true})
 
 // TODO
 // implement real effort treatments
-// --> set up steps on the subject level so that subjects can move independently (only in realExperiment!)
-//    --> in practice, and real experiment: choice-dependent typingTarget string (length)
-//    --> subject-specific calculateOutcome(), updateDataFile() and writePaymentFile()
 // --> update instructions for real effort
 // --> update audio
 // --> survey required for machine-learning approach
 //
+//
 // Lower Priority
-// - interface and language improvement
-// - calibrate timing of stages
-// - task: pilot with friends/colleagues 
-// - how do we deal with habit persistence/inertia?
-// - money is prepared to be send to you for the experiment ($5500)
-// - change total cost to stage 2 costs due to real effort intervention
-// - calibration exercise
+// - Unreal PILOT: pilot with friends/colleagues 
+// -- calibrate timing of stages
+// - Real PILOT: pilot with real subjects
+// -- calibrate typing cost
+// - Feedback: ask Shengwu for input again
+
 // - set up mixture model to have everything ready prior to the experiment
-//- (free software) eye tracking to detect heterogeneity across gender? https://github.com/brownhci/WebGazer (women are more likely to focus on risk and men more likely on payout)
-//- ask Shengwu for input again
 // - external funding (Incubator grant) or alternatives
 // ------------------------------------------------------------------------------
 // - schedule (flight) time/funding (funding from VCU) for experiment at VCU
@@ -114,7 +113,7 @@ const getDateString = function(){
 const createDataFile = function(){
   dateString = getDateString()
   dataStream = fs.createWriteStream(`data/data-${dateString}.csv`)
-  var csvString = "session,period,practice,id,forced1,forcedScore1,multiplier1,multiplier2,"
+  var csvString = "session,realEffort,period,practice,id,forced1,forcedScore1,multiplier1,multiplier2,"
   csvString += "choice1,choice2,score1,score2,cost1,cost2,endowment,totalScore,outcomeRandom,winPrize,totalCost,earnings"
   csvString += "\n"
   dataStream.write(csvString)
@@ -122,7 +121,7 @@ const createDataFile = function(){
 const updateDataFile = function(){
   var csvString = ""
   Object.values(subjects).forEach(subject => {
-    csvString += `${dateString},${period},${1-practicePeriodsComplete},${subject.id},`
+    csvString += `${dateString},${realEffort},${period},${1-practicePeriodsComplete},${subject.id},`
     csvString += `${subject.hist[period].forced[1]},${subject.hist[period].forcedScore[1]},`
     csvString += `${subject.hist[period].multiplier[1]},${subject.hist[period].multiplier[2]},`
     csvString += `${subject.hist[period].choice[1]},${subject.hist[period].choice[2]},`    
@@ -135,14 +134,12 @@ const updateDataFile = function(){
   dataStream.write(csvString)
 }
 
-const writePaymentFile = function(){
+const writePaymentFile = function(subject){
   var csvString = "id,earnings,winPrize\n"
   calculateOutcome()
-  Object.values(subjects).forEach(subject => {
-    csvString += `${subject.id},${subject.earnings.toFixed(2)},${subject.winPrize}\n`
-  })
+  csvString += `${subject.id},${subject.earnings.toFixed(2)},${subject.winPrize}\n`
   var logError = (ERR) => { if(ERR) console.log(ERR)}
-  fs.writeFile(`data/payment-${dateString}.csv`,csvString,logError)
+  fs.writeFile(`data/payment-${dateString}-${subject.id}.csv`,csvString,logError)
 }
 
 io.on("connection",function(socket){
@@ -225,6 +222,7 @@ io.on("connection",function(socket){
         state,
         experimentStarted, 
         practicePeriodsComplete,
+        experimentComplete: subject.experimentComplete,
         numPracticePeriods,
         typingTarget: practiceTypingComplete ? subject.typingTarget : practiceTypingTarget,
         endowment,
@@ -288,6 +286,7 @@ const createSubject = function(id, socket){
     id: id,
     socket: socket,
     typingPracticeComplete: false,
+    experimentComplete: false,
     typingTarget: "",
     typingProgress: 0,
     step: 1,
@@ -316,7 +315,7 @@ const calculateOutcome = function(){
     subject.totalScore = selectedHist.score[1] + selectedHist.score[2]
     subject.winPrize = (subject.totalScore > selectedHist.outcomeRandom)*1
     subject.totalCost = selectedHist.cost[1]+selectedHist.cost[2]
-    subject.earnings = endowment - subject.totalCost
+    subject.earnings = endowment - subject.totalCost*(1-realEffort)
   })
 }
 const update = function(){
@@ -393,8 +392,8 @@ const update = function(){
             subject.step = 7
             console.log("period",period)
             console.log("subject.step",subject.step)
-            writePaymentFile()    // change to subject-specific
-            state = "end"
+            writePaymentFile(subject)
+            subject.experimentComplete = true
             console.log("Session Complete")
           } else{
             console.log("endPracticePeriods")
