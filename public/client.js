@@ -95,7 +95,8 @@ document.onmousedown = function(event){
 
 document.onkeydown = function(event){
     console.log("showTyping",showTyping)
-    if(joined && showTyping){
+    const interactiveTyping = practicePeriodsComplete || !typingPracticeSubjectComplete
+    if(joined && showTyping && interactiveTyping){
         targetLetter = incompleteText.slice(0,1)
         eventLetter = event.key.toUpperCase()
         console.log("eventLetter",eventLetter)
@@ -143,7 +144,7 @@ socket.on("serverUpdateClient", function(msg){
     experimentStarted = msg.experimentStarted
     typingPracticeSubjectComplete = msg.typingPracticeSubjectComplete
     typingPracticeAllComplete = msg.typingPracticeAllComplete
-    practicePeriodsComplete = msg.practiceComplete
+    practicePeriodsComplete = msg.practicePeriodsComplete
     experimentComplete = msg.experimentComplete
     numPracticePeriods = msg.numPracticePeriods
     countdown = msg.countdown

@@ -23,11 +23,13 @@ const step5Length = 3   // 15 secs typingTask2
 const step6Length = 3   // 15 secs feedback2
 const timestep = 1
 const endowment = 15
-const multiplier1Low = 1      // marginal cost of the score in period 1
-const multiplier1High = 10      // marginal cost of the score in period 1
-const multiplier2Low = 1   // calibrate the high costs!
+const multiplier1Low = 1    // marginal cost of the score in period 1
+const multiplier1High = 10  // marginal cost of the score in period 1
+const multiplier2Low = 1    // calibrate the high costs!
 const multiplier2High = 10  // cost2 = sunk cost in period 2 (high cost shock)
-const cost2Text = 10
+const cost2Text = 10      // 60 letters per dollar (based on Ruixin's mellon experiment: 300 letters for 5 dollars )
+                          // 170 letters per dollar according to Greiner, B., Ockenfels, A., & Werner, P. (2011). Wage transparency and performance: A real-effort experiment. Economics Letters, 111(3), 236-238.
+                          // 200 characters per minute is the average typing speed (i.e. a dollar per minute)
 
 // variables
 var realEffort = false
@@ -46,25 +48,43 @@ seedrandom("seed", {global: true})
 var practiceTypingTarget = genRandomString(2)
 seedrandom(randomSeed, {global: true})
 
-// TODO
-// implement real effort treatments
+// TODO LAB EXPERIMENT
+// - implement real effort treatments
 // --> update instructions for real effort
 // --> update audio
 // --> survey required for machine-learning approach
+// --> real effort conversion?
 //
+// TODO TYPING TASK
+// - find literature on letters to dollar conversion (e.g. Ruixin, or
+// - Greiner, Ockenfels  and Werner (2011)
+// - Dickinson, D. L. (1999). An experimental examination of labor supply and work intensities. Journal of Labor Economics, 17(4), 638-670.)
 //
-// Lower Priority
+// TODO SURVEY
+// --> survey prior to subjects coming into the lab?
+// --> pre-survey: risk-preferences, (time preferences)
+// --> post-survey: (stable) characteristics age, gender, education, ...
+//
+// TODO MACHINE LEARNING
+// --> generate fake data
+// --> how to layer?
+// ----> or attention-based models? Unlikely since it would leverage order of variables
+// ----> convulational layers? Unlikely (typically in image-reconnection, pixels are connected that are next to each other)
+// ----> sequence of fully connected layers that use relu activation functions (rectified-linear units)
+// --> objective function: mean-squared error (MSE) due to continuous outcome variable and mean-prediction
+// --> use ML model from Pytorch (pick ML model that predicts best out of sample)
+// --> open questions: # layers; size of layers; final layer linear, relu, other?
+//
+// TODO PILOTING
 // - Unreal PILOT: pilot with friends/colleagues 
 // -- calibrate timing of stages
-// - Real PILOT: pilot with real subjects
+// - Real PILOT: pilot with real subjects at VCU
 // -- calibrate typing cost
 // - Feedback: ask Shengwu for input again
 
-// - set up mixture model to have everything ready prior to the experiment
+// - Machine Learning model replaces mixture model
 // - external funding (Incubator grant) or alternatives
-// ------------------------------------------------------------------------------
-// - schedule (flight) time/funding (funding from VCU) for experiment at VCU
-// - test coding in lab @VCU
+
 
 // Done
 // ------------------------------------------------------------------------------
