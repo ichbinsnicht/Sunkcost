@@ -13,7 +13,7 @@ var arange = x => [...Array(x).keys()]
 var choose = x => x[Math.floor(Math.random()*x.length)]
 
 // parameters
-const numPracticePeriods  = 1 // 5 practice periods
+const numPracticePeriods  = 5 // 5 practice periods
 const numPeriods  = 1    // 1 period, numPeriods > numPracticePeriods
 const step1Length = 3   // 15 secs choice1
 const step2Length = 3   // 15 secs typingTask1
@@ -295,7 +295,6 @@ const setupHist = function(subject) {
       outcomeRandom: Math.random(),
       multiplier: {1:choose([multiplier1Low,multiplier1High]),2:choose([multiplier2Low,multiplier2High])},
     }
-    console.log("subject.hist[i+1].forcedScore", subject.hist[i+1].forcedScore)
   })
 } 
 
