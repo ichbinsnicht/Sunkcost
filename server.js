@@ -49,15 +49,20 @@ seedrandom("seed", {global: true})
 var practiceTypingTarget = genRandomString(2)
 seedrandom(randomSeed, {global: true})
 
-// TODO LAB EXPERIMENT
-// - implement real effort treatments
-// --> update instructions for real effort
-// --> update audio
+// TODO
+// - start pre survey via button
+// - start post survey automatically
 //
 // TODO SURVEY for ML
 // --> survey prior to subjects coming into the lab?
-// --> pre-survey: risk-preferences, (time preferences)
-// --> post-survey: (stable) characteristics age, gender, education, ...
+// --> pre-survey: 
+// ----> risk-preferences
+// ----> typing Experience
+// ----> Cognitive reflection task (CRT)
+// ----> overload?
+//
+// --> post-survey: (stable) characteristics: 
+// age, gender, education, major, religion, marrital status, income, race/ethnicity 
 //
 // TODO MACHINE LEARNING
 // --> generate fake data
@@ -68,6 +73,10 @@ seedrandom(randomSeed, {global: true})
 // --> objective function: mean-squared error (MSE) due to continuous outcome variable and mean-prediction
 // --> use ML model from Pytorch (pick ML model that predicts best out of sample)
 // --> open questions: # layers; size of layers; final layer linear, relu, other?
+//
+// TODO INSTRUCTIONS
+// --> update instructions for practice typing and survey
+// --> update audio
 //
 // TODO PILOTING
 // - Unreal PILOT: pilot with friends/colleagues 
