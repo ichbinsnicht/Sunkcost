@@ -15,18 +15,30 @@ var context = canvas.getContext("2d")
 socket = io()       // browser based socket
 var arange = n => [...Array(n).keys()]
 
-var baseInstructionsString = `
+var monetaryInstructionsString = `
 This is an experiment about individual decision making. If you pay attention to these instructions, you can earn a significant amount of money. Your earnings will depend on the decisions you make during the experiment.<br><br>
 
-At the beginning of the experiment, you will receive an endowment of $15. At the end of the experiment, depending on the decisions you make, you may win a $15 Starbucks gift card. <br><br>
+At the beginning of the experiment, you will start with an endowment of $15. At the end of the experiment, depending on the decisions you make, you may win a $15 Starbucks gift card. <br><br>
 
-This experiment has two stages. In each stage, you will make a choice, choice 1 in stage 1 and choice 2 in stage 2. In each stage, you will receive a score, score 1 in stage 1 and score 2 stage 2. In each stage, you will pay a cost, cost 1 in stage 1 and cost 2 in stage 2. In each stage, you will have a multiplier, multiplier 1 in stage 1 and multiplier 2 in stage 2. In each stage, your cost will be your score times your multiplier. At the end of the experiment, your probability of winning the $15 Starbucks gift card will be score 1 plus score 2. Your final payment will be your $15 endowment minus cost 1 and cost 2.<br><br>
+This experiment has two stages. In each stage, you will make a choice, choice 1 in stage 1 and choice 2 in stage 2. In each stage, you will receive a score, score 1 in stage 1 and score 2 stage 2. In each stage, you will pay a cost, cost 1 in stage 1 and cost 2 in stage 2. In each stage, you will have a multiplier, multiplier 1 in stage 1 and multiplier 2 in stage 2. In each stage, your cost will be your score times your multiplier. At the end of the experiment, your probability of winning the $15 Starbucks gift card will be score 1 plus score 2 and you will receive your $15 endowment minus cost 1 and cost 2.<br><br>
 
 At the beginning of stage 1, multiplier 1 will be randomly selected to be either $1 or $10. Both are equally likely. During stage 1, you will select choice 1 from 0 to 0.5. At the end of stage 1, score 1 will be either choice 1 or a randomly selected number from 0 to 0.5. Both are equally likely. Cost 1 will be score 1 times multiplier 1.<br><br>
 
 At the beginning of stage 2, multiplier 2 will be randomly selected to be either $1 or $10. Both are equally likely. During stage 2, you will select choice 2 from 0 to 0.5. Score 2 will always equal choice 2. Cost 2 will be score 2 times multiplier 2.<br><br>`
 
-var readyInstructionsString = baseInstructionsString + `The experiment is about to begin. One of the following periods will be randomly selected to determine your final earnings and whether you receive the $15 Starbucks gift card. If you have any questions, raise your hand and we will come to assist you.`
+var realEffortInstructionsString = `
+This is an experiment about individual decision making. If you pay attention to these instructions, you can earn a significant amount of money. Your earnings will depend on the decisions you make during the experiment.<br><br>
+
+At the beginning of the experiment, you will start with an endowment of $15. At the end of the experiment, depending on the decisions you make, you may win a $15 Starbucks gift card. <br><br>
+
+This experiment has two stages. In each stage, you will make a choice, choice 1 in stage 1 and choice 2 in stage 2. In each stage, you will receive a score, score 1 in stage 1 and score 2 stage 2. In each stage, you will required to complete a typing task, typing task 1 in stage 1 and typing task 2 in stage 2. In each stage, you will have a multiplier, multiplier 1 in stage 1 and multiplier 2 in stage 2. In each stage, the number of characters you have to type will be your score times your multiplier. At the end of the experiment, your probability of winning the $15 Starbucks gift card will be score 1 plus score 2 and you will receive your $15 endowment.<br><br>
+
+At the beginning of stage 1, multiplier 1 will be randomly selected to be either 200 characters or 2,000 characters. Both are equally likely. During stage 1, you will select choice 1 from 0 to 0.5. At the end of stage 1, score 1 will be either choice 1 or a randomly selected number from 0 to 0.5. Both are equally likely. The number of characters you will type in task 1 will be score 1 times multiplier 1.<br><br>
+
+At the beginning of stage 2, multiplier 2 will be randomly selected to be either 200 characters or 2,000 characters. Both are equally likely. During stage 2, you will select choice 2 from 0 to 0.5. Score 2 will always equal choice 2. The number of characters you will type in task 2 will be score 2 times multiplier 2.<br><br>`
+
+var readyString = `The experiment is about to begin. If you have any questions, raise your hand and we will come to assist you.`
+
 
 // graphical parameters
 const yMax = 10
@@ -88,6 +100,9 @@ var typingProgress = 0
 var completeText = ""
 var incompleteText = ""
 var showTyping = false
+var instructionsString = ""
+var readyInstructionsString = ""
+
 
 document.onmousedown = function(event){
     console.log("message",message)
@@ -138,6 +153,8 @@ socket.on("serverUpdateClient", function(msg){
         console.log("msg.step",msg.step)  
     }
     realEffort = msg.realEffort
+    instructionsString = realEffort ? realEffortInstructionsString : monetaryInstructionsString
+    readyInstructionsString = instructionsString + readyString
     message = msg
     step = msg.step
     stage = msg.stage
@@ -161,7 +178,7 @@ socket.on("serverUpdateClient", function(msg){
     forcedScore = msg.hist[msg.period].forcedScore
     forced = msg.hist[msg.period].forced
     if(state!=msg.state){
-        var practiceInstructionsString = baseInstructionsString + `First, you will participate in ${numPracticePeriods} practice periods. The practice periods will not affect your final earnings. They are just for practice. If you have any questions, raise your hand and we will come to assist you.`      
+        var practiceInstructionsString = instructionsString + `First, you will participate in ${numPracticePeriods} practice periods. The practice periods will not affect your final earnings. They are just for practice. If you have any questions, raise your hand and we will come to assist you.`      
         instructionsDiv.innerHTML = practicePeriodsComplete ? readyInstructionsString : practiceInstructionsString
     }
     state = msg.state
@@ -196,12 +213,13 @@ const update = function(){
     if(joined&&showTyping){
         typingDiv.style.display = "block"
         typingHeader.innerHTML = "Please type the following text:"
-        if(typingPracticeSubjectComplete && !experimentStarted){
-            typingHeader.innerHTML = "Please wait for the experiment to continue."
+        if(typingPracticeSubjectComplete && !typingPracticeAllComplete){
+            typingDiv.style.display = "none"
+            instructionsDiv.style.display = "block"
         }
         if(typingPracticeAllComplete&&!experimentStarted){
             typingHeader.innerHTML = `This is a practice period. <br>
-                                      If you were in a real period, this is the text you would type.`
+                                      If you were in the real period, this is the text you would type.`
             countdownDiv.innerHTML = `Countdown: ${countdown}`
             console.log("typingProgress",typingProgress)
         }

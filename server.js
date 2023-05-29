@@ -27,7 +27,8 @@ const multiplier1Low = 1    // marginal cost of the score in period 1
 const multiplier1High = 10  // marginal cost of the score in period 1
 const multiplier2Low = 1    // calibrate the high costs!
 const multiplier2High = 10  // cost2 = sunk cost in period 2 (high cost shock)
-const cost2Text = 10      // 60 letters per dollar (based on Ruixin's mellon experiment: 300 letters for 5 dollars )
+const cost2Text = 10      // 200 cost2Text (default)
+                          // 60 letters per dollar (based on Ruixin's mellon experiment: 300 letters for 5 dollars )
                           // 170 letters per dollar according to Greiner, B., Ockenfels, A., & Werner, P. (2011). Wage transparency and performance: A real-effort experiment. Economics Letters, 111(3), 236-238.
                           // 200 characters per minute is the average typing speed (i.e. a dollar per minute)
 
@@ -52,15 +53,8 @@ seedrandom(randomSeed, {global: true})
 // - implement real effort treatments
 // --> update instructions for real effort
 // --> update audio
-// --> survey required for machine-learning approach
-// --> real effort conversion?
 //
-// TODO TYPING TASK
-// - find literature on letters to dollar conversion (e.g. Ruixin, or
-// - Greiner, Ockenfels  and Werner (2011)
-// - Dickinson, D. L. (1999). An experimental examination of labor supply and work intensities. Journal of Labor Economics, 17(4), 638-670.)
-//
-// TODO SURVEY
+// TODO SURVEY for ML
 // --> survey prior to subjects coming into the lab?
 // --> pre-survey: risk-preferences, (time preferences)
 // --> post-survey: (stable) characteristics age, gender, education, ...
@@ -81,13 +75,18 @@ seedrandom(randomSeed, {global: true})
 // - Real PILOT: pilot with real subjects at VCU
 // -- calibrate typing cost
 // - Feedback: ask Shengwu for input again
-
+//
 // - Machine Learning model replaces mixture model
 // - external funding (Incubator grant) or alternatives
 
-
 // Done
 // ------------------------------------------------------------------------------
+// typing task
+// - find literature on letters to dollar conversion (e.g. Ruixin, or
+// - Greiner, Ockenfels  and Werner (2011)
+// - Dickinson, D. L. (1999). An experimental examination of labor supply and work intensities. Journal of Labor Economics, 17(4), 638-670.)
+//
+// incentives
 // - $15 physicial gift certificate from Kroger (https://giftcards.kroger.com/starbucks-gift-card). 
 // - What is the value of a $15 gift card? Literature?
 // Actually people may value a gift card less than cash. If they value the gift card at the extreme,
