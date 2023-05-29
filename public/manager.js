@@ -2,7 +2,9 @@ var infoDiv = document.getElementById("infoDiv")
 var subjectsTable = document.getElementById("subjectsTable")
 var realEffortCheckbox = document.getElementById("realEffortCheckBox")
 var startPracticeTypingButton = document.getElementById("startPracticeTypingButton")
-var audio = new Audio("instructions.mp3")
+var audioMonetary = new Audio("instructionsMonetary.mp3")
+var audioRealEffort = new Audio("instructionsRealEffort.mp3")
+var audio = audioMonetary
 socket = io()
 
 var numSubjects = 0
@@ -32,6 +34,7 @@ socket.on("serverUpdateManager", function(msg){
     experimentStarted = msg.experimentStarted
     if(state != "startup") {
         realEffort = msg.realEffort
+        audio = realEffort ? audioRealEffort : audioMonetary
         realEffortCheckbox.disabled = true
         realEffortCheckbox.checked = msg.realEffort
     }
