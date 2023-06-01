@@ -2,6 +2,7 @@ var startupDiv = document.getElementById("startupDiv")
 var instructionsDiv = document.getElementById("instructionsDiv")
 var idInput = document.getElementById("idInput")
 var pleaseWaitDiv = document.getElementById("pleaseWaitDiv")
+var preSurveyDiv = document.getElementById("preSurveyDiv")
 var interfaceDiv = document.getElementById("interfaceDiv")
 var typingDiv = document.getElementById("typingDiv")
 var typingHeader = document.getElementById("typingHeader")
@@ -200,6 +201,7 @@ const update = function(){
     startupDiv.style.display = "none"
     instructionsDiv.style.display = "none"
     pleaseWaitDiv.style.display = "none"
+    preSurveyDiv.style.display = "none"
     interfaceDiv.style.display = "none"
     outcomeDiv.style.display = "none" 
     typingDiv.style.display = "none"
@@ -236,6 +238,9 @@ const update = function(){
     if(joined&&state=="startup"){
         pleaseWaitDiv.style.display = "block"
     }   
+    if(joined&&state=="preSurvey"){
+        preSurveyDiv.style.display = "block"
+    }
     if(joined&&state=="instructions"){
         instructionsDiv.style.display = "block"
     }
@@ -261,17 +266,6 @@ const update = function(){
         outcomeDiv.innerHTML += line5
     }
 }
-joinGame = function(){
-    id = parseInt(idInput.value)
-    console.log(`subjectId`, id)
-    if (id>0) {
-        console.log(`joinGame`)
-        msg = {id}
-        socket.emit("joinGame",msg)
-    } else {
-        alert("Please enter subject id.")
-    }
-}
 window.onmousemove = function(e){
     mouseEvent = e
 }
@@ -289,7 +283,21 @@ window.onmouseup = function(e){
 window.onkeydown = function(e){
     if(e.key=="Enter" && state =="startup") joinGame()
 }
-
+const joinGame = function(){
+    id = parseInt(idInput.value)
+    console.log(`subjectId`, id)
+    if (id>0) {
+        console.log(`joinGame`)
+        msg = {id}
+        socket.emit("joinGame",msg)
+    } else {
+        alert("Please enter subject id.")
+    }
+}
+const submitPreSurvey = function(){
+    console.log("submitPreSurvey")
+    return false
+}
 const draw = function(){
     requestAnimationFrame(draw)
     setupCanvas()

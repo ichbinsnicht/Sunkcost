@@ -110,6 +110,15 @@ body {
     font: 5vmin monospace;
     margin-top: 10vh;
 }
+.preSurveyInput {
+    text-align: center;
+    margin: 2vh;
+    width: 30vh;
+    font: 5vmin monospace;
+}
+.preSurveySubmit {
+    font: 5vmin monospace;
+}
 #postSurveyDiv {
     display: none;
     text-align: center;

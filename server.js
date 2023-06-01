@@ -50,21 +50,34 @@ var practiceTypingTarget = genRandomString(2)
 seedrandom(randomSeed, {global: true})
 
 // TODO
-// - start pre survey via button
+//
+// - send pre-survey to server and save data
 // - start post survey automatically
 //
-// TODO SURVEY for ML
+// 1) TODO SURVEY for ML
 // --> survey prior to subjects coming into the lab?
 // --> pre-survey: 
-// ----> risk-preferences
 // ----> typing Experience
+// ----> risk-preferences
 // ----> Cognitive reflection task (CRT)
 // ----> overload?
-//
 // --> post-survey: (stable) characteristics: 
 // age, gender, education, major, religion, marrital status, income, race/ethnicity 
+// 
+// 2) TODO WEB APP
+// - autonomous web app for piloting (no manager required)
 //
-// TODO MACHINE LEARNING
+// 3) TODO PILOTING
+// - Unreal PILOT: pilot with friends/colleagues 
+// -- calibrate timing of stages
+// - Real PILOT: pilot with real subjects at VCU
+// -- calibrate typing cost
+// - Feedback: ask Shengwu for input again
+//
+// - Machine Learning model replaces mixture model
+// - external funding (Incubator grant) or alternatives
+//
+// 4) TODO MACHINE LEARNING
 // --> generate fake data
 // --> how to layer?
 // ----> or attention-based models? Unlikely since it would leverage order of variables
@@ -77,19 +90,12 @@ seedrandom(randomSeed, {global: true})
 // TODO INSTRUCTIONS
 // --> update instructions for practice typing and survey
 // --> update audio
-//
-// TODO PILOTING
-// - Unreal PILOT: pilot with friends/colleagues 
-// -- calibrate timing of stages
-// - Real PILOT: pilot with real subjects at VCU
-// -- calibrate typing cost
-// - Feedback: ask Shengwu for input again
-//
-// - Machine Learning model replaces mixture model
-// - external funding (Incubator grant) or alternatives
+
 
 // Done
 // ------------------------------------------------------------------------------
+// Web deployment for piloting: https://sunkcost.onrender.com
+//
 // typing task
 // - find literature on letters to dollar conversion (e.g. Ruixin, or
 // - Greiner, Ockenfels  and Werner (2011)
@@ -172,6 +178,9 @@ const writePaymentFile = function(subject){
 
 io.on("connection",function(socket){
   socket.emit("connected")
+  socket.on("preSurvey", function(msg){
+    if(state == "startup") state = "preSurvey"
+  })
   socket.on("showInstructions", function(msg){
     console.log(`showInstructions`)
     if(state == "startup") state = "instructions"
@@ -357,7 +366,6 @@ const update = function(){
   if(state == "interface"){
     subjectsArray.forEach(subject => {
       subject.countdown = subject.countdown - 1
-      console.log("subject.countdown",subject.countdown)
       if(subject.step == 1 && subject.countdown <= 0) { // end subject.step1 choice1
           subject.countdown = step2Length
           subject.step = 2  

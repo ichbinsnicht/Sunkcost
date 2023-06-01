@@ -11,7 +11,17 @@
             <button id="idSubmit" onclick="joinGame()">Submit</button>
         </div>
         <div id="pleaseWaitDiv">Please Wait</div>
-        <div id="preSurveyDiv">Pre Survey</div>
+        <div id="preSurveyDiv">Pre Survey <br><br>
+            <form onSubmit="return submitPreSurvey();">
+                <div>
+                  <label for="typingExperience">How many hours do you typically spend typing on a daily basis?</label> <br>
+                  <input class="preSurveyInput" type="number" min="0" max="24" name="typingExperience" id="typingExperience" required>
+                </div>
+                <div> <br>
+                  <input class="preSurveySubmit" type="submit" value="Submit">
+                </div>
+              </form>              
+        </div>
         <div id="instructionsDiv"></div>
         <div id="interfaceDiv"><canvas id="canvas"></canvas></div>
         <div id="typingDiv">
