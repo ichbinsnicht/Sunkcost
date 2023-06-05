@@ -105,3 +105,6 @@ dist
 
 # Ignore data folder
 # data/
+
+# Ignore files
+gDrive-client-secret.json
