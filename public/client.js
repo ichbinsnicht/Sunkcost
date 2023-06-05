@@ -11,7 +11,9 @@ var countdownDiv = document.getElementById("countdownDiv")
 var outcomeDiv = document.getElementById("outcomeDiv")
 var idInput = document.getElementById("idInput")
 var canvas = document.getElementById("canvas")
+var preSurveyForm = document.getElementById("preSurveyForm")
 var context = canvas.getContext("2d")
+
 
 socket = io()       // browser based socket
 var arange = n => [...Array(n).keys()]
@@ -103,7 +105,7 @@ var incompleteText = ""
 var showTyping = false
 var instructionsString = ""
 var readyInstructionsString = ""
-
+var preSurveySubmitted = false
 
 document.onmousedown = function(event){
     console.log("message",message)
@@ -159,6 +161,7 @@ socket.on("serverUpdateClient", function(msg){
     message = msg
     step = msg.step
     stage = msg.stage
+    preSurveySubmitted = msg.preSurveySubmitted
     experimentStarted = msg.experimentStarted
     typingPracticeSubjectComplete = msg.typingPracticeSubjectComplete
     typingPracticeAllComplete = msg.typingPracticeAllComplete
@@ -239,7 +242,8 @@ const update = function(){
         pleaseWaitDiv.style.display = "block"
     }   
     if(joined&&state=="preSurvey"){
-        preSurveyDiv.style.display = "block"
+        if(preSurveySubmitted) instructionsDiv.style.display = "block"
+        else preSurveyDiv.style.display = "block"
     }
     if(joined&&state=="instructions"){
         instructionsDiv.style.display = "block"
@@ -295,7 +299,9 @@ const joinGame = function(){
     }
 }
 const submitPreSurvey = function(){
-    console.log("submitPreSurvey")
+    const msg = {id}
+    Array.from(preSurveyForm.elements).forEach(element => msg[element.id] = element.value)
+    socket.emit("submitPreSurvey",msg)
     return false
 }
 const draw = function(){

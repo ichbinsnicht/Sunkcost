@@ -12,13 +12,13 @@
         </div>
         <div id="pleaseWaitDiv">Please Wait</div>
         <div id="preSurveyDiv">Pre Survey <br><br>
-            <form onSubmit="return submitPreSurvey();">
+            <form onSubmit="return submitPreSurvey();" id="preSurveyForm">
                 <div>
                   <label for="typingExperience">How many hours do you typically spend typing on a daily basis?</label> <br>
                   <input class="preSurveyInput" type="number" min="0" max="24" name="typingExperience" id="typingExperience" required>
                 </div>
                 <div> <br>
-                  <input class="preSurveySubmit" type="submit" value="Submit">
+                  <input class="preSurveySubmit" type="submit" value="Submit" id="PreSurveySubmitButton">
                 </div>
               </form>              
         </div>

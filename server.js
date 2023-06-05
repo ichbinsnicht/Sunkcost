@@ -43,11 +43,12 @@ var practiceTypingComplete = false
 var practicePeriodsComplete = false
 var experimentStarted = false
 var dataStream = {}
-var dateString = ""
+var dateString = getDateString()
 var randomSeed = Math.random()
 seedrandom("seed", {global: true})
 var practiceTypingTarget = genRandomString(2)
 seedrandom(randomSeed, {global: true})
+
 
 // TODO
 //
@@ -66,6 +67,7 @@ seedrandom(randomSeed, {global: true})
 // 
 // 2) TODO WEB APP
 // - autonomous web app for piloting (no manager required)
+// - sending data to interfacing service (e.g. GDrive)
 //
 // 3) TODO PILOTING
 // - Unreal PILOT: pilot with friends/colleagues 
@@ -126,12 +128,12 @@ function genRandomString(length){
   return Array.from(Array(length)).map(i => choose(letters)).join("")
 }
 
-const formatTwo = function(x){
+function formatTwo(x){
   var y = x.toFixed(0)
   if(y<10) y = "0" + y
   return y
 }
-const getDateString = function(){
+function getDateString(){
   const d = new Date()
   const year = d.getFullYear()
   const month = formatTwo(d.getMonth()+1)
@@ -143,9 +145,16 @@ const getDateString = function(){
   return dateString
 }
 
+const writePreSurveyFile = function(msg){
+  var csvString = Object.keys(msg).join(",")
+  csvString += "\n"
+  csvString += Object.values(msg).join(",")
+  var logError = (ERR) => { if(ERR) console.log(ERR)}
+  fs.writeFile(`data/preSurvey-${dateString}-${msg.id}.csv`,csvString,logError)
+}
+
 // within-period data
 const createDataFile = function(){
-  dateString = getDateString()
   dataStream = fs.createWriteStream(`data/data-${dateString}.csv`)
   var csvString = "session,realEffort,period,practice,id,forced1,forcedScore1,multiplier1,multiplier2,"
   csvString += "choice1,choice2,score1,score2,cost1,cost2,endowment,totalScore,outcomeRandom,winPrize,totalCost,earnings"
@@ -180,6 +189,11 @@ io.on("connection",function(socket){
   socket.emit("connected")
   socket.on("preSurvey", function(msg){
     if(state == "startup") state = "preSurvey"
+  })
+  socket.on("submitPreSurvey", function(msg){
+    subjects[msg.id].preSurveySubmitted = true
+    writePreSurveyFile(msg) 
+    if(Object.values(subjects).every(subject => subject.preSurveySubmitted)) state = "instructions"
   })
   socket.on("showInstructions", function(msg){
     console.log(`showInstructions`)
@@ -257,6 +271,7 @@ io.on("connection",function(socket){
         realEffort,
         period,
         state,
+        preSurveySubmitted: subject.preSurveySubmitted,
         experimentStarted, 
         practicePeriodsComplete,
         experimentComplete: subject.experimentComplete,
@@ -321,6 +336,7 @@ const createSubject = function(id, socket){
   const subject = {
     id: id,
     socket: socket,
+    preSurveySubmitted: false,
     typingPracticeComplete: false,
     experimentComplete: false,
     typingTarget: "",
