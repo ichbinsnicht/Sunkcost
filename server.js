@@ -1,13 +1,55 @@
-var express     = require("express")              // server building package
-var app         = express()
-var http        = require("http").Server(app)     // server-side socket (socket is for communication)
-var io          = require("socket.io")(http)      // io - input output
-var fs          = require("fs")                   // filesystem (to save stuff)
-var seedrandom        = require("seedrandom")
+const express     = require("express")              // server building package
+const app         = express()
+const http        = require("http").Server(app)     // server-side socket (socket is for communication)
+const io          = require("socket.io")(http)      // io - input output
+const fs          = require("fs")                   // filesystem (to save stuff)
+const seedrandom  = require("seedrandom")
+const path        = require('path')
+const { google }  = require('googleapis')
 
-// first time;
-// set-up: after cloning, run npm install to install dependencies
-// manually create data folder
+//redirect URL and refresh token
+const REDIRECT_URI = 'https://developers.google.com/oauthplayground'
+const REFRESH_TOKEN = '1//046jr_ZejiqFECgYIARAAGAQSNwF-L9IrOnO0qOPFW9UWmhPuMxXj04DtzLGDXR0MMfB6aanjhqKD5kLvwEVuo2Lj_nc7R-583dY'
+const CLIENT_ID = '1003293269435-t9ogu0j3i604d94pnerk5q3j0avce7gm.apps.googleusercontent.com' // replace all double quotes if possible
+const CLIENT_SECRET = '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'
+
+const oauth2Client = new google.auth.OAuth2( //intialize auth client
+  CLIENT_ID,
+  CLIENT_SECRET,
+  REDIRECT_URI
+)
+
+oauth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
+const drive = google.drive({  //initialize google drive
+  version: 'v3',
+  auth: oauth2Client,
+})
+
+//function to upload the file - async = non-blocking (next line can start before this is finished)
+async function uploadFile(fileName) {
+  const filePath = path.join(__dirname, 'data',fileName);
+  const folderId = '1Wltrljn-YXIT_ZnwsOZXCvZg7k3eX6kD'
+  const fileMetadata = {
+    name: fileName,
+    parents: [folderId]
+  }
+  const media = {
+    mimeType: 'text/csv',
+    body: fs.createReadStream(filePath),
+  }
+  try {
+    const file = await drive.files.create({
+      resource: fileMetadata,
+      media: media,
+      fields: 'id',
+    });
+    console.log('File Id:', file.data.id);
+    return file.data.id;
+  } catch (err) {
+    console.log(error.message)
+    throw err;
+  }
+}  
 
 var arange = x => [...Array(x).keys()] 
 var choose = x => x[Math.floor(Math.random()*x.length)]
@@ -52,6 +94,7 @@ seedrandom(randomSeed, {global: true})
 
 // TODO
 //
+// - GDrive interfacing (https://www.section.io/engineering-education/google-drive-api-nodejs/)
 // - send pre-survey to server and save data
 // - start post survey automatically
 //
@@ -150,7 +193,9 @@ const writePreSurveyFile = function(msg){
   csvString += "\n"
   csvString += Object.values(msg).join(",")
   var logError = (ERR) => { if(ERR) console.log(ERR)}
-  fs.writeFile(`data/preSurvey-${dateString}-${msg.id}.csv`,csvString,logError)
+  const fileName = `preSurvey-${dateString}-${msg.id}.csv`
+  fs.writeFile(`data/${fileName}`,csvString,logError)
+  uploadFile(fileName)
 }
 
 // within-period data
