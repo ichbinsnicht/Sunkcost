@@ -9,7 +9,7 @@ const { google }  = require('googleapis')
 
 //redirect URL and refresh token
 const REDIRECT_URI = 'https://developers.google.com/oauthplayground'
-const REFRESH_TOKEN = '1//046jr_ZejiqFECgYIARAAGAQSNwF-L9IrOnO0qOPFW9UWmhPuMxXj04DtzLGDXR0MMfB6aanjhqKD5kLvwEVuo2Lj_nc7R-583dY'
+const REFRESH_TOKEN = '1//04uMG7VSBQC_7CgYIARAAGAQSNwF-L9Ir3uCW_yqpqECAsmRgrZIbXMBfO8nQ117D3e5chOkQQjRLBk69PBpeOoZ2F_c3R2aB2_A'
 const CLIENT_ID = '1003293269435-t9ogu0j3i604d94pnerk5q3j0avce7gm.apps.googleusercontent.com' // replace all double quotes if possible
 const CLIENT_SECRET = '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'
 
@@ -28,7 +28,7 @@ const drive = google.drive({  //initialize google drive
 //function to upload the file - async = non-blocking (next line can start before this is finished)
 async function uploadFile(fileName) {
   const filePath = path.join(__dirname, 'data',fileName);
-  const folderId = '1Wltrljn-YXIT_ZnwsOZXCvZg7k3eX6kD'
+  const folderId = '1vZs0JkWsoQ1Z1CQie_339AemT9ohDXNL'
   const fileMetadata = {
     name: fileName,
     parents: [folderId]
@@ -46,7 +46,7 @@ async function uploadFile(fileName) {
     console.log('File Id:', file.data.id);
     return file.data.id;
   } catch (err) {
-    console.log(error.message)
+    console.log(err.message)
     throw err;
   }
 }  
