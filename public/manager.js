@@ -1,7 +1,8 @@
 var infoDiv = document.getElementById("infoDiv")
 var subjectsTable = document.getElementById("subjectsTable")
 var realEffortCheckbox = document.getElementById("realEffortCheckBox")
-var startPracticeTypingButton = document.getElementById("startPracticeTypingButton")
+var preSurveyLock = document.getElementById("preSurveyLock")
+var practiceLock = document.getElementById("practiceLock")
 var audioMonetary = new Audio("instructionsMonetary.mp3")
 var audioRealEffort = new Audio("instructionsRealEffort.mp3")
 var audio = audioMonetary
@@ -9,7 +10,6 @@ socket = io()
 
 var numSubjects = 0
 var ids = []
-var state = ""
 var typingPracticeAllComplete = false
 var practicePeriodsComplete = false
 var experimentStarted = false
@@ -27,20 +27,16 @@ socket.on("serverUpdateManager", function(msg){
     message = msg
     numSubjects = msg.numSubjects
     ids = msg.ids
-    state = msg.state
     subjects = msg.subjectsData
     typingPracticeAllComplete = msg.typingPracticeAllComplete
     practicePeriodsComplete = msg.practicePeriodsComplete
     experimentStarted = msg.experimentStarted
-    if(state != "startup") {
-        realEffort = msg.realEffort
-        audio = realEffort ? audioRealEffort : audioMonetary
-        realEffortCheckbox.disabled = true
-        realEffortCheckbox.checked = msg.realEffort
-    }
+    realEffort = msg.realEffort
+    audio = realEffort ? audioRealEffort : audioMonetary
+//    realEffortCheckbox.disabled = true
+//    realEffortCheckbox.checked = msg.realEffort
     var infoString = ""
     infoString += `${numSubjects} Subjects <br>`
-    infoString += `State: ${state} <br>`
     infoDiv.innerHTML = infoString
     var tableString = ""
     subjects.forEach(subject => tableString += `<tr><td>${subject.id}</td><td>${subject.countdown}</td></tr>`)
@@ -60,24 +56,11 @@ const showInstructions = function() {
     }
 }
 const playAudio = function(){
-    if (experimentStarted) alert("Experiment already started!") 
-    else if (state=="instructions") audio.play()
-    else alert("Show instructions first!")
+    audio.play()
 }
 const stopAudio = function(){
     audio.pause()
     audio.currentTime = 0
-}
-const startPracticeTyping = function(){
-    if (experimentStarted) alert("Experiment already started!")
-    else if (typingPracticeAllComplete) alert("Typing Practice already complete!")
-    else if (state=="instructions"){
-        console.log("Start typing practice")
-        socket.emit("startPracticeTyping")    
-    } else {
-        alert("Show instructions first!")
-    }
-
 }
 const startPracticePeriods = function(){
     if (experimentStarted) alert("Experiment already started!") 
@@ -99,6 +82,10 @@ const startExperiment = function(){
     }
 }
 const update = function(){
-    const msg = { realEffort: realEffortCheckbox.checked }
+    const msg = { 
+        realEffort: realEffortCheckbox.checked,
+        preSurveyLock: preSurveyLock.checked,
+        practiceLock: practiceLock.checked
+    }
     socket.emit("managerUpdate",msg)
 }

@@ -68,6 +68,15 @@ body {
 }
 #instructionsDiv {
     display: none;
+    text-align: center;      
+    font: 4vmin monospace; 
+    border: 0;
+    padding: 0;
+    margin: 0;
+    float: right;   
+}
+#instructionsTextDiv {
+    display: block;
     text-align: justify;      
     font: 3vmin monospace;    
     border: 0;

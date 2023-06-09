@@ -1,5 +1,6 @@
 var startupDiv = document.getElementById("startupDiv")
 var instructionsDiv = document.getElementById("instructionsDiv")
+var instructionsTextDiv = document.getElementById("instructionsTextDiv")
 var idInput = document.getElementById("idInput")
 var pleaseWaitDiv = document.getElementById("pleaseWaitDiv")
 var preSurveyDiv = document.getElementById("preSurveyDiv")
@@ -183,7 +184,7 @@ socket.on("serverUpdateClient", function(msg){
     forced = msg.hist[msg.period].forced
     if(state!=msg.state){
         var practiceInstructionsString = instructionsString + `First, you will participate in ${numPracticePeriods} practice periods. The practice periods will not affect your final earnings. They are just for practice. If you have any questions, raise your hand and we will come to assist you.`      
-        instructionsDiv.innerHTML = practicePeriodsComplete ? readyInstructionsString : practiceInstructionsString
+        instructionsTextDiv.innerHTML = practicePeriodsComplete ? readyInstructionsString : practiceInstructionsString
     }
     state = msg.state
 })

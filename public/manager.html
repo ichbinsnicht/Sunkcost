@@ -12,14 +12,12 @@
                 <div id="parametersDiv">
                     <input type="checkbox" id="realEffortCheckBox" name="realEffortCheckBox" />
                     <label for="realEffortCheckBox">Real Effort</label><br><br>
-                    <button type="button" onclick="preSurvey()">Pre Survey</button> <br>
-                    <button type="button" onclick="showInstructions()">Show Instructions</button> <br>
-                    <button type="button" onclick="playAudio()">Play Audio</button> 
-                    <button type="button" onclick="stopAudio()">Stop Audio</button> <br>
-                    <br>Start:<br><br>
-                    <button type="button" onclick="startPracticeTyping()" id="startPracticeTypingButton">Typing Practice</button> <br>
-                    <button type="button" onclick="startPracticePeriods()">Practice Periods</button> <br>
-                    <button type="button" onclick="startExperiment()">Experiment</button> <br>
+                    <input type="checkbox" id="preSurveyLock" name="preSurveyLock" checked />
+                    <label for="preSurveyLock">PreSurvey Lock</label><br><br>
+                    <button type="button" onclick="playAudio()">Play Audio</button>
+                    <button type="button" onclick="stopAudio()">Stop Audio</button> <br><br>
+                    <input type="checkbox" id="practiceLock" name="practiceLock" checked />
+                    <label for="practiceLock">Practice Lock</label><br><br>
                 </div>
                 <div id="infoDiv"> 0 Subjects </div>
             </div>            
