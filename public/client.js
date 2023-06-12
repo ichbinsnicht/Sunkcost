@@ -4,6 +4,8 @@ var instructionsTextDiv = document.getElementById("instructionsTextDiv")
 var idInput = document.getElementById("idInput")
 var pleaseWaitDiv = document.getElementById("pleaseWaitDiv")
 var preSurveyDiv = document.getElementById("preSurveyDiv")
+var beginPracticePeriodsButton = document.getElementById("beginPracticePeriodsButton")
+var beginExperimentButton = document.getElementById("beginExperimentButton")
 var interfaceDiv = document.getElementById("interfaceDiv")
 var typingDiv = document.getElementById("typingDiv")
 var typingHeader = document.getElementById("typingHeader")
@@ -83,7 +85,7 @@ var outcomeRandom = [0,0]
 var period = 1
 var step = 1
 var stage = 1
-var typingPracticeSubjectComplete = false
+var typingPracticeComplete = false
 var experimentStarted = false
 var practicePeriodsComplete = false
 var experimentComplete = false
@@ -106,7 +108,7 @@ var incompleteText = ""
 var showTyping = false
 var instructionsString = ""
 var readyInstructionsString = ""
-var preSurveySubmitted = false
+var practiceLock = true
 
 document.onmousedown = function(event){
     console.log("message",message)
@@ -114,7 +116,7 @@ document.onmousedown = function(event){
 
 document.onkeydown = function(event){
     console.log("showTyping",showTyping)
-    const interactiveTyping = practicePeriodsComplete || !typingPracticeSubjectComplete
+    const interactiveTyping = practicePeriodsComplete || !typingPracticeComplete
     if(joined && showTyping && interactiveTyping){
         targetLetter = incompleteText.slice(0,1)
         eventLetter = event.key.toUpperCase()
@@ -122,10 +124,10 @@ document.onkeydown = function(event){
         console.log("targetLetter",targetLetter)
         if(targetLetter == eventLetter) typingProgress += 1
         console.log("typingProgress",typingProgress)
-        if(typingProgress >= typingTarget.length && !typingPracticeSubjectComplete){
+        if(typingProgress >= typingTarget.length && !typingPracticeComplete){
             var msg = {id}
-            socket.emit("typingPracticeSubjectComplete",msg)
-            console.log("typingPracticeSubjectComplete")
+            socket.emit("typingPracticeComplete",msg)
+            console.log("typingPracticeComplete")
         }
     }
 }
@@ -162,10 +164,9 @@ socket.on("serverUpdateClient", function(msg){
     message = msg
     step = msg.step
     stage = msg.stage
-    preSurveySubmitted = msg.preSurveySubmitted
+    practiceLock = msg.practiceLock
     experimentStarted = msg.experimentStarted
-    typingPracticeSubjectComplete = msg.typingPracticeSubjectComplete
-    typingPracticeAllComplete = msg.typingPracticeAllComplete
+    typingPracticeComplete = msg.typingPracticeComplete
     practicePeriodsComplete = msg.practicePeriodsComplete
     experimentComplete = msg.experimentComplete
     numPracticePeriods = msg.numPracticePeriods
@@ -202,6 +203,9 @@ const update = function(){
         currentCost: cost[stage],
     }
     socket.emit("clientUpdate",msg)
+    const showPracticePeriodsButton = !practiceLock && !practicePeriodsComplete
+    beginPracticePeriodsButton.style.display = showPracticePeriodsButton ? "inline" : "none"
+    beginExperimentButton.style.display = practicePeriodsComplete ? "inline" : "none"
     startupDiv.style.display = "none"
     instructionsDiv.style.display = "none"
     pleaseWaitDiv.style.display = "none"
@@ -209,9 +213,7 @@ const update = function(){
     interfaceDiv.style.display = "none"
     outcomeDiv.style.display = "none" 
     typingDiv.style.display = "none"
-    if(!joined){
-        startupDiv.style.display = "block"
-    }
+
     showTyping = state == "typingPractice"
     showTyping = showTyping || (step == 3 && state == "interface")
     showTyping = showTyping || (step == 5 && state == "interface")
@@ -219,11 +221,7 @@ const update = function(){
     if(joined&&showTyping){
         typingDiv.style.display = "block"
         typingHeader.innerHTML = "Please type the following text:"
-        if(typingPracticeSubjectComplete && !typingPracticeAllComplete){
-            typingDiv.style.display = "none"
-            instructionsDiv.style.display = "block"
-        }
-        if(typingPracticeAllComplete&&!experimentStarted){
+        if(typingPracticeComplete&&!experimentStarted){
             typingHeader.innerHTML = `This is a practice period. <br>
                                       If you were in the real period, this is the text you would type.`
             countdownDiv.innerHTML = `Countdown: ${countdown}`
@@ -238,13 +236,15 @@ const update = function(){
         targetTextbox.innerHTML = ``
         targetTextbox.innerHTML += `<text style="color: blue">${completeText}</text>`
         targetTextbox.innerHTML += `<text style="color: red">${incompleteText}</text>`
-    }      
+    }   
+    if(!joined){
+        startupDiv.style.display = "block"
+    }   
     if(joined&&state=="startup"){
         pleaseWaitDiv.style.display = "block"
     }   
     if(joined&&state=="preSurvey"){
-        if(preSurveySubmitted) instructionsDiv.style.display = "block"
-        else preSurveyDiv.style.display = "block"
+        preSurveyDiv.style.display = "block"
     }
     if(joined&&state=="instructions"){
         instructionsDiv.style.display = "block"
@@ -305,6 +305,11 @@ const submitPreSurvey = function(){
     socket.emit("submitPreSurvey",msg)
     return false
 }
+const beginPracticePeriods = function(){
+    const msg = {id}
+    socket.emit("beginPracticePeriods",msg)
+}
+
 const draw = function(){
     requestAnimationFrame(draw)
     setupCanvas()

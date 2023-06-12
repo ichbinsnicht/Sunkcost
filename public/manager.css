@@ -24,10 +24,14 @@ button {
     width: fit-content;
 }
 #subjectsTable {
-    font: 5vmin monospace;
     margin-top: 0vh;
     width: 10vw;
     float: left;
+}
+td {
+    font: 3vmin monospace;
+    padding-left: 1vmin;
+    padding-right: 1vmin;
 }
 #parametersDiv {
     display: table-cell;

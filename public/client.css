@@ -68,7 +68,7 @@ body {
 }
 #instructionsDiv {
     display: none;
-    text-align: center;      
+    text-align: center;
     font: 4vmin monospace; 
     border: 0;
     padding: 0;
@@ -85,6 +85,9 @@ body {
     padding-right: 100;
     margin: 0;
     float: right;  
+}
+#beginPracticePeriodsButton{
+    display: none;
 }
 #idInput{
     font: 10vmin monospace;

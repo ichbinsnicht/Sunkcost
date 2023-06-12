@@ -55,7 +55,7 @@ var arange = x => [...Array(x).keys()]
 var choose = x => x[Math.floor(Math.random()*x.length)]
 
 // parameters
-const numPracticePeriods  = 5 // 5 practice periods
+const numPracticePeriods  = 1 // 5 practice periods
 const numPeriods  = 1    // 1 period, numPeriods > numPracticePeriods
 const step1Length = 3   // 15 secs choice1
 const step2Length = 3   // 15 secs typingTask1
@@ -89,7 +89,7 @@ seedrandom(randomSeed, {global: true})
 
 // TODO
 //
-// - subject-specific data files and upload to GDrive
+// - subject-specific movement after preSurvey (update)
 // - experiment should proceed automatically for WebApp 
 // ---> manager needed for wait screen (both lab and web) and instructions audio (lab)
 // - start post survey automatically
@@ -207,7 +207,7 @@ const createDataFile = function(subject){
 const updateDataFile = function(subject){
   var csvString = ""
   csvString += `${dateString},${subject.startTime},${realEffort},${subject.period},`
-  csvString += `${1-practicePeriodsComplete},${subject.id},`
+  csvString += `${1-subject.practicePeriodsComplete},${subject.id},`
   csvString += `${subject.hist[subject.period].forced[1]},${subject.hist[subject.period].forcedScore[1]},`
   csvString += `${subject.hist[subject.period].multiplier[1]},${subject.hist[subject.period].multiplier[2]},`
   csvString += `${subject.hist[subject.period].choice[1]},${subject.hist[subject.period].choice[2]},`    
@@ -237,10 +237,26 @@ io.on("connection",function(socket){
   socket.on("submitPreSurvey", function(msg){
     subjects[msg.id].preSurveySubmitted = true
     writePreSurveyFile(msg) 
-    if(Object.values(subjects).every(subject => subject.preSurveySubmitted)) subject.state = "instructions"
+    Object.values(subjects).forEach(subject => {
+      if(subject.preSurveySubmitted && subject.state == "preSurvey") subject.state = "typingPractice"
+    })
   })
-  socket.on("typingPracticeSubjectComplete", function(msg){
+  socket.on("typingPracticeComplete", function(msg){
     subjects[msg.id].typingPracticeComplete = true
+    console.log("typingPracticeComplete",msg)
+    Object.values(subjects).forEach(subject => {
+      if(subject.typingPracticeComplete && subject.state == "typingPractice") {
+        subject.state = "instructions"
+      }
+    })
+  })
+  socket.on("beginPracticePeriods", function(msg){
+    subjects[msg.id].instructionsComplete = true
+    Object.values(subjects).forEach(subject => {
+      if(subject.instructionsComplete && subject.state == "instructions"){
+        subject.state = "interface"
+      } 
+    })
   })
   socket.on("managerUpdate", function(msg){
     realEffort = msg.realEffort
@@ -282,11 +298,9 @@ io.on("connection",function(socket){
       }  
       var reply = {
         realEffort,
-        preSurveyLock,
         practiceLock,
         period: subject.period,
         state: subject.state,
-        preSurveySubmitted: subject.preSurveySubmitted,
         experimentStarted: subject.experimentStarted, 
         practicePeriodsComplete: subject.practicePeriodsComplete,
         experimentComplete: subject.experimentComplete,
@@ -352,6 +366,7 @@ const createSubject = function(id, socket){
     socket: socket,
     startTime: getDateString(),
     preSurveySubmitted: false,
+    instructionsComplete: false,
     practiceTypingComplete: false,
     experimentStarted: false,
     experimentComplete: false,
@@ -393,6 +408,9 @@ const calculateOutcome = function(){
 const update = function(subject){ //add presurvey
   if(subject.state == "startup" & !preSurveyLock) {
     subject.state = "preSurvey"
+  }
+  if(subject.state == "preSurvey" & preSurveyLock) {
+    subject.state = "startup"
   }
   if(subject.state == "typingPractice"){
     if(subject.practiceTypingComplete) subject.state = "instructions"
@@ -471,7 +489,7 @@ const update = function(subject){ //add presurvey
           } else{
             console.log("endPracticePeriods")
             subject.state = "instructions"
-            practicePeriodsComplete = true
+            subject.practicePeriodsComplete = true
             subject.period = 1
             subject.step = 1
             subject.countdown = step1Length

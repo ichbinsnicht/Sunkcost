@@ -39,7 +39,7 @@ socket.on("serverUpdateManager", function(msg){
     infoString += `${numSubjects} Subjects <br>`
     infoDiv.innerHTML = infoString
     var tableString = ""
-    subjects.forEach(subject => tableString += `<tr><td>${subject.id}</td><td>${subject.countdown}</td></tr>`)
+    subjects.forEach(subject => tableString += `<tr><td>${subject.id}</td><td>${subject.state}</td><td>${subject.countdown}</td></tr>`)
     subjectsTable.innerHTML = tableString
 })
 const preSurvey = function() {
