@@ -25,31 +25,32 @@ const drive = google.drive({  //initialize google drive
   auth: oauth2Client,
 })
 
-console.log("process.env.RENDER", process.env.RENDER)
+
 //function to upload the file - async = non-blocking (next line can start before this is finished)
 async function uploadFile(fileName) {
-  console.log("process.env.RENDER", process.env.RENDER)
-  const filePath = path.join(__dirname, 'data',fileName);
-  const folderId = '1vZs0JkWsoQ1Z1CQie_339AemT9ohDXNL'
-  const fileMetadata = {
-    name: fileName,
-    parents: [folderId]
-  }
-  const media = {
-    mimeType: 'text/csv',
-    body: fs.createReadStream(filePath),
-  }
-  try {
-    const file = await drive.files.create({
-      resource: fileMetadata,
-      media: media,
-      fields: 'id',
-    });
-    console.log('File Id:', file.data.id);
-    return file.data.id;
-  } catch (err) {
-    console.log(err.message)
-    throw err;
+  if(process.env.RENDER){
+    const filePath = path.join(__dirname, 'data',fileName);
+    const folderId = '1vZs0JkWsoQ1Z1CQie_339AemT9ohDXNL'
+    const fileMetadata = {
+      name: fileName,
+      parents: [folderId]
+    }
+    const media = {
+      mimeType: 'text/csv',
+      body: fs.createReadStream(filePath),
+    }
+    try {
+      const file = await drive.files.create({
+        resource: fileMetadata,
+        media: media,
+        fields: 'id',
+      });
+      console.log('File Id:', file.data.id);
+      return file.data.id;
+    } catch (err) {
+      console.log(err.message)
+      throw err;
+    }
   }
 }  
 
@@ -64,7 +65,7 @@ const step2Length = 3   // 15 secs typingTask1
 const step3Length = 3   // 15 secs feedback1
 const step4Length = 3   // 15 secs choice2
 const step5Length = 3   // 15 secs typingTask2
-const step6Length = 3   // 15 secs feedback2
+const step6Length = 10   // 15 secs feedback2
 const timestep = 1
 const endowment = 15
 const multiplier1Low = 1    // marginal cost of the score in period 1
@@ -254,12 +255,17 @@ io.on("connection",function(socket){
     })
   })
   socket.on("beginPracticePeriods", function(msg){
-    subjects[msg.id].instructionsComplete = true
-    Object.values(subjects).forEach(subject => {
-      if(subject.instructionsComplete && subject.state == "instructions"){
-        subject.state = "interface"
-      } 
-    })
+    const subject = subjects[msg.id]
+    subject.instructionsComplete = true
+    if(subject.instructionsComplete && subject.state == "instructions"){
+      subject.state = "interface"
+    }
+  })
+  socket.on("beginExperiment", function(msg){
+    const subject = subjects[msg.id]
+    if(subject.practicePeriodsComplete && subject.state == "instructions"){
+      subject.state = "interface"
+    } 
   })
   socket.on("managerUpdate", function(msg){
     realEffort = msg.realEffort

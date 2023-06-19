@@ -309,6 +309,10 @@ const beginPracticePeriods = function(){
     const msg = {id}
     socket.emit("beginPracticePeriods",msg)
 }
+const beginExperiment = function(){
+    const msg = {id}
+    socket.emit("beginExperiment",msg)
+}
 
 const draw = function(){
     requestAnimationFrame(draw)
@@ -492,9 +496,7 @@ const drawBottom = function(){
     context.textBaseline = "top"
     if(step==6){
         var line1 = "This was a practice period"
-        var line2A = "You would have won the $15 Starbucks gift card"
-        var line2B = "You would not have won the $15 Starbucks gift card"
-        var line2 = winPrize == 1 ? line2A : line2B
+        var line2 = `Chance of winning the Starbucks gift card: ${((score[1]+score[2])*100).toFixed(0)}%`
         var line3 = `Your total cost would have been $${(cost[1]+cost[2]).toFixed(2)}`
         var line4 = `Your earnings would have been $${earnings.toFixed(2)}`
         if(experimentStarted){
