@@ -92,7 +92,8 @@ seedrandom(randomSeed, {global: true})
 
 // TODO
 //
-// - subject-specific movement after preSurvey (update)
+// - realEffort: use characters instead of dollars
+// - message on manager per subject: experiment finished
 // - experiment should proceed automatically for WebApp 
 // ---> manager needed for wait screen (both lab and web) and instructions audio (lab)
 // - start post survey automatically
@@ -318,12 +319,12 @@ io.on("connection",function(socket){
         practicePeriodsComplete: subject.practicePeriodsComplete,
         experimentComplete: subject.experimentComplete,
         numPracticePeriods,
-        typingTarget: subject.practiceTypingComplete ? subject.typingTarget : practiceTypingTarget,
+        typingTarget: subject.typingPracticeComplete ? subject.typingTarget : practiceTypingTarget,
         endowment,
         step: subject.step,
         stage: subject.stage,
         countdown: subject.countdown,    
-        typingPracticeSubjectComplete: subject.typingPracticeComplete,
+        typingPracticeComplete: subject.typingPracticeComplete,
         outcomePeriod: subject.outcomePeriod,
         outcomeRandom: subject.outcomeRandom,
         winPrize: subject.winPrize,
@@ -380,7 +381,7 @@ const createSubject = function(id, socket){
     startTime: getDateString(),
     preSurveySubmitted: false,
     instructionsComplete: false,
-    practiceTypingComplete: false,
+    typingPracticeComplete: false,
     experimentStarted: false,
     experimentComplete: false,
     practicePeriodsComplete: false,
@@ -406,8 +407,7 @@ const createSubject = function(id, socket){
   console.log(`subject ${id} connected`)
 }
 const calculateOutcome = function(){
-  arange(numSubjects).forEach(i => {
-    const subject = subjects[i+1]
+  Object.values(subjects).forEach(subject => {
     const selectedHist = subject.hist[subject.period]
     subject.outcomeRandom = selectedHist.outcomeRandom
     subject.score1 = selectedHist.score[1]
@@ -424,9 +424,6 @@ const update = function(subject){ //add presurvey
   }
   if(subject.state == "preSurvey" & preSurveyLock) {
     subject.state = "startup"
-  }
-  if(subject.state == "typingPractice"){
-    if(subject.practiceTypingComplete) subject.state = "instructions"
   }
   if(subject.state == "interface"){
     subject.countdown = subject.countdown - 1
@@ -451,9 +448,9 @@ const update = function(subject){ //add presurvey
       }
     }    
     if(subject.step == 3) { // end subject.step3 typingTask1 
-      var feedbackComplete = !subject.experimentStarted && subject.countdown <= 0
+      var practiceTimerComplete = !subject.experimentStarted && subject.countdown <= 0
       var typingComplete = subject.experimentStarted && subject.typingProgress==subject.typingTarget.length
-      if(typingComplete || feedbackComplete){
+      if(typingComplete || practiceTimerComplete){
         subject.countdown = step4Length
         subject.step = 4
         console.log("subject.step", subject.id, subject.step)
@@ -494,6 +491,7 @@ const update = function(subject){ //add presurvey
           writePaymentFile(subject)
           subject.dataStream.end()
           subject.experimentComplete = true
+          subject.state = "experimentComplete"
           console.log("Experiment for Subject", subject.id, "Complete")
         } else{
           console.log(`endPracticePeriods ${subject.id}`)

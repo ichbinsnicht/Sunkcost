@@ -253,7 +253,7 @@ const update = function(){
         typingProgress = 0
         interfaceDiv.style.display = "block"
     }
-    if(joined&&experimentComplete){
+    if(joined&&state=="experimentComplete"){
         interfaceDiv.style.display = "none"
         outcomeDiv.style.display = "block"
         const line1 = "The experiment is complete"
