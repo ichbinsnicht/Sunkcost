@@ -65,7 +65,7 @@ const step2Length = 3   // 15 secs typingTask1
 const step3Length = 3   // 15 secs feedback1
 const step4Length = 3   // 15 secs choice2
 const step5Length = 3   // 15 secs typingTask2
-const step6Length = 10   // 15 secs feedback2
+const step6Length = 3   // 15 secs feedback2
 const timestep = 1
 const endowment = 15
 const multiplier1Low = 1    // marginal cost of the score in period 1
@@ -96,6 +96,7 @@ seedrandom(randomSeed, {global: true})
 // - experiment should proceed automatically for WebApp 
 // ---> manager needed for wait screen (both lab and web) and instructions audio (lab)
 // - start post survey automatically
+// - button instead of coountdown for feedback stage (issue: canvas/html)
 //
 // 1) TODO SURVEY for ML
 // --> survey prior to subjects coming into the lab?
@@ -190,19 +191,19 @@ function getDateString(){
 }
 
 const writePreSurveyFile = function(msg){
-  console.log("WritingPreSurvey")
+  console.log(`WritingPreSurvey ${msg.id}`)
   var csvString = Object.keys(msg).join(",")
   csvString += "\n"
   csvString += Object.values(msg).join(",")
   var logError = (ERR) => { if(ERR) console.log(ERR)}
-  const fileName = `preSurvey-${dateString}-${msg.id}.csv`
+  const fileName = `${dateString}-preSurvey-${msg.id}.csv`
   fs.writeFile(`data/${fileName}`,csvString,logError)
   uploadFile(fileName)
 }
 
 // within-period data
 const createDataFile = function(subject){
-  subject.dataStream = fs.createWriteStream(`data/data-${dateString}-${subject.id}.csv`)
+  subject.dataStream = fs.createWriteStream(`data/${dateString}-data-${subject.id}.csv`)
   var csvString = "session,startTime,realEffort,period,practice,id,forced1,forcedScore1,multiplier1,multiplier2,"
   csvString += "choice1,choice2,score1,score2,cost1,cost2,endowment,totalScore,outcomeRandom,winPrize,totalCost,earnings"
   csvString += "\n"
@@ -210,7 +211,7 @@ const createDataFile = function(subject){
 }
 const updateDataFile = function(subject){
   var csvString = ""
-  csvString += `${dateString},${subject.startTime},${realEffort},${subject.period},`
+  csvString += `${dateString},${subject.startTime},${realEffort*1},${subject.period},`
   csvString += `${1-subject.practicePeriodsComplete},${subject.id},`
   csvString += `${subject.hist[subject.period].forced[1]},${subject.hist[subject.period].forcedScore[1]},`
   csvString += `${subject.hist[subject.period].multiplier[1]},${subject.hist[subject.period].multiplier[2]},`
@@ -228,7 +229,7 @@ const writePaymentFile = function(subject){
   calculateOutcome()
   csvString += `${subject.id},${subject.earnings.toFixed(2)},${subject.winPrize}\n`
   var logError = (ERR) => { if(ERR) console.log(ERR)}
-  const fileName = `payment-${dateString}-${subject.id}.csv`
+  const fileName = `${dateString}-payment-${subject.id}.csv`
   fs.writeFile(`data/${fileName}`,csvString,logError)
   uploadFile(fileName)
 }
@@ -239,31 +240,34 @@ io.on("connection",function(socket){
     if(subject.state == "startup") subject.state = "preSurvey"
   })
   socket.on("submitPreSurvey", function(msg){
-    subjects[msg.id].preSurveySubmitted = true
+    const subject = subjects[msg.id]
     writePreSurveyFile(msg) 
-    Object.values(subjects).forEach(subject => {
-      if(subject.preSurveySubmitted && subject.state == "preSurvey") subject.state = "typingPractice"
-    })
+    if(subject.state == "preSurvey") {
+      subject.preSurveySubmitted = true
+      subject.state = "typingPractice"
+    }
   })
   socket.on("typingPracticeComplete", function(msg){
-    subjects[msg.id].typingPracticeComplete = true
-    console.log("typingPracticeComplete",msg)
-    Object.values(subjects).forEach(subject => {
-      if(subject.typingPracticeComplete && subject.state == "typingPractice") {
-        subject.state = "instructions"
-      }
-    })
+    const subject = subjects[msg.id]
+    console.log("typingPracticeComplete",msg.id)
+    if(subject.state == "typingPractice") {
+      subject.typingPracticeComplete = true
+      subject.state = "instructions"
+    }
   })
   socket.on("beginPracticePeriods", function(msg){
     const subject = subjects[msg.id]
-    subject.instructionsComplete = true
-    if(subject.instructionsComplete && subject.state == "instructions"){
+    console.log("beginPracticePeriods",msg.id)
+    if(subject.state == "instructions"){
+      subject.instructionsComplete = true
       subject.state = "interface"
     }
   })
   socket.on("beginExperiment", function(msg){
     const subject = subjects[msg.id]
     if(subject.practicePeriodsComplete && subject.state == "instructions"){
+      subject.experimentStarted = true
+      setupHist(subject)
       subject.state = "interface"
     } 
   })
@@ -425,96 +429,91 @@ const update = function(subject){ //add presurvey
     if(subject.practiceTypingComplete) subject.state = "instructions"
   }
   if(subject.state == "interface"){
-    subjectsArray.forEach(subject => {
-      subject.countdown = subject.countdown - 1
-      if(subject.step == 1 && subject.countdown <= 0) { // end subject.step1 choice1
-          subject.countdown = step2Length
-          subject.step = 2  
-          console.log("subject.period",subject.period)
-          console.log("subject.step",subject.step)
+    subject.countdown = subject.countdown - 1
+    if(subject.step == 1 && subject.countdown <= 0) { // end subject.step1 choice1
+        subject.countdown = step2Length
+        subject.step = 2  
+        console.log("subject.period", subject.id, subject.period)
+        console.log("subject.step", subject.id, subject.step)
+    }
+    if(subject.step == 2 && subject.countdown <= 0) { // end subject.step2 feedback1  
+      if(realEffort){
+        const currentCost = subject.hist[subject.period].cost[subject.stage]
+        const currentLength = Math.round(currentCost*cost2Text)
+        subject.typingTarget = genRandomString(currentLength)
+        subject.countdown = step3Length
+        subject.step = 3
+        console.log("subject.step", subject.id, subject.step)
+      } else {
+        subject.countdown = step4Length
+        subject.step = 4
+        console.log("subject.step", subject.id, subject.step)    
       }
-      if(subject.step == 2 && subject.countdown <= 0) { // end subject.step2 feedback1  
-        if(realEffort){
-          const currentCost = subject.hist[subject.period].cost[subject.stage]
-          const currentLength = Math.round(currentCost*cost2Text)
-          subject.typingTarget = genRandomString(currentLength)
-          subject.countdown = step3Length
-          subject.step = 3
-          console.log("subject.step",subject.step)
-        } else {
-          subject.countdown = step4Length
-          subject.step = 4
-          console.log("subject.step",subject.step)    
-        }
-      }    
-      if(subject.step == 3) { // end subject.step3 typingTask1 
-        var feedbackComplete = !subject.experimentStarted && subject.countdown <= 0
-        var typingComplete = subject.experimentStarted && subject.typingProgress==subject.typingTarget.length
-        if(typingComplete || feedbackComplete){
-          subject.countdown = step4Length
-          subject.step = 4
-          console.log("subject.step",subject.step)
-        }
-      }   
-      if(subject.step == 4 && subject.countdown <= 0) { // end subject.step4 choice2
-        calculateOutcome()
-        if(realEffort){
-          const currentCost = subject.hist[subject.period].cost[subject.stage]
-          const currentLength = Math.round(currentCost*cost2Text)
-          subject.typingTarget = genRandomString(currentLength)
-          subject.countdown = step5Length
-          subject.step = 5 
-          console.log("subject.step",subject.step)
-        } else {
-          subject.countdown = step6Length
-          subject.step = 6       
-          console.log("subject.step",subject.step)
-        }
+    }    
+    if(subject.step == 3) { // end subject.step3 typingTask1 
+      var feedbackComplete = !subject.experimentStarted && subject.countdown <= 0
+      var typingComplete = subject.experimentStarted && subject.typingProgress==subject.typingTarget.length
+      if(typingComplete || feedbackComplete){
+        subject.countdown = step4Length
+        subject.step = 4
+        console.log("subject.step", subject.id, subject.step)
       }
-      if(subject.step == 5) { // end subject.step5 typingTask2 
-        var feedbackComplete = !subject.experimentStarted && subject.countdown <= 0
-        var typingComplete = subject.experimentStarted && subject.typingProgress==subject.typingTarget.length
-        if(typingComplete || feedbackComplete){
-          subject.countdown = step6Length
-          subject.step = 6
-          console.log("subject.step",subject.step)
-        }
+    }   
+    if(subject.step == 4 && subject.countdown <= 0) { // end subject.step4 choice2
+      calculateOutcome()
+      if(realEffort){
+        const currentCost = subject.hist[subject.period].cost[subject.stage]
+        const currentLength = Math.round(currentCost*cost2Text)
+        subject.typingTarget = genRandomString(currentLength)
+        subject.countdown = step5Length
+        subject.step = 5 
+        console.log("subject.step", subject.id, subject.step)
+      } else {
+        subject.countdown = step6Length
+        subject.step = 6       
+        console.log("subject.step", subject.id, subject.step)
       }
-      if(subject.step == 6 && subject.countdown <= 0) { // end subject.step6 feedback2
-        updateDataFile(subject)          // change to subject-specific
-        const maxPeriod = subject.experimentStarted ? numPeriods : numPracticePeriods
-        if(subject.period>=maxPeriod){
-          if(subject.experimentStarted){
-            subject.step = 7
-            console.log("subject.period",subject.period)
-            console.log("subject.step",subject.step)
-            writePaymentFile(subject)
-            subject.experimentComplete = true
-            console.log("Session Complete")
-            
-            const fileName = `data/data-${dateString}.csv`
-            fs.writeFile(`data/${fileName}`,csvString,logError)
-            uploadFile(fileName)
-          } else{
-            console.log("endPracticePeriods")
-            subject.state = "instructions"
-            subject.practicePeriodsComplete = true
-            subject.period = 1
-            subject.step = 1
-            subject.countdown = step1Length
-            console.log("subject.period",subject.period)
-            console.log("subject.step",subject.step)
-          }
+    }
+    if(subject.step == 5) { // end subject.step5 typingTask2 
+      var feedbackComplete = !subject.experimentStarted && subject.countdown <= 0
+      var typingComplete = subject.experimentStarted && subject.typingProgress==subject.typingTarget.length
+      if(typingComplete || feedbackComplete){
+        subject.countdown = step6Length
+        subject.step = 6
+        console.log("subject.step", subject.id, subject.step)
+      }
+    }
+    if(subject.step == 6 && subject.countdown <= 0) { // end subject.step6 feedback2
+      updateDataFile(subject)          // change to subject-specific
+      const maxPeriod = subject.experimentStarted ? numPeriods : numPracticePeriods
+      if(subject.period>=maxPeriod){
+        if(subject.experimentStarted){
+          subject.step = 7
+          console.log("subject.period", subject.id, subject.period)
+          console.log("subject.step", subject.id, subject.step)
+          writePaymentFile(subject)
+          subject.dataStream.end()
+          subject.experimentComplete = true
+          console.log("Experiment for Subject", subject.id, "Complete")
         } else{
-          subject.countdown = step1Length
-          subject.period += 1
+          console.log(`endPracticePeriods ${subject.id}`)
+          subject.state = "instructions"
+          subject.practicePeriodsComplete = true
+          subject.period = 1
           subject.step = 1
-          console.log("subject.period",subject.period)
-          console.log("subject.step",subject.step)
-         } 
-      }
-      subject.stage = subject.step < 4 ? 1 : 2 
-    })
+          subject.countdown = step1Length
+          console.log("subject.period", subject.id, subject.period)
+          console.log("subject.step", subject.id, subject.step)
+        }
+      } else{
+        subject.countdown = step1Length
+        subject.period += 1
+        subject.step = 1
+        console.log("subject.period", subject.id, subject.period)
+        console.log("subject.step", subject.id, subject.step)
+        } 
+    }
+    subject.stage = subject.step < 4 ? 1 : 2 
   }
 }
 const updateSubjects = function(){
