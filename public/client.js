@@ -4,6 +4,9 @@ var instructionsTextDiv = document.getElementById("instructionsTextDiv")
 var idInput = document.getElementById("idInput")
 var pleaseWaitDiv = document.getElementById("pleaseWaitDiv")
 var preSurveyDiv = document.getElementById("preSurveyDiv")
+var preSurveyForm = document.getElementById("preSurveyForm")
+var postSurveyDiv = document.getElementById("postSurveyDiv")
+var postSurveyForm = document.getElementById("postSurveyForm")
 var beginPracticePeriodsButton = document.getElementById("beginPracticePeriodsButton")
 var beginExperimentButton = document.getElementById("beginExperimentButton")
 var interfaceDiv = document.getElementById("interfaceDiv")
@@ -14,7 +17,8 @@ var countdownDiv = document.getElementById("countdownDiv")
 var outcomeDiv = document.getElementById("outcomeDiv")
 var idInput = document.getElementById("idInput")
 var canvas = document.getElementById("canvas")
-var preSurveyForm = document.getElementById("preSurveyForm")
+
+
 var context = canvas.getContext("2d")
 
 
@@ -43,7 +47,7 @@ At the beginning of stage 1, multiplier 1 will be randomly selected to be either
 
 At the beginning of stage 2, multiplier 2 will be randomly selected to be either 200 characters or 2,000 characters. Both are equally likely. During stage 2, you will select choice 2 from 0 to 0.5. Score 2 will always equal choice 2. The number of characters you will type in task 2 will be score 2 times multiplier 2.<br><br>`
 
-var readyString = `The experiment is about to begin. If you have any questions, raise your hand and we will come to assist you.`
+var readyString = `If you have any questions, raise your hand and we will come to assist you. Please click the button below to begin the experiment.`
 
 
 // graphical parameters
@@ -109,6 +113,7 @@ var showTyping = false
 var instructionsString = ""
 var readyInstructionsString = ""
 var practiceLock = true
+var cost2Text = 10
 
 document.onmousedown = function(event){
     console.log("message",message)
@@ -149,9 +154,9 @@ socket.on("clientJoined",function(msg){
     setInterval(update, 10)
 })
 socket.on("serverUpdateClient", function(msg){
-    if(period != msg.period){
+    if(period != msg.period || experimentStarted != msg.experimentStarted){
         cost = {1:0, 2:0}
-        score = {1:0, 2:0}      
+        score = {1:0, 2:0}
     }
     if(step != msg.step){
         console.log("msg.ExperimentStarted", msg.experimentStarted)
@@ -183,8 +188,10 @@ socket.on("serverUpdateClient", function(msg){
     multiplier = msg.hist[msg.period].multiplier
     forcedScore = msg.hist[msg.period].forcedScore
     forced = msg.hist[msg.period].forced
+    cost2Text = msg.cost2Text
     if(state!=msg.state){
-        var practiceInstructionsString = instructionsString + `First, you will participate in ${numPracticePeriods} practice periods. The practice periods will not affect your final earnings. They are just for practice. If you have any questions, raise your hand and we will come to assist you.`      
+        var readyPracticeString = `First, you will participate in ${numPracticePeriods} practice periods. The practice periods will not affect your final earnings. They are just for practice. <br><br> If you have any questions, raise your hand and we will come to assist you. Please click the button below to begin the practice periods.`
+        var practiceInstructionsString = instructionsString +  readyPracticeString     
         instructionsTextDiv.innerHTML = practicePeriodsComplete ? readyInstructionsString : practiceInstructionsString
     }
     state = msg.state
@@ -213,6 +220,7 @@ const update = function(){
     interfaceDiv.style.display = "none"
     outcomeDiv.style.display = "none" 
     typingDiv.style.display = "none"
+    postSurveyDiv.style.display = "none"
 
     showTyping = state == "typingPractice"
     showTyping = showTyping || (step == 3 && state == "interface")
@@ -253,6 +261,9 @@ const update = function(){
         typingProgress = 0
         interfaceDiv.style.display = "block"
     }
+    if(joined&&state=="postSurvey"){
+        postSurveyDiv.style.display = "block"
+    }
     if(joined&&state=="experimentComplete"){
         interfaceDiv.style.display = "none"
         outcomeDiv.style.display = "block"
@@ -261,7 +272,9 @@ const update = function(){
         const line3A = "You won the $15 Starbucks gift card"
         const line3B = "You did not win the $15 Starbucks gift card"
         const line3 = winPrize == 1 ? line3A : line3B
-        const line4 = `You earned $${earnings.toFixed(2)}`
+        const line4A = `You earned $${endowment.toFixed(2)}`
+        const line4B = `You earned $${earnings.toFixed(2)}`
+        const line4 = realEffort ? line4A : line4B
         const line5 = "Please wait while your payment is prepared"
         outcomeDiv.innerHTML = ""
         outcomeDiv.innerHTML += line1 + "<br><br>"
@@ -312,6 +325,12 @@ const beginPracticePeriods = function(){
 const beginExperiment = function(){
     const msg = {id}
     socket.emit("beginExperiment",msg)
+}
+const submitPostSurvey = function(){
+    const msg = {id}
+    Array.from(postSurveyForm.elements).forEach(element => msg[element.id] = element.value)
+    socket.emit("submitPostSurvey",msg)
+    return false
 }
 
 const draw = function(){
@@ -378,7 +397,10 @@ const drawTop = function(){
         context.moveTo(x,lineY1)
         context.lineTo(x,yTop) 
         context.stroke()
-        const xCostLabel = `$${(0.5*weight*multiplier[1]).toFixed(2)}`
+        // cost2Text
+        const xCostLabelA = `${(0.5*weight*multiplier[1]*cost2Text).toFixed(0)}`
+        const xCostLabelB = `$${(0.5*weight*multiplier[1]).toFixed(2)}`
+        const xCostLabel = realEffort ? xCostLabelA : xCostLabelB
         context.textBaseline = "bottom"
         context.fillText(xCostLabel,x,yTop-tickSpace)    
     })
@@ -406,8 +428,10 @@ const drawTop = function(){
         context.fill()
         context.fillStyle = darkRed
         context.textBaseline = "bottom"
-        const cost1String = `$${cost[1].toFixed(2)}`
-        context.fillText(`Cost 1: ${cost1String}`,graphX+graphWidth*2*score[1],lineY1-tickLength-tickSpace-2)
+        const cost1StringA = `Task 1: ${(cost[1]*cost2Text).toFixed(0)} Characters`
+        const cost1StringB = `Cost 1: $${cost[1].toFixed(2)}`
+        const cost1String = realEffort ? cost1StringA : cost1StringB
+        context.fillText(`${cost1String}`,graphX+graphWidth*2*score[1],lineY1-tickLength-tickSpace-2)
         context.textBaseline = "top"        
         context.beginPath()
         context.arc(graphX+graphWidth*2*score[1],lineY1,1.5,Math.PI,2*Math.PI)
@@ -423,7 +447,9 @@ const drawTop = function(){
     context.fillStyle = "black"
     context.textBaseline = "middle"
     context.textAlign = "left"
-    const multiplier1String = `Multiplier 1: $${(multiplier[1]).toFixed(0)}`
+    const multiplier1StringA = `Multiplier 1: ${(multiplier[1]*cost2Text).toFixed(0)} Characters`
+    const multiplier1StringB = `Multiplier 1: $${(multiplier[1]).toFixed(0)}`
+    const multiplier1String = realEffort ? multiplier1StringA : multiplier1StringB
     context.fillText(multiplier1String,graphX+graphWidth+10,lineY1)    
 }
 const drawBottom = function(){
@@ -448,7 +474,9 @@ const drawBottom = function(){
         context.moveTo(x,lineY2)
         context.lineTo(x,yTop) 
         context.stroke()
-        const xCostLabel = `$${(0.5*weight*multiplier[2]).toFixed(2)}`
+        const xCostLabelA = `${(0.5*weight*multiplier[2]*cost2Text).toFixed(0)}`
+        const xCostLabelB = `$${(0.5*weight*multiplier[2]).toFixed(2)}`
+        const xCostLabel = realEffort ? xCostLabelA : xCostLabelB
         context.textBaseline = "bottom"
         context.fillText(xCostLabel,x,yTop-tickSpace)    
     })
@@ -475,8 +503,10 @@ const drawBottom = function(){
     context.fill()
     context.fillStyle = red
     context.textBaseline = "bottom"
-    const cost2String = `$${cost[2].toFixed(2)}`
-    context.fillText(`Cost 2: ${cost2String}`,graphX+graphWidth*2*score[2],lineY2-tickLength-tickSpace-2)
+    const cost2StringA = `Task 2: ${(cost[2]*cost2Text).toFixed(0)} Characters`
+    const cost2StringB = `Cost 2: $${cost[2].toFixed(2)}`
+    const cost2String = realEffort ? cost2StringA : cost2StringB
+    context.fillText(`${cost2String}`,graphX+graphWidth*2*score[2],lineY2-tickLength-tickSpace-2)
     context.textBaseline = "top"
     context.beginPath()
     context.arc(graphX+graphWidth*2*score[2],lineY2,1.5,Math.PI,2*Math.PI)
@@ -491,21 +521,31 @@ const drawBottom = function(){
     context.fillStyle = "black"
     context.textBaseline = "middle"
     context.textAlign = "left"
-    const multiplier2String = `Multiplier 2: $${(multiplier[2]).toFixed(0)}`
+    const multiplier2StringA = `Multiplier 2: ${(multiplier[2]*cost2Text).toFixed(0)} Characters`
+    const multiplier2StringB = `Multiplier 2: $${(multiplier[2]).toFixed(0)}`
+    const multiplier2String = realEffort ? multiplier2StringA : multiplier2StringB
     context.fillText(multiplier2String,graphX+graphWidth+10,lineY2)    
     context.textBaseline = "top"
     if(step==6){
         var line1 = "This was a practice period"
         var line2 = `Chance of winning the $15 Starbucks gift card: ${((score[1]+score[2])*100).toFixed(0)}%`
-        var line3 = `Your total cost would have been $${(cost[1]+cost[2]).toFixed(2)}`
-        var line4 = `Your earnings would have been $${earnings.toFixed(2)}`
+        var line3A = `You would have had to type ${((cost[1]+cost[2])*cost2Text).toFixed(0)} characters.`
+        var line3B = `Your total cost would have been $${(cost[1]+cost[2]).toFixed(2)}`
+        var line3 = realEffort ? line3A : line3B
+        var line4A = `Your endowment would have been $${endowment.toFixed(2)}`
+        var line4B = `Your earnings would have been $${earnings.toFixed(2)}`
+        var line4 = realEffort ? line4A : line4B
         if(experimentStarted){
             var line1 = ""
             var line2A = "You won the $15 Starbucks gift card"
             var line2B = "You did not win the $15 Starbucks gift card"
             var line2 = winPrize == 1 ? line2A : line2B
-            var line3 = `Your total cost was $${(cost[1]+cost[2]).toFixed(2)}`
-            var line4 = `Your earnings are $${earnings.toFixed(2)}`            
+            var line3A = `You had to type ${((cost[1]+cost[2])*cost2Text).toFixed(0)} characters.`
+            var line3B = `Your total cost was $${(cost[1]+cost[2]).toFixed(2)}`
+            var line3 = realEffort ? line3A : line3B
+            var line4A = `Your endowment is $${endowment.toFixed(2)}`
+            var line4B = `Your earnings are $${earnings.toFixed(2)}`
+            var line4 = realEffort ? line4A : line4B      
         }
         context.fillText(line1,graphX+graphWidth+10,lineY2+21) 
         context.fillText(line2,graphX+graphWidth+10,lineY2+29) 
@@ -576,8 +616,10 @@ const drawBarTotalCost = function(){
         context.beginPath()
         context.moveTo(xRight2,y)
         context.lineTo(xLeft2,y) 
-        context.stroke()              
-        const yCostLabel = `$${(10*weight).toFixed(2)}`
+        context.stroke()             
+        const yCostLabelA = `${(10*weight*cost2Text).toFixed(2)}`
+        const yCostLabelB = `$${(10*weight).toFixed(2)}` 
+        const yCostLabel = realEffort ? yCostLabelA : yCostLabelB
         context.textBaseline = "middle"
         context.textAlign = "left"
         context.fillText(yCostLabel,barX+0.5*barWidth+tickLength+tickSpace,y) 
@@ -585,9 +627,13 @@ const drawBarTotalCost = function(){
         context.fillText(yCostLabel,barX-0.5*barWidth-tickLength-tickSpace,y)          
     })    
     context.fillStyle = darkRed  
-    context.textAlign = "center"    
-    const costString1 = `Cost 1: $${totalCost.toFixed(0)}`
-    const costString2 = `Total Cost: $${totalCost.toFixed(0)}`
+    context.textAlign = "center"
+    const costString1A = `Task 1: ${(totalCost*cost2Text).toFixed(0)} Characters`
+    const costString1B = `Cost 1: $${totalCost.toFixed(0)}`
+    const costString1 = realEffort ? costString1A : costString1B
+    const costString2A = `Total Typing: ${(totalCost*cost2Text).toFixed(0)} Characters`
+    const costString2B = `Total Cost: $${totalCost.toFixed(0)}`
+    const costString2 = realEffort ? costString2A : costString2B
     const costString = step<4 ? costString1 : costString2
     context.fillText(costString,barX,baseY+5)
 
@@ -662,7 +708,9 @@ const drawOutcome = function(){
     const line3A = "You won the $15 Starbucks gift card"
     const line3B = "You did not win the $15 Starbucks gift card"
     const line3 = winPrize == 1 ? line3A : line3B
-    const line4 = `You earned $${earnings.toFixed(2)}`
+    const line4A = `You earned $${endowment.toFixed(2)}`
+    const line4B = `You earned $${earnings.toFixed(2)}`
+    const line4 = realEffort ? line4A : line4B 
     const line5 = "Please wait while your payment is prepared"
     context.fillText(line1,graphX+0.5*graphWidth,lineY1+14)
     context.fillText(line2,graphX+0.5*graphWidth,lineY1+22)

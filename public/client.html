@@ -18,7 +18,7 @@
                   <input class="preSurveyInput" type="number" min="0" max="24" name="typingExperience" id="typingExperience" required>
                 </div>
                 <div> <br>
-                  <input class="preSurveySubmit" type="submit" value="Submit" id="PreSurveySubmitButton">
+                  <input class="preSurveySubmit" type="submit" value="Submit" id="preSurveySubmitButton">
                 </div>
               </form>              
         </div>
@@ -34,7 +34,88 @@
             <div id="countdownDiv"></div>
         </div>
         <div id="outcomeDiv"></div>
-        <div id="postSurveyDiv">Post Survey</div>     
+        <div id="postSurveyDiv">Post Survey <br><br>
+            <form onSubmit="return submitPostSurvey();" id="postSurveyForm">
+                <div>
+                  <label for="dateOfBirth">What year were you born?</label> <br>
+                  <input class="postSurveyInput" type="number" min="1900" max="2018" name="dateOfBirth" id="dateOfBirth" required>
+                </div>
+                <div>
+                    <label for="gender">Gender:</label> <br>
+                    <select name="gender" id="gender" class="postSurveyInput" required>
+                        <option value="" selected=""></option>>Please select</option>
+                        <option value="female">Female</option>
+                        <option value="male">Male</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="yearsInCollege">How many years have you been at VCU?</label> <br>
+                    <input class="postSurveyInput" type="number" min="0" max="6" name="yearsInCollege" id="yearsInCollege" required>
+                </div>
+                <div>
+                    <label for="major">Major:</label> <br>
+                    <select name="major" id="major" class="postSurveyInput" required>
+                        <option value="" selected=""></option>>Please select</option>
+                        <option value="economics">Economics</option>
+                        <option value="mathematics">Mathematics</option>
+                        <option value="engineering">Engineering</option>
+                        <option value="english">English</option>
+                        <option value="biology">Biology</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="religion">Religion:</label> <br>
+                    <select name="religion" id="religion" class="postSurveyInput" required>
+                        <option value="" selected=""></option>>Please select</option>
+                        <option value="none">None</option>
+                        <option value="christian">Christian</option>
+                        <option value="islam">Islam</option>
+                        <option value="buddhism">Buddhism</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="maritalStatus">Marital Status:</label> <br>
+                    <select name="maritalStatus" id="maritalStatus" class="postSurveyInput" required>
+                        <option value="" selected=""></option>>Please select</option>
+                        <option value="single">Single</option>
+                        <option value="married">Married</option>
+                        <option value="divorced">Divorced</option>
+                        <option value="widowed">Widowed</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="income">What is your yearly income (in USD)?</label> <br>
+                    <input class="postSurveyInput" type="number" min="0" max="100000" name="income" id="income" required>
+                  </div>
+                <div>
+                <div>
+                    <label for="race">Race:</label> <br>
+                    <select name="race" id="race" class="postSurveyInput" required>
+                        <option value="" selected=""></option>>Please select</option>
+                        <option value="white">White</option>
+                        <option value="black">Black or African American</option>
+                        <option value="native">American Indian or Alaska Native</option>
+                        <option value="asian">Asian</option>
+                        <option value="islander">Native Hawaiian or Other Pacific Islander</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="ethnicity">Ethnicity:</label> <br>
+                    <select name="ethnicity" id="ethnicity" class="postSurveyInput" required>
+                        <option value="" selected=""></option>>Please select</option>
+                        <option value="hispanic">Hispanic or Latino</option>
+                        <option value="nonHispanic">Not Hispanic or Latino</option>
+                    </select>
+                </div>
+                  <br>
+                  <input class="postSurveySubmit" type="submit" value="Submit" id="postSurveySubmitButton">
+                </div>
+              </form>              
+        </div>   
         <script src="https://cdn.socket.io/4.2.0/socket.io.min.js" type="text/javascript"></script>
         <script src="client.js" type="text/javascript"></script>
     </body>
