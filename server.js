@@ -25,7 +25,6 @@ const drive = google.drive({  //initialize google drive
   auth: oauth2Client,
 })
 
-
 //function to upload the file - async = non-blocking (next line can start before this is finished)
 async function uploadFile(fileName) {
   if(process.env.RENDER){
@@ -60,12 +59,12 @@ var choose = x => x[Math.floor(Math.random()*x.length)]
 // parameters
 const numPracticePeriods  = 1 // 5 practice periods
 const numPeriods  = 1    // 1 period, numPeriods > numPracticePeriods
-const step1Length = 3   // 15 secs choice1
-const step2Length = 3   // 15 secs typingTask1
-const step3Length = 3   // 15 secs feedback1
-const step4Length = 3   // 15 secs choice2
-const step5Length = 3   // 15 secs typingTask2
-const step6Length = 3   // 15 secs feedback2
+const step1Length = 1   // 15 secs choice1
+const step2Length = 1   // 15 secs feedback1
+const step3Length = 1   // 15 secs typingTask1
+const step4Length = 1   // 15 secs choice2
+const step5Length = 1   // 15 secs typingTask2 
+const step6Length = 1   // 15 secs feedback2 
 const timestep = 1
 const endowment = 15
 const multiplier1Low = 1    // marginal cost of the score in period 1
@@ -92,27 +91,25 @@ seedrandom(randomSeed, {global: true})
 
 // TODO
 //
-// - realEffort: use characters instead of dollars
-// - message on manager per subject: experiment finished
-// - experiment should proceed automatically for WebApp 
-// ---> manager needed for wait screen (both lab and web) and instructions audio (lab)
 // - start post survey automatically
-// - button instead of coountdown for feedback stage (issue: canvas/html)
 //
 // 1) TODO SURVEY for ML
 // --> survey prior to subjects coming into the lab?
 // --> pre-survey: 
-// ----> typing Experience
 // ----> timing info (completion time)
 // ----> risk-preferences
 // ----> Cognitive reflection task (CRT)
 // ----> overload?
-// --> post-survey: (stable) characteristics: 
-// age, gender, education, major, religion, marrital status, income, race/ethnicity 
-// 
-// 2) TODO WEB APP
-// - autonomous web app for piloting (no manager required)
-// - sending data to interfacing service (e.g. GDrive)
+
+// 4) TODO MACHINE LEARNING
+// --> generate fake data
+// --> how to layer?
+// ----> or attention-based models? Unlikely since it would leverage order of variables
+// ----> convulational layers? Unlikely (typically in image-reconnection, pixels are connected that are next to each other)
+// ----> sequence of fully connected layers that use relu activation functions (rectified-linear units)
+// --> objective function: mean-squared error (MSE) due to continuous outcome variable and mean-prediction
+// --> use ML model from Pytorch (pick ML model that predicts best out of sample)
+// --> open questions: # layers; size of layers; final layer linear, relu, other?
 //
 // 3) TODO PILOTING
 // - Unreal PILOT: pilot with friends/colleagues 
@@ -124,16 +121,6 @@ seedrandom(randomSeed, {global: true})
 // - Machine Learning model replaces mixture model
 // - external funding (Incubator grant) or alternatives
 //
-// 4) TODO MACHINE LEARNING
-// --> generate fake data
-// --> how to layer?
-// ----> or attention-based models? Unlikely since it would leverage order of variables
-// ----> convulational layers? Unlikely (typically in image-reconnection, pixels are connected that are next to each other)
-// ----> sequence of fully connected layers that use relu activation functions (rectified-linear units)
-// --> objective function: mean-squared error (MSE) due to continuous outcome variable and mean-prediction
-// --> use ML model from Pytorch (pick ML model that predicts best out of sample)
-// --> open questions: # layers; size of layers; final layer linear, relu, other?
-//
 // TODO INSTRUCTIONS
 // --> update instructions for practice typing and survey
 // --> update audio
@@ -143,6 +130,10 @@ seedrandom(randomSeed, {global: true})
 // ------------------------------------------------------------------------------
 // Web deployment for piloting: https://sunkcost.onrender.com
 // - GDrive interfacing (https://www.section.io/engineering-education/google-drive-api-nodejs/)
+//
+// 2) TODO WEB APP
+// - autonomous web app for piloting (no manager required)
+// - sending data to interfacing service (e.g. GDrive)
 //
 // typing task
 // - find literature on letters to dollar conversion (e.g. Ruixin, or
@@ -201,7 +192,6 @@ const writePreSurveyFile = function(msg){
   fs.writeFile(`data/${fileName}`,csvString,logError)
   uploadFile(fileName)
 }
-
 // within-period data
 const createDataFile = function(subject){
   subject.dataStream = fs.createWriteStream(`data/${dateString}-data-${subject.id}.csv`)
@@ -224,7 +214,16 @@ const updateDataFile = function(subject){
   csvString += "\n"
   subject.dataStream.write(csvString)
 }
-
+const writePostSurveyFile = function(msg){
+  console.log(`WritingPostSurvey ${msg.id}`)
+  var csvString = Object.keys(msg).join(",")
+  csvString += "\n"
+  csvString += Object.values(msg).join(",")
+  var logError = (ERR) => { if(ERR) console.log(ERR)}
+  const fileName = `${dateString}-postSurvey-${msg.id}.csv`
+  fs.writeFile(`data/${fileName}`,csvString,logError)
+  uploadFile(fileName)
+}
 const writePaymentFile = function(subject){
   var csvString = "id,earnings,winPrize\n"
   calculateOutcome()
@@ -271,6 +270,14 @@ io.on("connection",function(socket){
       setupHist(subject)
       subject.state = "interface"
     } 
+  })
+  socket.on("submitPostSurvey", function(msg){
+    const subject = subjects[msg.id]
+    writePostSurveyFile(msg) 
+    if(subject.state == "postSurvey") {
+      subject.preSurveySubmitted = true
+      subject.state = "experimentComplete"
+    }
   })
   socket.on("managerUpdate", function(msg){
     realEffort = msg.realEffort
@@ -331,6 +338,7 @@ io.on("connection",function(socket){
         totalCost: subject.totalCost,
         earnings: subject.earnings,
         hist: subject.hist,
+        cost2Text,
       } 
       socket.emit("serverUpdateClient",reply)
     } else {
@@ -491,7 +499,7 @@ const update = function(subject){ //add presurvey
           writePaymentFile(subject)
           subject.dataStream.end()
           subject.experimentComplete = true
-          subject.state = "experimentComplete"
+          subject.state = "postSurvey"
           console.log("Experiment for Subject", subject.id, "Complete")
         } else{
           console.log(`endPracticePeriods ${subject.id}`)
