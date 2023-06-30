@@ -17,7 +17,8 @@ var countdownDiv = document.getElementById("countdownDiv")
 var outcomeDiv = document.getElementById("outcomeDiv")
 var idInput = document.getElementById("idInput")
 var canvas = document.getElementById("canvas")
-
+var startPreSurveyTime = 0
+var endPreSurveyTime = 0
 
 var context = canvas.getContext("2d")
 
@@ -157,6 +158,9 @@ socket.on("serverUpdateClient", function(msg){
     if(period != msg.period || experimentStarted != msg.experimentStarted){
         cost = {1:0, 2:0}
         score = {1:0, 2:0}
+    }
+    if(state != "preSurvey" && msg.state == "preSurvey"){
+        startPreSurveyTime = Date.now()
     }
     if(step != msg.step){
         console.log("msg.ExperimentStarted", msg.experimentStarted)
@@ -313,7 +317,11 @@ const joinGame = function(){
     }
 }
 const submitPreSurvey = function(){
-    const msg = {id}
+    endPreSurveyTime = Date.now()
+    const msg = {
+        id,
+        preSurveyDuration: (endPreSurveyTime-startPreSurveyTime)/1000
+    }
     Array.from(preSurveyForm.elements).forEach(element => msg[element.id] = element.value)
     socket.emit("submitPreSurvey",msg)
     return false
@@ -537,9 +545,7 @@ const drawBottom = function(){
         var line4 = realEffort ? line4A : line4B
         if(experimentStarted){
             var line1 = ""
-            var line2A = "You won the $15 Starbucks gift card"
-            var line2B = "You did not win the $15 Starbucks gift card"
-            var line2 = winPrize == 1 ? line2A : line2B
+            var line2 = `Chance of winning the $15 Starbucks gift card: ${((score[1]+score[2])*100).toFixed(0)}%`
             var line3A = `You had to type ${((cost[1]+cost[2])*cost2Text).toFixed(0)} characters.`
             var line3B = `Your total cost was $${(cost[1]+cost[2]).toFixed(2)}`
             var line3 = realEffort ? line3A : line3B

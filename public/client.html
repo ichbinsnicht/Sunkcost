@@ -17,6 +17,26 @@
                   <label for="typingExperience">How many hours do you typically spend typing on a daily basis?</label> <br>
                   <input class="preSurveyInput" type="number" min="0" max="24" name="typingExperience" id="typingExperience" required>
                 </div>
+                <div>
+                    <label for="risk">Are you a person who is generally willing to take risks, or do you try to avoid taking risks?</label> <br>
+                    <select name="risk" id="risk" class="postSurveyInput" required>
+                        <option value="" selected=""></option>>Please select</option>
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="time">In comparison with others, are you a person who is generally willing to give up something today inorder to benefit from that in the future?</label> <br>
+                    <select name="time" id="time" class="postSurveyInput" required>
+                        <option value="" selected=""></option>>Please select</option>
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="cognitiveReflectionTask">A bat and a ball cost $1.10 in total. The bat costs $1.00 more than the ball. How much does the ball cost?</label> <br>
+                    <input class="preSurveyInput" type="number" min="0" name="cognitiveReflectionTask" id="cognitiveReflectionTask" required> cents
+                </div>
                 <div> <br>
                   <input class="preSurveySubmit" type="submit" value="Submit" id="preSurveySubmitButton">
                 </div>
@@ -88,9 +108,14 @@
                     </select>
                 </div>
                 <div>
-                    <label for="income">What is your yearly income (in USD)?</label> <br>
-                    <input class="postSurveyInput" type="number" min="0" max="100000" name="income" id="income" required>
-                  </div>
+                    <label for="employmentStatus">What is your employment status?</label> <br>
+                    <select name="employmentStatus" id="employmentStatus" class="postSurveyInput" required>
+                        <option value="" selected=""></option>>Please select</option>
+                        <option value="fullTime">Full Time</option>
+                        <option value="partTime">Part Time</option>
+                        <option value="notWorking">Not Working</option>
+                    </select>
+                </div>
                 <div>
                 <div>
                     <label for="race">Race:</label> <br>

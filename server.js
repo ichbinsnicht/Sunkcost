@@ -91,16 +91,6 @@ seedrandom(randomSeed, {global: true})
 
 // TODO
 //
-// - start post survey automatically
-//
-// 1) TODO SURVEY for ML
-// --> survey prior to subjects coming into the lab?
-// --> pre-survey: 
-// ----> timing info (completion time)
-// ----> risk-preferences
-// ----> Cognitive reflection task (CRT)
-// ----> overload?
-
 // 4) TODO MACHINE LEARNING
 // --> generate fake data
 // --> how to layer?

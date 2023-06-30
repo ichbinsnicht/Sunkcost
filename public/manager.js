@@ -42,10 +42,6 @@ socket.on("serverUpdateManager", function(msg){
     subjects.forEach(subject => tableString += `<tr><td>${subject.id}</td><td>${subject.state}</td><td>${subject.countdown}</td></tr>`)
     subjectsTable.innerHTML = tableString
 })
-const preSurvey = function() {
-    console.log("preSurvey")
-    socket.emit("preSurvey")
-}
 const showInstructions = function() {
     if (experimentStarted) alert("Experiment already started!")
     else {
