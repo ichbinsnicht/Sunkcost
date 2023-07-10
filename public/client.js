@@ -1,4 +1,3 @@
-var startupDiv = document.getElementById("startupDiv")
 var instructionsDiv = document.getElementById("instructionsDiv")
 var instructionsTextDiv = document.getElementById("instructionsTextDiv")
 var idInput = document.getElementById("idInput")
@@ -24,6 +23,7 @@ var context = canvas.getContext("2d")
 
 
 socket = io()       // browser based socket
+joinGame()
 var arange = n => [...Array(n).keys()]
 
 var monetaryInstructionsString = `
@@ -217,7 +217,6 @@ const update = function(){
     const showPracticePeriodsButton = !practiceLock && !practicePeriodsComplete
     beginPracticePeriodsButton.style.display = showPracticePeriodsButton ? "inline" : "none"
     beginExperimentButton.style.display = practicePeriodsComplete ? "inline" : "none"
-    startupDiv.style.display = "none"
     instructionsDiv.style.display = "none"
     pleaseWaitDiv.style.display = "none"
     preSurveyDiv.style.display = "none"
@@ -248,9 +247,6 @@ const update = function(){
         targetTextbox.innerHTML = ``
         targetTextbox.innerHTML += `<text style="color: blue">${completeText}</text>`
         targetTextbox.innerHTML += `<text style="color: red">${incompleteText}</text>`
-    }   
-    if(!joined){
-        startupDiv.style.display = "block"
     }   
     if(joined&&state=="startup"){
         pleaseWaitDiv.style.display = "block"
@@ -305,16 +301,13 @@ window.onmouseup = function(e){
 window.onkeydown = function(e){
     if(e.key=="Enter" && state =="startup") joinGame()
 }
-const joinGame = function(){
-    id = parseInt(idInput.value)
+function joinGame(){
+    id = window.location.pathname.substring(7)
+    console.log("id:",id)
     console.log(`subjectId`, id)
-    if (id>0) {
-        console.log(`joinGame`)
-        msg = {id}
-        socket.emit("joinGame",msg)
-    } else {
-        alert("Please enter subject id.")
-    }
+    console.log(`joinGame`)
+    msg = {id}
+    socket.emit("joinGame",msg)
 }
 const submitPreSurvey = function(){
     endPreSurveyTime = Date.now()

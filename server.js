@@ -59,12 +59,12 @@ var choose = x => x[Math.floor(Math.random()*x.length)]
 // parameters
 const numPracticePeriods  = 1 // 5 practice periods
 const numPeriods  = 1    // 1 period, numPeriods > numPracticePeriods
-const step1Length = 1   // 15 secs choice1
-const step2Length = 1   // 15 secs feedback1
-const step3Length = 1   // 15 secs typingTask1
-const step4Length = 1   // 15 secs choice2
-const step5Length = 1   // 15 secs typingTask2 
-const step6Length = 1   // 15 secs feedback2 
+const step1Length = 3   // 15 secs choice1
+const step2Length = 3   // 15 secs feedback1
+const step3Length = 3   // 15 secs typingTask1
+const step4Length = 3   // 15 secs choice2
+const step5Length = 3   // 15 secs typingTask2 
+const step6Length = 3   // 15 secs feedback2 
 const timestep = 1
 const endowment = 15
 const multiplier1Low = 1    // marginal cost of the score in period 1
@@ -90,16 +90,10 @@ seedrandom(randomSeed, {global: true})
 
 
 // TODO
+// fix states: multiple subjects are all stuck at post survey together
+// login
+// --> subjects need to be on the guest list to get into the experiment
 //
-// 4) TODO MACHINE LEARNING
-// --> generate fake data
-// --> how to layer?
-// ----> or attention-based models? Unlikely since it would leverage order of variables
-// ----> convulational layers? Unlikely (typically in image-reconnection, pixels are connected that are next to each other)
-// ----> sequence of fully connected layers that use relu activation functions (rectified-linear units)
-// --> objective function: mean-squared error (MSE) due to continuous outcome variable and mean-prediction
-// --> use ML model from Pytorch (pick ML model that predicts best out of sample)
-// --> open questions: # layers; size of layers; final layer linear, relu, other?
 //
 // 3) TODO PILOTING
 // - Unreal PILOT: pilot with friends/colleagues 
@@ -130,6 +124,16 @@ seedrandom(randomSeed, {global: true})
 // - Greiner, Ockenfels  and Werner (2011)
 // - Dickinson, D. L. (1999). An experimental examination of labor supply and work intensities. Journal of Labor Economics, 17(4), 638-670.)
 //
+// 4) TODO MACHINE LEARNING
+// --> generate fake data
+// --> how to layer?
+// ----> or attention-based models? Unlikely since it would leverage order of variables
+// ----> convulational layers? Unlikely (typically in image-reconnection, pixels are connected that are next to each other)
+// ----> sequence of fully connected layers that use relu activation functions (rectified-linear units)
+// --> objective function: mean-squared error (MSE) due to continuous outcome variable and mean-prediction
+// --> use ML model from Pytorch (pick ML model that predicts best out of sample)
+// --> open questions: # layers; size of layers; final layer linear, relu, other?
+//
 // incentives
 // - $15 physicial gift certificate from Kroger (https://giftcards.kroger.com/starbucks-gift-card). 
 // - What is the value of a $15 gift card? Literature?
@@ -139,10 +143,7 @@ seedrandom(randomSeed, {global: true})
 // - How much individuals value the gift card depends on the subjects match with the gift card
 
 app.use(express.static(__dirname + "/public"))
-app.get("/",function(req,res){    // body of function
-  res.sendFile(__dirname + "/public/client.html")
-})
-app.get("/client",function(req,res){
+app.get("/client:id",function(req,res){
   res.sendFile(__dirname + "/public/client.html")
 })
 app.get("/manager",function(req,res){ 
