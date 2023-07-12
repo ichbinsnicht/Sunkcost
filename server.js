@@ -90,7 +90,6 @@ seedrandom(randomSeed, {global: true})
 
 
 // TODO
-// fix states: multiple subjects are all stuck at post survey together
 // login
 // --> subjects need to be on the guest list to get into the experiment
 //
@@ -341,6 +340,7 @@ io.on("connection",function(socket){
     console.log("joinGame",msg.id)
     if(!subjects[msg.id]) createSubject(msg.id,socket)
     socket.emit("clientJoined",{id: msg.id, hist: subjects[msg.id].hist, period: subjects[msg.id].period})
+    console.log("Object.keys(subjects)", Object.keys(subjects))
   })
 })
 
