@@ -1,11 +1,64 @@
-const express     = require("express")              // server building package
-const app         = express()
-const http        = require("http").Server(app)     // server-side socket (socket is for communication)
-const io          = require("socket.io")(http)      // io - input output
-const fs          = require("fs")                   // filesystem (to save stuff)
-const seedrandom  = require("seedrandom")
-const path        = require('path')
-const { google }  = require('googleapis')
+const express         = require("express")              // server building package
+const app             = express()
+const http            = require("http").Server(app)     // server-side socket (socket is for communication)
+const io              = require("socket.io")(http)      // io - input output
+const fs              = require("fs")                   // filesystem (to save stuff)
+const seedrandom      = require("seedrandom")
+const path            = require('path')
+const process         = require('process')
+const {authenticate}  = require('@google-cloud/local-auth');
+const { google }      = require('googleapis')
+
+// If modifying these scopes, delete token.json.
+const SCOPES = ['https://www.googleapis.com/auth/drive.metadata.readonly'];
+
+// The file token.json stores the user's access and refresh tokens, and is
+// created automatically when the authorization flow completes for the first
+// time.
+const TOKEN_PATH = path.join(process.cwd(), 'token.json');
+const CREDENTIALS_PATH = path.join(process.cwd(), 'credentials.json');
+
+async function loadSavedCredentialsIfExist() {
+  try {
+    const content = await fs.readFile(TOKEN_PATH);
+    const credentials = JSON.parse(content);
+    return google.auth.fromJSON(credentials);
+  } catch (err) {
+    return null;
+  }
+}
+
+async function saveCredentials(client) {
+  const content = await fs.readFile(CREDENTIALS_PATH);
+  const keys = JSON.parse(content);
+  const key = keys.installed || keys.web;
+  const payload = JSON.stringify({
+    type: 'authorized_user',
+    client_id: key.client_id,
+    client_secret: key.client_secret,
+    refresh_token: client.credentials.refresh_token,
+  });
+  await fs.writeFile(TOKEN_PATH, payload);
+}
+
+async function authorize() {
+  let client = await loadSavedCredentialsIfExist();
+  if (client) {
+    return client;
+  }
+  client = await authenticate({
+    scopes: SCOPES,
+    keyfilePath: CREDENTIALS_PATH,
+  });
+  if (client.credentials) {
+    await saveCredentials(client);
+  }
+  return client;
+}
+
+authorize().catch(console.error);
+
+/*
 
 //redirect URL and refresh token
 const REDIRECT_URI = 'https://developers.google.com/oauthplayground'
@@ -24,6 +77,8 @@ const drive = google.drive({  //initialize google drive
   version: 'v3',
   auth: oauth2Client,
 })
+
+
 
 //function to upload the file - async = non-blocking (next line can start before this is finished)
 async function uploadFile(fileName) {
@@ -52,6 +107,7 @@ async function uploadFile(fileName) {
     }
   }
 }  
+*/
 
 var arange = x => [...Array(x).keys()] 
 var choose = x => x[Math.floor(Math.random()*x.length)]

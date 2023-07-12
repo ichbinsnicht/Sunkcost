@@ -1,8 +1,9 @@
 {
     "name": "sunk-cost",
     "dependencies": {
+        "@google-cloud/local-auth": "^2.1.0",
         "express": "4.17.3",
-        "googleapis": "^118.0.0",
+        "googleapis": "^105.0.0",
         "seedrandom": "^3.0.5",
         "socket.io": "4.4.1"
     }

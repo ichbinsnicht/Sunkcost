@@ -108,3 +108,6 @@ dist
 
 # Ignore files
 gDrive-client-secret.json
+APIkey.txt
+credentials.json
+token.json
