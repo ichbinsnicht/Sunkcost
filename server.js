@@ -75,8 +75,9 @@ const cost2Text = 10      // 200 cost2Text (default)
                           // 60 letters per dollar (based on Ruixin's mellon experiment: 300 letters for 5 dollars )
                           // 170 letters per dollar according to Greiner, B., Ockenfels, A., & Werner, P. (2011). Wage transparency and performance: A real-effort experiment. Economics Letters, 111(3), 236-238.
                           // 200 characters per minute is the average typing speed (i.e. a dollar per minute)
+const numberOfGuests = 100
 
-// variables
+// variables and guestList
 var realEffort = false
 var subjects = {}
 var numSubjects = 0
@@ -86,7 +87,19 @@ var dateString = getDateString()
 var randomSeed = Math.random()
 seedrandom("seed", {global: true})
 var practiceTypingTarget = genRandomString(2)
+const guestList = arange(numberOfGuests).map(i => {  
+  return Math.round(Math.random()*10**7).toString(36)
+})
+
+console.log("guestList:", guestList)
+
+// map and filter (jS) is similar to list comprehension (Python) 
+// jS:      arange(numberOfGuests).map(i => 3)
+// Python:  [3 for i in range(numberOfGuests)]
+
 seedrandom(randomSeed, {global: true})
+
+console.log("guestlist Links", guestList.map(id => "https://sunkcost.onrender.com/client"+id))
 
 
 // TODO
@@ -332,16 +345,20 @@ io.on("connection",function(socket){
         cost2Text,
       } 
       socket.emit("serverUpdateClient",reply)
-    } else {
-      if(!subject) createSubject(msg.id,socket)
-      socket.emit("clientJoined",{id: msg.id})
+    } else { // restart server: solving issue that client does not know that
+      if(!subject && guestList.includes(msg.id)) {
+        createSubject(msg.id,socket)
+        socket.emit("clientJoined",{id: msg.id})
+      }
     }
   })
-  socket.on("joinGame", function(msg){
-    console.log("joinGame",msg.id)
-    if(!subjects[msg.id]) createSubject(msg.id,socket)
-    socket.emit("clientJoined",{id: msg.id, hist: subjects[msg.id].hist, period: subjects[msg.id].period})
-    console.log("Object.keys(subjects)", Object.keys(subjects))
+  socket.on("joinGame", function(msg){  
+    if(guestList.includes(msg.id)){
+      console.log("joinGame",msg.id)
+      if(!subjects[msg.id]) createSubject(msg.id,socket) // restart client: client joins but server has record
+      socket.emit("clientJoined",{id: msg.id, hist: subjects[msg.id].hist, period: subjects[msg.id].period})
+      console.log("Object.keys(subjects)", Object.keys(subjects))
+    }
   })
 })
 
