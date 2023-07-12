@@ -90,6 +90,7 @@ seedrandom(randomSeed, {global: true})
 
 
 // TODO
+// d 
 // login
 // --> subjects need to be on the guest list to get into the experiment
 //

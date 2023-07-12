@@ -1,3 +1,4 @@
+// getting Elements from HTML
 var instructionsDiv = document.getElementById("instructionsDiv")
 var instructionsTextDiv = document.getElementById("instructionsTextDiv")
 var idInput = document.getElementById("idInput")
@@ -16,40 +17,7 @@ var countdownDiv = document.getElementById("countdownDiv")
 var outcomeDiv = document.getElementById("outcomeDiv")
 var idInput = document.getElementById("idInput")
 var canvas = document.getElementById("canvas")
-var startPreSurveyTime = 0
-var endPreSurveyTime = 0
-
 var context = canvas.getContext("2d")
-
-
-socket = io()       // browser based socket
-joinGame()
-var arange = n => [...Array(n).keys()]
-
-var monetaryInstructionsString = `
-This is an experiment about individual decision making. If you pay attention to these instructions, you can earn a significant amount of money. Your earnings will depend on the decisions you make during the experiment.<br><br>
-
-At the beginning of the experiment, you will start with an endowment of $15. At the end of the experiment, depending on the decisions you make, you may win a $15 Starbucks gift card. <br><br>
-
-This experiment has two stages. In each stage, you will make a choice, choice 1 in stage 1 and choice 2 in stage 2. In each stage, you will receive a score, score 1 in stage 1 and score 2 in stage 2. In each stage, you will pay a cost, cost 1 in stage 1 and cost 2 in stage 2. In each stage, you will have a multiplier, multiplier 1 in stage 1 and multiplier 2 in stage 2. In each stage, your cost will be your score times your multiplier. At the end of the experiment, your probability of winning the $15 Starbucks gift card will be score 1 plus score 2 and you will receive your $15 endowment minus cost 1 and cost 2.<br><br>
-
-At the beginning of stage 1, multiplier 1 will be randomly selected to be either $1 or $10. Both are equally likely. During stage 1, you will select choice 1 from 0 to 0.5. At the end of stage 1, score 1 will be either choice 1 or a randomly selected number from 0 to 0.5. Both are equally likely. Cost 1 will be score 1 times multiplier 1.<br><br>
-
-At the beginning of stage 2, multiplier 2 will be randomly selected to be either $1 or $10. Both are equally likely. During stage 2, you will select choice 2 from 0 to 0.5. Score 2 will always equal choice 2. Cost 2 will be score 2 times multiplier 2.<br><br>`
-
-var realEffortInstructionsString = `
-This is an experiment about individual decision making. If you pay attention to these instructions, you can earn a significant amount of money. Your earnings will depend on the decisions you make during the experiment.<br><br>
-
-At the beginning of the experiment, you will start with an endowment of $15. At the end of the experiment, depending on the decisions you make, you may win a $15 Starbucks gift card. <br><br>
-
-This experiment has two stages. In each stage, you will make a choice, choice 1 in stage 1 and choice 2 in stage 2. In each stage, you will receive a score, score 1 in stage 1 and score 2 in stage 2. In each stage, you will required to complete a typing task, typing task 1 in stage 1 and typing task 2 in stage 2. In each stage, you will have a multiplier, multiplier 1 in stage 1 and multiplier 2 in stage 2. In each stage, the number of characters you have to type will be your score times your multiplier. At the end of the experiment, your probability of winning the $15 Starbucks gift card will be score 1 plus score 2 and you will receive your $15 endowment.<br><br>
-
-At the beginning of stage 1, multiplier 1 will be randomly selected to be either 200 characters or 2,000 characters. Both are equally likely. During stage 1, you will select choice 1 from 0 to 0.5. At the end of stage 1, score 1 will be either choice 1 or a randomly selected number from 0 to 0.5. Both are equally likely. The number of characters you will type in task 1 will be score 1 times multiplier 1.<br><br>
-
-At the beginning of stage 2, multiplier 2 will be randomly selected to be either 200 characters or 2,000 characters. Both are equally likely. During stage 2, you will select choice 2 from 0 to 0.5. Score 2 will always equal choice 2. The number of characters you will type in task 2 will be score 2 times multiplier 2.<br><br>`
-
-var readyString = `If you have any questions, raise your hand and we will come to assist you. Please click the button below to begin the experiment.`
-
 
 // graphical parameters
 const yMax = 10
@@ -115,9 +83,50 @@ var instructionsString = ""
 var readyInstructionsString = ""
 var practiceLock = true
 var cost2Text = 10
+var startPreSurveyTime = 0
+var endPreSurveyTime = 0
+
+var monetaryInstructionsString = `
+This is an experiment about individual decision making. If you pay attention to these instructions, you can earn a significant amount of money. Your earnings will depend on the decisions you make during the experiment.<br><br>
+
+At the beginning of the experiment, you will start with an endowment of $15. At the end of the experiment, depending on the decisions you make, you may win a $15 Starbucks gift card. <br><br>
+
+This experiment has two stages. In each stage, you will make a choice, choice 1 in stage 1 and choice 2 in stage 2. In each stage, you will receive a score, score 1 in stage 1 and score 2 in stage 2. In each stage, you will pay a cost, cost 1 in stage 1 and cost 2 in stage 2. In each stage, you will have a multiplier, multiplier 1 in stage 1 and multiplier 2 in stage 2. In each stage, your cost will be your score times your multiplier. At the end of the experiment, your probability of winning the $15 Starbucks gift card will be score 1 plus score 2 and you will receive your $15 endowment minus cost 1 and cost 2.<br><br>
+
+At the beginning of stage 1, multiplier 1 will be randomly selected to be either $1 or $10. Both are equally likely. During stage 1, you will select choice 1 from 0 to 0.5. At the end of stage 1, score 1 will be either choice 1 or a randomly selected number from 0 to 0.5. Both are equally likely. Cost 1 will be score 1 times multiplier 1.<br><br>
+
+At the beginning of stage 2, multiplier 2 will be randomly selected to be either $1 or $10. Both are equally likely. During stage 2, you will select choice 2 from 0 to 0.5. Score 2 will always equal choice 2. Cost 2 will be score 2 times multiplier 2.<br><br>`
+
+var realEffortInstructionsString = `
+This is an experiment about individual decision making. If you pay attention to these instructions, you can earn a significant amount of money. Your earnings will depend on the decisions you make during the experiment.<br><br>
+
+At the beginning of the experiment, you will start with an endowment of $15. At the end of the experiment, depending on the decisions you make, you may win a $15 Starbucks gift card. <br><br>
+
+This experiment has two stages. In each stage, you will make a choice, choice 1 in stage 1 and choice 2 in stage 2. In each stage, you will receive a score, score 1 in stage 1 and score 2 in stage 2. In each stage, you will required to complete a typing task, typing task 1 in stage 1 and typing task 2 in stage 2. In each stage, you will have a multiplier, multiplier 1 in stage 1 and multiplier 2 in stage 2. In each stage, the number of characters you have to type will be your score times your multiplier. At the end of the experiment, your probability of winning the $15 Starbucks gift card will be score 1 plus score 2 and you will receive your $15 endowment.<br><br>
+
+At the beginning of stage 1, multiplier 1 will be randomly selected to be either 200 characters or 2,000 characters. Both are equally likely. During stage 1, you will select choice 1 from 0 to 0.5. At the end of stage 1, score 1 will be either choice 1 or a randomly selected number from 0 to 0.5. Both are equally likely. The number of characters you will type in task 1 will be score 1 times multiplier 1.<br><br>
+
+At the beginning of stage 2, multiplier 2 will be randomly selected to be either 200 characters or 2,000 characters. Both are equally likely. During stage 2, you will select choice 2 from 0 to 0.5. Score 2 will always equal choice 2. The number of characters you will type in task 2 will be score 2 times multiplier 2.<br><br>`
+
+var readyString = `If you have any questions, raise your hand and we will come to assist you. Please click the button below to begin the experiment.`
+
+socket = io()       // browser based socket
+var arange = n => [...Array(n).keys()]
+
+joinGame()
+function joinGame(){
+    id = window.location.pathname.substring(7)
+    if(id){
+        console.log("id:",id)
+        console.log(`joinGame`)
+        msg = {id}
+        socket.emit("joinGame",msg)
+    }
+}
 
 document.onmousedown = function(event){
     console.log("message",message)
+    console.log("id",id)
 }
 
 document.onkeydown = function(event){
@@ -301,14 +310,7 @@ window.onmouseup = function(e){
 window.onkeydown = function(e){
     if(e.key=="Enter" && state =="startup") joinGame()
 }
-function joinGame(){
-    id = window.location.pathname.substring(7)
-    console.log("id:",id)
-    console.log(`subjectId`, id)
-    console.log(`joinGame`)
-    msg = {id}
-    socket.emit("joinGame",msg)
-}
+
 const submitPreSurvey = function(){
     endPreSurveyTime = Date.now()
     const msg = {
