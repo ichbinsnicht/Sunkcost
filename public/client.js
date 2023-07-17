@@ -2,6 +2,7 @@
 var instructionsDiv = document.getElementById("instructionsDiv")
 var instructionsTextDiv = document.getElementById("instructionsTextDiv")
 var idInput = document.getElementById("idInput")
+var loginDiv  = document.getElementById("loginDiv")
 var pleaseWaitDiv = document.getElementById("pleaseWaitDiv")
 var preSurveyDiv = document.getElementById("preSurveyDiv")
 var preSurveyForm = document.getElementById("preSurveyForm")
@@ -17,6 +18,7 @@ var countdownDiv = document.getElementById("countdownDiv")
 var outcomeDiv = document.getElementById("outcomeDiv")
 var idInput = document.getElementById("idInput")
 var canvas = document.getElementById("canvas")
+
 var context = canvas.getContext("2d")
 
 // graphical parameters
@@ -226,6 +228,7 @@ const update = function(){
     const showPracticePeriodsButton = !practiceLock && !practicePeriodsComplete
     beginPracticePeriodsButton.style.display = showPracticePeriodsButton ? "inline" : "none"
     beginExperimentButton.style.display = practicePeriodsComplete ? "inline" : "none"
+    loginDiv.style.display = "none"
     instructionsDiv.style.display = "none"
     pleaseWaitDiv.style.display = "none"
     preSurveyDiv.style.display = "none"
@@ -256,6 +259,9 @@ const update = function(){
         targetTextbox.innerHTML = ``
         targetTextbox.innerHTML += `<text style="color: blue">${completeText}</text>`
         targetTextbox.innerHTML += `<text style="color: red">${incompleteText}</text>`
+    }  
+    if(!joined){
+        loginDiv.style.display = "block"
     }   
     if(joined&&state=="startup"){
         pleaseWaitDiv.style.display = "block"

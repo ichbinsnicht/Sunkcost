@@ -6,108 +6,21 @@ const fs              = require("fs")                   // filesystem (to save s
 const seedrandom      = require("seedrandom")
 const path            = require('path')
 const process         = require('process')
-const {authenticate}  = require('@google-cloud/local-auth');
-const { google }      = require('googleapis')
+const FtpClient       = require('ftp')
+const ftpClient       = new FtpClient()
+ftpClient.connect({
+  host: "ftpupload.net",
+  user: "if0_34633717",
+  password: "O9WuzXSdEfv"
+})        // named arguments: props = properties of object which is the argument
 
-// If modifying these scopes, delete token.json.
-const SCOPES = ['https://www.googleapis.com/auth/drive.metadata.readonly'];
-
-// The file token.json stores the user's access and refresh tokens, and is
-// created automatically when the authorization flow completes for the first
-// time.
-const TOKEN_PATH = path.join(process.cwd(), 'token.json');
-const CREDENTIALS_PATH = path.join(process.cwd(), 'credentials.json');
-
-async function loadSavedCredentialsIfExist() {
-  try {
-    const content = await fs.readFile(TOKEN_PATH);
-    const credentials = JSON.parse(content);
-    return google.auth.fromJSON(credentials);
-  } catch (err) {
-    return null;
-  }
-}
-
-async function saveCredentials(client) {
-  const content = await fs.readFile(CREDENTIALS_PATH);
-  const keys = JSON.parse(content);
-  const key = keys.installed || keys.web;
-  const payload = JSON.stringify({
-    type: 'authorized_user',
-    client_id: key.client_id,
-    client_secret: key.client_secret,
-    refresh_token: client.credentials.refresh_token,
-  });
-  await fs.writeFile(TOKEN_PATH, payload);
-}
-
-async function authorize() {
-  let client = await loadSavedCredentialsIfExist();
-  if (client) {
-    return client;
-  }
-  client = await authenticate({
-    scopes: SCOPES,
-    keyfilePath: CREDENTIALS_PATH,
-  });
-  if (client.credentials) {
-    await saveCredentials(client);
-  }
-  return client;
-}
-
-authorize().catch(console.error);
-
-/*
-
-//redirect URL and refresh token
-const REDIRECT_URI = 'https://developers.google.com/oauthplayground'
-const REFRESH_TOKEN = '1//04uMG7VSBQC_7CgYIARAAGAQSNwF-L9Ir3uCW_yqpqECAsmRgrZIbXMBfO8nQ117D3e5chOkQQjRLBk69PBpeOoZ2F_c3R2aB2_A'
-const CLIENT_ID = '1003293269435-t9ogu0j3i604d94pnerk5q3j0avce7gm.apps.googleusercontent.com' // replace all double quotes if possible
-const CLIENT_SECRET = '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'
-
-const oauth2Client = new google.auth.OAuth2( //intialize auth client
-  CLIENT_ID,
-  CLIENT_SECRET,
-  REDIRECT_URI
-)
-
-oauth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
-const drive = google.drive({  //initialize google drive
-  version: 'v3',
-  auth: oauth2Client,
-})
-
-
-
-//function to upload the file - async = non-blocking (next line can start before this is finished)
 async function uploadFile(fileName) {
-  if(process.env.RENDER){
-    const filePath = path.join(__dirname, 'data',fileName);
-    const folderId = '1vZs0JkWsoQ1Z1CQie_339AemT9ohDXNL'
-    const fileMetadata = {
-      name: fileName,
-      parents: [folderId]
-    }
-    const media = {
-      mimeType: 'text/csv',
-      body: fs.createReadStream(filePath),
-    }
-    try {
-      const file = await drive.files.create({
-        resource: fileMetadata,
-        media: media,
-        fields: 'id',
-      });
-      console.log('File Id:', file.data.id);
-      return file.data.id;
-    } catch (err) {
-      console.log(err.message)
-      throw err;
-    }
-  }
-}  
-*/
+  const folder = process.env.RENDER ? "onlineData" : "localData"
+  const filePath = path.join(__dirname, 'data',fileName);
+  ftpClient.put(filePath,`${folder}/${fileName}`, err => {
+    if (err) throw err 
+  })
+}
 
 var arange = x => [...Array(x).keys()] 
 var choose = x => x[Math.floor(Math.random()*x.length)]
@@ -159,9 +72,6 @@ console.log("guestlist Links", guestList.map(id => "https://sunkcost.onrender.co
 
 
 // TODO
-// d 
-// login
-// --> subjects need to be on the guest list to get into the experiment
 //
 //
 // 3) TODO PILOTING
@@ -183,6 +93,7 @@ console.log("guestlist Links", guestList.map(id => "https://sunkcost.onrender.co
 // ------------------------------------------------------------------------------
 // Web deployment for piloting: https://sunkcost.onrender.com
 // - GDrive interfacing (https://www.section.io/engineering-education/google-drive-api-nodejs/)
+// - Index.Js to start token process: https://developers.google.com/drive/api/quickstart/nodejs
 //
 // 2) TODO WEB APP
 // - autonomous web app for piloting (no manager required)

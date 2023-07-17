@@ -54,6 +54,12 @@ body {
     float: right;  
     border-style: none;
 }
+#loginDiv {
+    display: block;
+    text-align: center;
+    font: 5vmin monospace;
+    margin-top: 10vh;
+}
 #pleaseWaitDiv {
     display: none;
     text-align: center;
