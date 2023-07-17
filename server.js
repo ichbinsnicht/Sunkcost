@@ -195,6 +195,7 @@ const writePostSurveyFile = function(msg){
   const fileName = `${dateString}-postSurvey-${msg.id}.csv`
   fs.writeFile(`data/${fileName}`,csvString,logError)
   uploadFile(fileName)
+  uploadFile(`${dateString}-data-${msg.id}.csv`)
 }
 const writePaymentFile = function(subject){
   var csvString = "id,earnings,winPrize\n"
