@@ -91,9 +91,10 @@ console.log("guestlist Links", guestList.map(id => "https://sunkcost.onrender.co
 
 // Done
 // ------------------------------------------------------------------------------
-// Web deployment for piloting: https://sunkcost.onrender.com
+// - Web deployment for piloting: https://sunkcost.onrender.com
+// - FTP server: https://dash.infinityfree.com/accounts/if0_34633717
+// Unused:
 // - GDrive interfacing (https://www.section.io/engineering-education/google-drive-api-nodejs/)
-// - Index.Js to start token process: https://developers.google.com/drive/api/quickstart/nodejs
 //
 // 2) TODO WEB APP
 // - autonomous web app for piloting (no manager required)
