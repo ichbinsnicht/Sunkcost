@@ -23,7 +23,7 @@ async function uploadFile(fileName) {
       if (err) throw err 
     })
     ftpClient.end()
-  }
+  })
 }
 
 var arange = x => [...Array(x).keys()] 
