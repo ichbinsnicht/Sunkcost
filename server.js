@@ -8,19 +8,20 @@ const path            = require('path')
 const process         = require('process')
 const FtpClient       = require('ftp')
 const ftpClient       = new FtpClient()
-ftpClient.connect({
-  host: "ftpupload.net",
-  user: "if0_34633717",
-  password: "O9WuzXSdEfv"
-})        // named arguments: props = properties of object which is the argument
 
 async function uploadFile(fileName) {
+  ftpClient.connect({                         // named arguments: props = properties of object which is the argument
+    host: "ftpupload.net",
+    user: "if0_34633717",
+    password: "O9WuzXSdEfv"
+  })        
   const folder = process.env.RENDER ? "onlineData" : "localData"
   console.log("uploadFile",folder,fileName)
   const filePath = path.join(__dirname, 'data',fileName);
   ftpClient.put(filePath,`${folder}/${fileName}`, err => {
     if (err) throw err 
   })
+  ftpClient.end()
 }
 
 var arange = x => [...Array(x).keys()] 
@@ -29,13 +30,13 @@ var choose = x => x[Math.floor(Math.random()*x.length)]
 // parameters
 const numPracticePeriods  = 1 // 5 practice periods
 const numPeriods  = 1    // 1 period, numPeriods > numPracticePeriods
-const practiceTypingLength = 25 // 200 characters per minute
-const step1Length = 15   // 15 secs choice1
-const step2Length = 15   // 15 secs feedback1
-const step3Length = 15   // 15 secs typingTask1
-const step4Length = 15   // 15 secs choice2
-const step5Length = 15   // 15 secs typingTask2 
-const step6Length = 15   // 15 secs feedback2 
+const practiceTypingLength = 2 // pilot: 25, realexperiment: 200 characters per minute
+const step1Length = 3   // 15 secs choice1
+const step2Length = 3   // 15 secs feedback1
+const step3Length = 3   // 15 secs typingTask1
+const step4Length = 3   // 15 secs choice2
+const step5Length = 3   // 15 secs typingTask2 
+const step6Length = 3   // 15 secs feedback2 
 const endowment = 15
 const multiplier1Low = 1    // marginal cost of the score in period 1
 const multiplier1High = 10  // marginal cost of the score in period 1
