@@ -12,16 +12,18 @@ const ftpClient       = new FtpClient()
 async function uploadFile(fileName) {
   ftpClient.connect({                         // named arguments: props = properties of object which is the argument
     host: "ftpupload.net",
-    user: "if0_34633717",                   //df
+    user: "if0_34633717",
     password: "O9WuzXSdEfv"
-  })        
-  const folder = process.env.RENDER ? "onlineData" : "localData"
-  console.log("uploadFile",folder,fileName)
-  const filePath = path.join(__dirname, 'data',fileName);
-  ftpClient.put(filePath,`${folder}/${fileName}`, err => {
-    if (err) throw err 
   })
-  ftpClient.end()
+  ftpClient.on("ready",function(){
+    const folder = process.env.RENDER ? "onlineData" : "localData"
+    console.log("uploadFile",folder,fileName)
+    const filePath = path.join(__dirname, 'data',fileName);
+    ftpClient.put(filePath,`${folder}/${fileName}`, err => {
+      if (err) throw err 
+    })
+    ftpClient.end()
+  }
 }
 
 var arange = x => [...Array(x).keys()] 
