@@ -12,7 +12,7 @@ const ftpClient       = new FtpClient()
 async function uploadFile(fileName) {
   ftpClient.connect({                         // named arguments: props = properties of object which is the argument
     host: "ftpupload.net",
-    user: "if0_34633717",
+    user: "if0_34633717",                   //df
     password: "O9WuzXSdEfv"
   })        
   const folder = process.env.RENDER ? "onlineData" : "localData"
