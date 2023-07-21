@@ -142,7 +142,8 @@ document.onkeydown = function(event){
         if(targetLetter == eventLetter) typingProgress += 1
         console.log("typingProgress",typingProgress)
         if(typingProgress >= typingTarget.length && !typingPracticeComplete){
-            var msg = {id}
+            const practiceTypingDuration = Date.now() - endPreSurveyTime
+            var msg = {id,practiceTypingDuration}
             socket.emit("typingPracticeComplete",msg)
             console.log("typingPracticeComplete")
         }

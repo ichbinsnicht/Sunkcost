@@ -16,6 +16,7 @@ ftpClient.connect({
 
 async function uploadFile(fileName) {
   const folder = process.env.RENDER ? "onlineData" : "localData"
+  console.log("folder",folder)
   const filePath = path.join(__dirname, 'data',fileName);
   ftpClient.put(filePath,`${folder}/${fileName}`, err => {
     if (err) throw err 
@@ -167,14 +168,14 @@ const writePreSurveyFile = function(msg){
 // within-period data
 const createDataFile = function(subject){
   subject.dataStream = fs.createWriteStream(`data/${dateString}-data-${subject.id}.csv`)
-  var csvString = "session,startTime,realEffort,period,practice,id,forced1,forcedScore1,multiplier1,multiplier2,"
+  var csvString = "session,subjectStartTime,practiceTypingDuration, realEffort,period,practice,id,forced1,forcedScore1,multiplier1,multiplier2,"
   csvString += "choice1,choice2,score1,score2,cost1,cost2,endowment,totalScore,outcomeRandom,winPrize,totalCost,earnings"
   csvString += "\n"
   subject.dataStream.write(csvString)
 }
 const updateDataFile = function(subject){
   var csvString = ""
-  csvString += `${dateString},${subject.startTime},${realEffort*1},${subject.period},`
+  csvString += `${dateString},${subject.startTime},${subject.practiceTypingDuration},${realEffort*1},${subject.period},`
   csvString += `${1-subject.practicePeriodsComplete},${subject.id},`
   csvString += `${subject.hist[subject.period].forced[1]},${subject.hist[subject.period].forcedScore[1]},`
   csvString += `${subject.hist[subject.period].multiplier[1]},${subject.hist[subject.period].multiplier[2]},`
@@ -222,6 +223,7 @@ io.on("connection",function(socket){
   })
   socket.on("typingPracticeComplete", function(msg){
     const subject = subjects[msg.id]
+    const subject.practiceTypingDuration = msg.practiceTypingDuration
     console.log("typingPracticeComplete",msg.id)
     if(subject.state == "typingPractice") {
       subject.typingPracticeComplete = true
@@ -368,6 +370,7 @@ const createSubject = function(id, socket){
     preSurveySubmitted: false,
     instructionsComplete: false,
     typingPracticeComplete: false,
+    practiceTypingDuration: 0,
     experimentStarted: false,
     experimentComplete: false,
     practicePeriodsComplete: false,
