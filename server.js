@@ -17,9 +17,9 @@ async function uploadFiles(fileNames) {
   })
   ftpClient.on("ready",function(){
     const folder = process.env.RENDER ? "onlineData" : "localData"
-    console.log("uploadFile",folder,fileName)
-    const filePath = path.join(__dirname, 'data',fileName);
     fileNames.forEach(fileName => {
+      console.log("uploadFile",folder,fileName)
+      const filePath = path.join(__dirname, 'data',fileName);
       ftpClient.put(filePath,`${folder}/${fileName}`, err => {
         if (err) throw err 
       })
