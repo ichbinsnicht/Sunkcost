@@ -366,7 +366,7 @@ const updateChoice = function(){
     mouseY = (y0 - mouseEvent.offsetY)*100/canvas.height
     const mouseGraphX = (mouseX - graphX)/graphWidth 
     if(step==1 || step==4){
-        choice[stage] = 0.5*Math.max(0,Math.min(1,mouseGraphX))
+        choice[stage] = Math.round(0.5*Math.max(0,Math.min(1,mouseGraphX))*100)/100
         score[stage] = forced[stage]*forcedScore[stage] + (1-forced[stage])*choice[stage]
         cost[stage] = score[stage]*multiplier[stage]
     }
@@ -431,7 +431,7 @@ const drawTop = function(){
     if(step>=2){
         context.textBaseline = "top"
         context.fillStyle = darkGreen
-        const score1String = `${(score[1]*100).toFixed(2)}%`
+        const score1String = `${(score[1]*100).toFixed(0)}%`
         context.fillText(`Score 1: ${score1String}`,graphX+graphWidth*2*score[1],lineY1+tickLength+tickSpace+2)
         context.beginPath()
         context.arc(graphX+graphWidth*2*score[1],lineY1,1.5,0,2*Math.PI)
@@ -449,7 +449,7 @@ const drawTop = function(){
     }
     context.fillStyle = blue
     context.textBaseline = "top"
-    const choice1String = `${(choice[1]*100).toFixed(2)}%`
+    const choice1String = `${(choice[1]*100).toFixed(0)}%`
     context.fillText(`Choice 1: ${choice1String}`,graphX+graphWidth*2*choice[1],lineY1+tickLength+tickSpace+4.5)
     context.beginPath()
     context.arc(graphX+graphWidth*2*choice[1],lineY1,1,0,2*Math.PI)
@@ -506,7 +506,7 @@ const drawBottom = function(){
     context.font = labelFont
     context.textBaseline = "top"
     context.fillStyle = green
-    const score2String = `${(score[2]*100).toFixed(2)}%` 
+    const score2String = `${(score[2]*100).toFixed(0)}%` 
     context.fillText(`Score 2: ${score2String}`,graphX+graphWidth*2*score[2],lineY2+tickLength+tickSpace+2)
     context.beginPath()
     context.arc(graphX+graphWidth*2*score[2],lineY2,1.5,0,2*Math.PI)
@@ -523,7 +523,7 @@ const drawBottom = function(){
     context.fill()
     context.fillStyle = blue
     context.textBaseline = "top"
-    const choice2String = `${(choice[2]*100).toFixed(2)}%`
+    const choice2String = `${(choice[2]*100).toFixed(0)}%`
     context.fillText(`Choice 2: ${choice2String}`,graphX+graphWidth*2*choice[2],lineY2+tickLength+tickSpace+4.5)
     context.beginPath()
     context.arc(graphX+graphWidth*2*choice[2],lineY2,1,0,2*Math.PI)
