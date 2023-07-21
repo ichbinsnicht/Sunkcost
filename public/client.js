@@ -449,7 +449,7 @@ const drawTop = function(){
     }
     context.fillStyle = blue
     context.textBaseline = "top"
-    const choice1String = `${(choice[1]*100).toFixed(0)}%`
+    const choice1String = `${(choice[1]*100).toFixed(2)}%`
     context.fillText(`Choice 1: ${choice1String}`,graphX+graphWidth*2*choice[1],lineY1+tickLength+tickSpace+4.5)
     context.beginPath()
     context.arc(graphX+graphWidth*2*choice[1],lineY1,1,0,2*Math.PI)
@@ -523,7 +523,7 @@ const drawBottom = function(){
     context.fill()
     context.fillStyle = blue
     context.textBaseline = "top"
-    const choice2String = `${(choice[2]*100).toFixed(0)}%`
+    const choice2String = `${(choice[2]*100).toFixed(2)}%`
     context.fillText(`Choice 2: ${choice2String}`,graphX+graphWidth*2*choice[2],lineY2+tickLength+tickSpace+4.5)
     context.beginPath()
     context.arc(graphX+graphWidth*2*choice[2],lineY2,1,0,2*Math.PI)
