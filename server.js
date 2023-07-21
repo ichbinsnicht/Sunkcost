@@ -223,7 +223,7 @@ io.on("connection",function(socket){
   })
   socket.on("typingPracticeComplete", function(msg){
     const subject = subjects[msg.id]
-    const subject.practiceTypingDuration = msg.practiceTypingDuration
+    subject.practiceTypingDuration = msg.practiceTypingDuration
     console.log("typingPracticeComplete",msg.id)
     if(subject.state == "typingPractice") {
       subject.typingPracticeComplete = true
