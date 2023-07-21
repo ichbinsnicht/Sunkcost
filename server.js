@@ -9,7 +9,7 @@ const process         = require('process')
 const FtpClient       = require('ftp')
 const ftpClient       = new FtpClient()
 
-async function uploadFile(fileName) {
+async function uploadFiles(fileNames) {
   ftpClient.connect({                         // named arguments: props = properties of object which is the argument
     host: "ftpupload.net",
     user: "if0_34633717",
@@ -19,8 +19,10 @@ async function uploadFile(fileName) {
     const folder = process.env.RENDER ? "onlineData" : "localData"
     console.log("uploadFile",folder,fileName)
     const filePath = path.join(__dirname, 'data',fileName);
-    ftpClient.put(filePath,`${folder}/${fileName}`, err => {
-      if (err) throw err 
+    fileNames.forEach(fileName => {
+      ftpClient.put(filePath,`${folder}/${fileName}`, err => {
+        if (err) throw err 
+      })
     })
     ftpClient.end()
   })
@@ -166,7 +168,7 @@ const writePreSurveyFile = function(msg){
   var logError = (ERR) => { if(ERR) console.log(ERR)}
   const fileName = `${dateString}-preSurvey-${msg.id}.csv`
   fs.writeFile(`data/${fileName}`,csvString,logError)
-  uploadFile(fileName)
+  uploadFiles([fileName])
 }
 // within-period data
 const createDataFile = function(subject){
@@ -198,8 +200,7 @@ const writePostSurveyFile = function(msg){
   var logError = (ERR) => { if(ERR) console.log(ERR)}
   const fileName = `${dateString}-postSurvey-${msg.id}.csv`
   fs.writeFile(`data/${fileName}`,csvString,logError)
-  uploadFile(fileName)
-  uploadFile(`${dateString}-data-${msg.id}.csv`)
+  uploadFiles([fileName,`${dateString}-data-${msg.id}.csv`])
 }
 const writePaymentFile = function(subject){
   var csvString = "id,earnings,winPrize\n"
@@ -208,7 +209,7 @@ const writePaymentFile = function(subject){
   var logError = (ERR) => { if(ERR) console.log(ERR)}
   const fileName = `${dateString}-payment-${subject.id}.csv`
   fs.writeFile(`data/${fileName}`,csvString,logError)
-  uploadFile(fileName)
+  uploadFiles([fileName])
 }
 
 io.on("connection",function(socket){
