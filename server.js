@@ -16,7 +16,7 @@ ftpClient.connect({
 
 async function uploadFile(fileName) {
   const folder = process.env.RENDER ? "onlineData" : "localData"
-  console.log("folder",folder)
+  console.log("uploadFile",folder,fileName)
   const filePath = path.join(__dirname, 'data',fileName);
   ftpClient.put(filePath,`${folder}/${fileName}`, err => {
     if (err) throw err 
