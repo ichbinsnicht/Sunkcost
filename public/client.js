@@ -431,7 +431,7 @@ const drawTop = function(){
     if(step>=2){
         context.textBaseline = "top"
         context.fillStyle = darkGreen
-        const score1String = `${(score[1]*100).toFixed(0)}%`
+        const score1String = `${(score[1]*100).toFixed(2)}%`
         context.fillText(`Score 1: ${score1String}`,graphX+graphWidth*2*score[1],lineY1+tickLength+tickSpace+2)
         context.beginPath()
         context.arc(graphX+graphWidth*2*score[1],lineY1,1.5,0,2*Math.PI)
@@ -506,7 +506,7 @@ const drawBottom = function(){
     context.font = labelFont
     context.textBaseline = "top"
     context.fillStyle = green
-    const score2String = `${(score[2]*100).toFixed(0)}%` 
+    const score2String = `${(score[2]*100).toFixed(2)}%` 
     context.fillText(`Score 2: ${score2String}`,graphX+graphWidth*2*score[2],lineY2+tickLength+tickSpace+2)
     context.beginPath()
     context.arc(graphX+graphWidth*2*score[2],lineY2,1.5,0,2*Math.PI)
