@@ -29,19 +29,19 @@ var choose = x => x[Math.floor(Math.random()*x.length)]
 // parameters
 const numPracticePeriods  = 1 // 5 practice periods
 const numPeriods  = 1    // 1 period, numPeriods > numPracticePeriods
-const step1Length = 3   // 15 secs choice1
-const step2Length = 3   // 15 secs feedback1
-const step3Length = 3   // 15 secs typingTask1
-const step4Length = 3   // 15 secs choice2
-const step5Length = 3   // 15 secs typingTask2 
-const step6Length = 3   // 15 secs feedback2 
-const timestep = 1
+const practiceTypingLength = 25 // 200 characters per minute
+const step1Length = 15   // 15 secs choice1
+const step2Length = 15   // 15 secs feedback1
+const step3Length = 15   // 15 secs typingTask1
+const step4Length = 15   // 15 secs choice2
+const step5Length = 15   // 15 secs typingTask2 
+const step6Length = 15   // 15 secs feedback2 
 const endowment = 15
 const multiplier1Low = 1    // marginal cost of the score in period 1
 const multiplier1High = 10  // marginal cost of the score in period 1
 const multiplier2Low = 1    // calibrate the high costs!
 const multiplier2High = 10  // cost2 = sunk cost in period 2 (high cost shock)
-const cost2Text = 10      // 200 cost2Text (default)
+const cost2Text = 200      // 200 cost2Text (default)
                           // 60 letters per dollar (based on Ruixin's mellon experiment: 300 letters for 5 dollars )
                           // 170 letters per dollar according to Greiner, B., Ockenfels, A., & Werner, P. (2011). Wage transparency and performance: A real-effort experiment. Economics Letters, 111(3), 236-238.
                           // 200 characters per minute is the average typing speed (i.e. a dollar per minute)
@@ -56,7 +56,7 @@ var practiceLock = true
 var dateString = getDateString()
 var randomSeed = Math.random()
 seedrandom("seed", {global: true})
-var practiceTypingTarget = genRandomString(2)
+var practiceTypingTarget = genRandomString(practiceTypingLength)
 const guestList = arange(numberOfGuests).map(i => {  
   return Math.round(Math.random()*10**7).toString(36)
 })
