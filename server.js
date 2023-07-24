@@ -56,8 +56,8 @@ const numberOfGuests = 100
 var realEffort = false
 var subjects = {}
 var numSubjects = 0
-var preSurveyLock = true
-var practiceLock = true
+var preSurveyLock = false
+var practiceLock = false
 var dateString = getDateString()
 var randomSeed = Math.random()
 seedrandom("seed", {global: true})
@@ -78,11 +78,11 @@ console.log("guestlist Links", guestList.map(id => "https://sunkcost.onrender.co
 
 
 // TODO
-//
-//
+
 // 3) TODO PILOTING
 // - Unreal PILOT: pilot with friends/colleagues 
 // -- calibrate timing of stages
+
 // - Real PILOT: pilot with real subjects at VCU
 // -- calibrate typing cost
 // - Feedback: ask Shengwu for input again
