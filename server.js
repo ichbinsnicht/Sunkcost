@@ -77,20 +77,26 @@ seedrandom(randomSeed, {global: true})
 console.log("guestlist Links", guestList.map(id => "https://sunkcost.onrender.com/client"+id))
 
 
-// TODO
+// TODO MH
+// - pilot with friends
+// - gift cards order on Amazon for real pilot (20) 
+//---> can MH order them (Harvard) and get reimbursed or does VCU have to order them (most difficult path) and get reimbursed?
+//---> coordinate with Nina, Nina said: "It is very easy to buy the gift cards on a corporate card. Kate or I can put that on our cards and charge to Karim’s faculty research funds." (Feb 15, 2023)
+// - Harvard IRB already done?
+//
+// TODO DS
+// - What kind of documentation for the gift cards is needed?
 
 // 3) TODO PILOTING
 // - Unreal PILOT: pilot with friends/colleagues 
 // -- calibrate timing of stages
-
-// - Real PILOT: pilot with real subjects at VCU
+//
+// - Real PILOT: one pilot subjects at VCU
 // -- calibrate typing cost
 // - Feedback: ask Shengwu for input again
 //
-// - Machine Learning model replaces mixture model
-// - external funding (Incubator grant) or alternatives
-//
-// TODO INSTRUCTIONS
+// TODO EXPERIMENT
+// --> finalize surveys
 // --> update instructions for practice typing and survey
 // --> update audio
 
@@ -139,7 +145,7 @@ app.get("/manager",function(req,res){
 
 function genRandomString(length){
   var numbers = Array.from(Array(26)).map((e,i) => i )
-  var letters = numbers.map(i => String.fromCharCode(i+65))
+  var letters = numbers.map(i => String.fromCharCode(i+97))
   return Array.from(Array(length)).map(i => choose(letters)).join("")
 }
 

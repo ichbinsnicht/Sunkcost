@@ -89,26 +89,53 @@ var startPreSurveyTime = 0
 var endPreSurveyTime = 0
 
 var monetaryInstructionsString = `
-This is an experiment about individual decision making. If you pay attention to these instructions, you can earn a significant amount of money. Your earnings will depend on the decisions you make during the experiment.<br><br>
+In this experiment, your earnings will depend on the decisions you make during the experiment.<br><br>
 
-At the beginning of the experiment, you will start with an endowment of $15. At the end of the experiment, depending on the decisions you make, you may win a $15 Starbucks gift card. <br><br>
+You will start with $15. Depending on the decisions you make, you may win a $15 Starbucks gift card. This experiment has two stages: stage 1 and stage 2. In each stage, you will make a choice and receive a score and a multiplier, which will determine your earnings and your chance to win the $15 Starbucks gift card.<br><br>
 
-This experiment has two stages. In each stage, you will make a choice, choice 1 in stage 1 and choice 2 in stage 2. In each stage, you will receive a score, score 1 in stage 1 and score 2 in stage 2. In each stage, you will pay a cost, cost 1 in stage 1 and cost 2 in stage 2. In each stage, you will have a multiplier, multiplier 1 in stage 1 and multiplier 2 in stage 2. In each stage, your cost will be your score times your multiplier. At the end of the experiment, your probability of winning the $15 Starbucks gift card will be score 1 plus score 2 and you will receive your $15 endowment minus cost 1 and cost 2.<br><br>
+Stage 1:<br>
+<ul>
+    <li> A random multiplier, called Multiplier 1, will be either $1 or $10. Both are equally likely.</li>
+    <li> You will choose a number between 0% and 50%, called Choice 1. You choose by moving your mouse.</li>
+    <li> Score 1 will be either Choice 1 or a randomly selected number from 0% and 50%. Both are equally likely.</li>
+    <li> Cost 1 will be calculated by multiplying Score 1 with Multiplier 1.</li>
+</ul>
 
-At the beginning of stage 1, multiplier 1 will be randomly selected to be either $1 or $10. Both are equally likely. During stage 1, you will select choice 1 from 0 to 0.5. At the end of stage 1, score 1 will be either choice 1 or a randomly selected number from 0 to 0.5. Both are equally likely. Cost 1 will be score 1 times multiplier 1.<br><br>
+Stage 2:<br>
+<ul>
+    <li> A random multiplier, called Multiplier 2, will be either $1 or $10. Both are equally likely.</li>
+    <li> You will choose a number between 0% and 50%, called Choice 2. You choose by moving your mouse.</li>
+    <li> Score 2 will always equal Choice B.</li>
+    <li> Cost 2 will be calculated by multiplying Score 2 with Multiplier 2.</li>
+</ul>
 
-At the beginning of stage 2, multiplier 2 will be randomly selected to be either $1 or $10. Both are equally likely. During stage 2, you will select choice 2 from 0 to 0.5. Score 2 will always equal choice 2. Cost 2 will be score 2 times multiplier 2.<br><br>`
+Your earnings will be your initial $15 minus Cost 1 and Cost 2. Your probability of winning the $15 Starbucks gift card is the sum of Score 1 and Score 2. <br><br>`
+
 
 var realEffortInstructionsString = `
-This is an experiment about individual decision making. If you pay attention to these instructions, you can earn a significant amount of money. Your earnings will depend on the decisions you make during the experiment.<br><br>
+In this experiment, your earnings will depend on the decisions you make during the experiment.<br><br>
 
-At the beginning of the experiment, you will start with an endowment of $15. At the end of the experiment, depending on the decisions you make, you may win a $15 Starbucks gift card. <br><br>
+You will start with $15. Depending on the decisions you make, you may win a $15 Starbucks gift card. This experiment has two stages: stage 1 and stage 2. In each stage, you will make a choice and receive a score and a multiplier, which will determine your chance to win the $15 Starbucks gift card.<br><br>
 
-This experiment has two stages. In each stage, you will make a choice, choice 1 in stage 1 and choice 2 in stage 2. In each stage, you will receive a score, score 1 in stage 1 and score 2 in stage 2. In each stage, you will required to complete a typing task, typing task 1 in stage 1 and typing task 2 in stage 2. In each stage, you will have a multiplier, multiplier 1 in stage 1 and multiplier 2 in stage 2. In each stage, the number of characters you have to type will be your score times your multiplier. At the end of the experiment, your probability of winning the $15 Starbucks gift card will be score 1 plus score 2 and you will receive your $15 endowment.<br><br>
+Stage 1:<br>
+<ul>
+    <li> A random multiplier, called Multiplier 1, will be either 200 characters or 2,000 characters. Both are equally likely.</li>
+    <li> You will choose a number between 0% and 50%, called Choice 1. You choose by moving your mouse.</li>
+    <li> Score 1 will be either Choice 1 or a randomly selected number from 0% and 50%. Both are equally likely.</li>
+    <li> Cost 1 will be calculated by multiplying Score 1 with Multiplier 1.</li>
+    <li> You will type a number of characters equal to Cost 1.</li> 
+</ul>
 
-At the beginning of stage 1, multiplier 1 will be randomly selected to be either 200 characters or 2,000 characters. Both are equally likely. During stage 1, you will select choice 1 from 0 to 0.5. At the end of stage 1, score 1 will be either choice 1 or a randomly selected number from 0 to 0.5. Both are equally likely. The number of characters you will type in task 1 will be score 1 times multiplier 1.<br><br>
+Stage 2:<br>
+<ul>
+    <li> A random multiplier, called Multiplier 2, will be either 200 characters or 2,000 characters. Both are equally likely.</li>
+    <li> You will choose a number between 0% and 50%, called Choice 2. You choose by moving your mouse.</li>
+    <li> Score 2 will always equal Choice 2.</li>
+    <li> Cost 2 will be calculated by multiplying Score 2 with Multiplier 2.</li>
+    <li> You will type a number of characters equal to Cost 2.</li>
+</ul>
 
-At the beginning of stage 2, multiplier 2 will be randomly selected to be either 200 characters or 2,000 characters. Both are equally likely. During stage 2, you will select choice 2 from 0 to 0.5. Score 2 will always equal choice 2. The number of characters you will type in task 2 will be score 2 times multiplier 2.<br><br>`
+Your earnings will be your initial $15. Your probability of winning the $15 Starbucks gift card is the sum of Score 1 and Score 2. <br><br>`
 
 var readyString = `If you have any questions, raise your hand and we will come to assist you. Please click the button below to begin the experiment.`
 
@@ -117,7 +144,7 @@ var arange = n => [...Array(n).keys()]
 
 joinGame()
 function joinGame(){
-    id = window.location.pathname.substring(7)
+    id = document.location.pathname.substring(7)
     if(id){
         console.log("id:",id)
         console.log(`joinGame`)
@@ -132,11 +159,12 @@ document.onmousedown = function(event){
 }
 
 document.onkeydown = function(event){
+    if(event.key=="Enter" && state =="startup") joinGame()
     console.log("showTyping",showTyping)
     const interactiveTyping = practicePeriodsComplete || !typingPracticeComplete
     if(joined && showTyping && interactiveTyping){
         targetLetter = incompleteText.slice(0,1)
-        eventLetter = event.key.toUpperCase()
+        eventLetter = event.key.toLowerCase()
         console.log("eventLetter",eventLetter)
         console.log("targetLetter",targetLetter)
         if(targetLetter == eventLetter) typingProgress += 1
@@ -148,6 +176,18 @@ document.onkeydown = function(event){
             console.log("typingPracticeComplete")
         }
     }
+}
+
+document.onmousemove = function(e){
+    console.log("mouseEvent",e)
+    mouseEvent = e
+}
+
+document.onmousedown = function(e){
+    mouseDown = true
+}
+document.onmouseup = function(e){
+    mouseDown = false
 }
 
 socket.on("connected", function(msg){
@@ -244,15 +284,15 @@ const update = function(){
     countdownDiv.innerHTML = ""
     if(joined&&showTyping){
         typingDiv.style.display = "block"
-        typingHeader.innerHTML = "Please type the following text:"
+        typingHeader.innerHTML = "Please type the following letters on your keyboard:"
         if(typingPracticeComplete&&!experimentStarted){
             typingHeader.innerHTML = `This is a practice period. <br>
-                                      If you were in the real period, this is the text you would type.`
+                                      If you were in the real period, these are the letters you would type.`
             countdownDiv.innerHTML = `Countdown: ${countdown}`
             console.log("typingProgress",typingProgress)
         }
         if(experimentStarted){
-            typingHeader.innerHTML = "Please type the following text:"
+            typingHeader.innerHTML = "Please type the following letters on your keyboard:"
             console.log("typingProgress",typingProgress)            
         }
         completeText = typingTarget.slice(0,typingProgress)
@@ -300,23 +340,7 @@ const update = function(){
         outcomeDiv.innerHTML += line5
     }
 }
-window.onmousemove = function(e){
-    mouseEvent = e
-}
 
-window.onmousedown = function(e){
-    mouseDown = true
-    /* console.log("Choice",choice)
-    console.log("Cost",cost)  
-    console.log("Score", score)
-    console.log("Forced",forced)  */
-}
-window.onmouseup = function(e){
-    mouseDown = false
-}
-window.onkeydown = function(e){
-    if(e.key=="Enter" && state =="startup") joinGame()
-}
 
 const submitPreSurvey = function(){
     endPreSurveyTime = Date.now()
@@ -362,8 +386,8 @@ const setupCanvas = function(){
 const updateChoice = function(){
     const x0 = canvas.width/2-canvas.height/2 - .1*canvas.width
     const y0 = canvas.height
-    mouseX = (mouseEvent.offsetX-x0)*100/canvas.height
-    mouseY = (y0 - mouseEvent.offsetY)*100/canvas.height
+    mouseX = (mouseEvent.pageX-x0)*100/canvas.height
+    mouseY = (y0 - mouseEvent.pageY)*100/canvas.height
     const mouseGraphX = (mouseX - graphX)/graphWidth 
     if(step==1 || step==4){
         choice[stage] = Math.round(0.5*Math.max(0,Math.min(1,mouseGraphX))*100)/100
@@ -438,7 +462,7 @@ const drawTop = function(){
         context.fill()
         context.fillStyle = darkRed
         context.textBaseline = "bottom"
-        const cost1StringA = `Task 1: ${(cost[1]*cost2Text).toFixed(0)} Characters`
+        const cost1StringA = `Cost 1: ${(cost[1]*cost2Text).toFixed(0)} Characters`
         const cost1StringB = `Cost 1: $${cost[1].toFixed(2)}`
         const cost1String = realEffort ? cost1StringA : cost1StringB
         context.fillText(`${cost1String}`,graphX+graphWidth*2*score[1],lineY1-tickLength-tickSpace-2)
@@ -513,7 +537,7 @@ const drawBottom = function(){
     context.fill()
     context.fillStyle = red
     context.textBaseline = "bottom"
-    const cost2StringA = `Task 2: ${(cost[2]*cost2Text).toFixed(0)} Characters`
+    const cost2StringA = `Cost 2: ${(cost[2]*cost2Text).toFixed(0)} Characters`
     const cost2StringB = `Cost 2: $${cost[2].toFixed(2)}`
     const cost2String = realEffort ? cost2StringA : cost2StringB
     context.fillText(`${cost2String}`,graphX+graphWidth*2*score[2],lineY2-tickLength-tickSpace-2)
@@ -625,7 +649,7 @@ const drawBarTotalCost = function(){
         context.moveTo(xRight2,y)
         context.lineTo(xLeft2,y) 
         context.stroke()             
-        const yCostLabelA = `${(10*weight*cost2Text).toFixed(2)}`
+        const yCostLabelA = `${(10*weight*cost2Text).toFixed(0)}`
         const yCostLabelB = `$${(10*weight).toFixed(2)}` 
         const yCostLabel = realEffort ? yCostLabelA : yCostLabelB
         context.textBaseline = "middle"
@@ -636,10 +660,10 @@ const drawBarTotalCost = function(){
     })    
     context.fillStyle = darkRed  
     context.textAlign = "center"
-    const costString1A = `Task 1: ${(totalCost*cost2Text).toFixed(0)} Characters`
+    const costString1A = `Cost 1: ${(totalCost*cost2Text).toFixed(0)} Characters`
     const costString1B = `Cost 1: $${totalCost.toFixed(0)}`
     const costString1 = realEffort ? costString1A : costString1B
-    const costString2A = `Total Typing: ${(totalCost*cost2Text).toFixed(0)} Characters`
+    const costString2A = `Total Cost: ${(totalCost*cost2Text).toFixed(0)} Characters`
     const costString2B = `Total Cost: $${totalCost.toFixed(0)}`
     const costString2 = realEffort ? costString2A : costString2B
     const costString = step<4 ? costString1 : costString2

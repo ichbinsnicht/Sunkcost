@@ -78,7 +78,7 @@ body {
 #instructionsTextDiv {
     display: block;
     text-align: justify;      
-    font: 2.8vmin monospace;    
+    font: 2.4vmin monospace;    
     border: 0;
     padding-top: 20;
     padding-left: 100;
@@ -88,6 +88,7 @@ body {
 }
 #beginPracticePeriodsButton{
     display: none;
+    margin-top: 20; 
 }
 #idInput{
     font: 10vmin monospace;
@@ -137,7 +138,21 @@ body {
     font: 5vmin monospace;
     margin-top: 0vh;
 }
-.postSurveyInput {
+.surveyNumber {
+    text-align: center;
+    margin: 2vh;
+    width: 30vh;
+    font: 5vmin monospace;
+}
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type=number] {
+    -moz-appearance: textfield;
+  }
+.surveyInput {
     text-align: center;
     margin: 2vh;
     width: 30vh;
