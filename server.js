@@ -62,43 +62,35 @@ var dateString = getDateString()
 var randomSeed = Math.random()
 seedrandom("seed", {global: true})
 var practiceTypingTarget = genRandomString(practiceTypingLength)
-const guestList = arange(numberOfGuests).map(i => {  
-  return Math.round(Math.random()*10**7).toString(36)
-})
+const guestList = process.env.RENDER 
+  ? arange(numberOfGuests).map(i => {  
+    return Math.round(Math.random()*10**7).toString(36)
+  })
+  : arange(numberOfGuests).map(i => {  
+    return (i).toString()
+  })
 
 console.log("guestList:", guestList)
 
-// map and filter (jS) is similar to list comprehension (Python) 
-// jS:      arange(numberOfGuests).map(i => 3)
-// Python:  [3 for i in range(numberOfGuests)]
-
 seedrandom(randomSeed, {global: true})
 
-console.log("guestlist Links", guestList.map(id => "https://sunkcost.onrender.com/client"+id))
+const linkList = guestList.map(guest => {
+  return process.env.Render 
+    ? "https://sunkcost.onrender.com/client"+guest
+    : "http://localhost:3000/client"+guest
 
-
-// TODO MH
-// - pilot with friends
-// - gift cards order on Amazon for real pilot (20) 
-//---> can MH order them (Harvard) and get reimbursed or does VCU have to order them (most difficult path) and get reimbursed?
-//---> coordinate with Nina, Nina said: "It is very easy to buy the gift cards on a corporate card. Kate or I can put that on our cards and charge to Karim’s faculty research funds." (Feb 15, 2023)
-// - Harvard IRB already done?
-//
-// TODO DS
-// - What kind of documentation for the gift cards is needed?
-
-// 3) TODO PILOTING
-// - Unreal PILOT: pilot with friends/colleagues 
-// -- calibrate timing of stages
-//
-// - Real PILOT: one pilot subjects at VCU
-// -- calibrate typing cost
-// - Feedback: ask Shengwu for input again
-//
+})
+console.log("guestlist Links", linkList)
+ 
 // TODO EXPERIMENT
-// --> finalize surveys
-// --> update instructions for practice typing and survey
 // --> update audio
+//
+// TODO Real PILOT: one pilot subjects at VCU
+//
+// Pre-Survey Questions
+// Memory: https://www.slackbooks.com/content/42490/42490_2P.pdf
+// Idea based on paper from Baliga, Sandeep, and Jeffrey C. Ely. 2011. "Mnemonomics: The Sunk Cost Fallacy as a Memory Kludge." American Economic Journal: Microeconomics, 3 (4): 35-67.
+// Cognitive Reflection: Toplak, M. E., West, R. F., & Stanovich, K. E. (2014). Assessing miserly information processing: An expansion of the Cognitive Reflection Test. Thinking & reasoning, 20(2), 147-168.
 
 
 // Done
@@ -281,7 +273,8 @@ io.on("connection",function(socket){
     var reply = {
       numSubjects, 
       ids,
-      subjectsData
+      subjectsData,
+      online: process.env.RENDER
     }
     socket.emit("serverUpdateManager",reply)
   })

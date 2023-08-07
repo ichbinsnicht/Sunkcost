@@ -15,6 +15,7 @@ var practicePeriodsComplete = false
 var experimentStarted = false
 var message = {}
 var subjects = []
+var joined = false
 
 document.onmousedown = function(){
     console.log(message)
@@ -24,7 +25,13 @@ socket.on("connected", function(msg){
     setInterval(update,100)
 })
 socket.on("serverUpdateManager", function(msg){
+    if(joined==false&& msg.online){
+        preSurveyLock.checked = false
+        practiceLock.checked = false
+    }
+    joined = true
     message = msg
+    online = msg.online
     numSubjects = msg.numSubjects
     ids = msg.ids
     subjects = msg.subjectsData

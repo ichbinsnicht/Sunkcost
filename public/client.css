@@ -120,14 +120,8 @@ body {
 #preSurveyDiv {
     display: none;
     text-align: center;
-    font: 5vmin monospace;
+    font: 2.5vmin monospace;
     margin-top: 0vh;
-}
-.preSurveyInput {
-    text-align: center;
-    margin: 2vh;
-    width: 30vh;
-    font: 5vmin monospace;
 }
 .preSurveySubmit {
     font: 5vmin monospace;
@@ -135,14 +129,14 @@ body {
 #postSurveyDiv {
     display: none;
     text-align: center;
-    font: 5vmin monospace;
+    font: 2.5vmin monospace;
     margin-top: 0vh;
 }
 .surveyNumber {
     text-align: center;
     margin: 2vh;
-    width: 30vh;
-    font: 5vmin monospace;
+    width: 40vh;
+    font: 2.5vmin monospace;
 }
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
@@ -155,8 +149,8 @@ input[type=number] {
 .surveyInput {
     text-align: center;
     margin: 2vh;
-    width: 30vh;
-    font: 5vmin monospace;
+    width: 40vh;
+    font: 2.5vmin monospace;
 }
 .postSurveySubmit {
     font: 5vmin monospace;

@@ -6,14 +6,14 @@
     <body>
         <div id="loginDiv">Logging in...</div>
         <div id="pleaseWaitDiv">Please Wait</div>
-        <div id="preSurveyDiv">Pre Survey <br><br>
+        <div id="preSurveyDiv"><b>Pre Survey</b><br><br>
             <form onSubmit="return submitPreSurvey();" id="preSurveyForm">
                 <div>
                   <label for="typingExperience">How many hours do you typically spend typing on a daily basis?</label> <br>
                   <input class="surveyNumber" type="number" min="0" max="24" name="typingExperience" id="typingExperience" required>
                 </div>
                 <div>
-                    <label for="risk">Are you a person who is generally willing to take risks?</label> <br>
+                    <label for="risk">In comparison with others, are you a person who is generally willing to take risks?</label> <br>
                     <select name="risk" id="risk" class="surveyInput" required>
                         <option value="" selected=""></option>>Please select</option>
                         <option value="yes">Yes</option>
@@ -21,7 +21,7 @@
                     </select>
                 </div>
                 <div>
-                    <label for="time">In comparison with others, are you a person who is generally willing to give up something today in order to benefit from that in the future?</label> <br>
+                    <label for="time">In comparison with others, are you a person who is generally willing to give up something today in order to benefit in the future?</label> <br>
                     <select name="time" id="time" class="surveyInput" required>
                         <option value="" selected=""></option>>Please select</option>
                         <option value="yes">Yes</option>
@@ -29,8 +29,34 @@
                     </select>
                 </div>
                 <div>
-                    <label for="cognitiveReflectionTask">A bat and a ball cost $1.10 in total. The bat costs $1.00 more than the ball. How much does the ball cost in cents?</label> <br>
-                    <input class="surveyInput" type="number" min="0" name="cognitiveReflectionTask" id="cognitiveReflectionTask" required>
+                    <label for="memory1">How often do you forget the names of people minutes after being introduced?</label> <br>
+                    <select name="memory1" id="memory1" class="surveyInput" required>
+                        <option value="" selected=""></option>>Please select</option>
+                        <option value="1">More than Once per day</option>
+                        <option value="2">2 to 6 times a week</option>
+                        <option value="3">A few times a month</option>
+                        <option value="4">A few times a year</option>
+                        <option value="5">Never</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="memory2">How often do you discover when you have gone out that you must return for something that you left behind?</label> <br>
+                    <select name="memory2" id="memory2" class="surveyInput" required>
+                        <option value="" selected=""></option>>Please select</option>
+                        <option value="1">More than Once per day</option>
+                        <option value="2">2 to 6 times a week</option>
+                        <option value="3">A few times a month</option>
+                        <option value="4">A few times a year</option>
+                        <option value="5">Never</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="cognitiveReflectionTask1">If it takes 5 machines 5 minutes to make 5 widgets, how many minutes would it take 100 machines to make 100 widgets? </label> <br>
+                    <input class="surveyInput" type="number" min="0" name="cognitiveReflectionTask1" id="cognitiveReflectionTask1" required>
+                </div>
+                <div>
+                    <label for="cognitiveReflectionTask2">Jerry received both the 15th highest and the 15th lowest mark in the class. How many students are in the class?</label> <br>
+                    <input class="surveyInput" type="number" min="0" name="cognitiveReflectionTask2" id="cognitiveReflectionTask2" required>
                 </div>
                 <div> <br>
                   <input class="preSurveySubmit" type="submit" value="Submit" id="preSurveySubmitButton">
@@ -49,24 +75,26 @@
             <div id="countdownDiv"></div>
         </div>
         <div id="outcomeDiv"></div>
-        <div id="postSurveyDiv">Post Survey <br><br>
+        <div id="postSurveyDiv"><b>Post Survey </b><br><br>
             <form onSubmit="return submitPostSurvey();" id="postSurveyForm">
                 <div>
                   <label for="dateOfBirth">What year were you born?</label> <br>
                   <input class="surveyNumber" type="number" min="1900" max="2018" name="dateOfBirth" id="dateOfBirth" required>
                 </div>
                 <div>
-                    <label for="gender">Gender:</label> <br>
-                    <select name="gender" id="gender" class="surveyInput" required>
-                        <option value="" selected=""></option>>Please select</option>
-                        <option value="female">Female</option>
-                        <option value="male">Male</option>
-                        <option value="other">Other</option>
-                    </select>
+                    <label for="yearsInCollege">How many years have you been a student at VCU?</label> <br>
+                    <input class="surveyNumber" type="number" min="0" max="20" name="yearsInCollege" id="yearsInCollege" required>
                 </div>
                 <div>
-                    <label for="yearsInCollege">How many years have you been at VCU?</label> <br>
-                    <input class="surveyNumber" type="number" min="0" max="20" name="yearsInCollege" id="yearsInCollege" required>
+                    <label for="employmentStatus">What is your employment status?</label> <br>
+                    <select name="employmentStatus" id="employmentStatus" class="surveyInput" required>
+                        <option value="" selected=""></option>>Please select</option>
+                        <option value="fullTime">Full Time</option>
+                        <option value="partTime">Part Time</option>
+                        <option value="unemployed">Unemployed</option>
+                        <option value="selfemployed">Self Employed</option>
+                        <option value="other">Other</option>
+                    </select>
                 </div>
                 <div>
                     <label for="major">Major:</label> <br>
@@ -105,17 +133,14 @@
                     </select>
                 </div>
                 <div>
-                    <label for="employmentStatus">What is your employment status?</label> <br>
-                    <select name="employmentStatus" id="employmentStatus" class="surveyInput" required>
+                    <label for="gender">Gender:</label> <br>
+                    <select name="gender" id="gender" class="surveyInput" required>
                         <option value="" selected=""></option>>Please select</option>
-                        <option value="fullTime">Full Time</option>
-                        <option value="partTime">Part Time</option>
-                        <option value="unemployed">Unemployed</option>
-                        <option value="selfemployed">Self Employed</option>
+                        <option value="female">Female</option>
+                        <option value="male">Male</option>
                         <option value="other">Other</option>
                     </select>
                 </div>
-                <div>
                 <div>
                     <label for="race">Race:</label> <br>
                     <select name="race" id="race" class="surveyInput" required>
