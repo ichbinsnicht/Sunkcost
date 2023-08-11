@@ -138,6 +138,16 @@ body {
     width: 40vh;
     font: 2.5vmin monospace;
 }
+#beginExperimentButton {
+    margin: 2vh;
+}
+#beginPracticePeriodsButton {
+    margin: 2vh;
+}
+.surveyQuestionDiv {
+    width: 150vh;
+    margin: auto;
+}
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
   -webkit-appearance: none;
