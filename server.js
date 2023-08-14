@@ -100,7 +100,10 @@ console.log("guestlist Links", linkList)
 // Reputational Concerns (Fear of Negative Evaluation):
 // Leary, M. R. (1983). A brief version of the Fear of Negative Evaluation Scale. Personality and social psychology bulletin, 9(3), 371-375.
 // Carleton, R. N., McCreary, D. R., Norton, P. J., & Asmundson, G. J. (2006). Brief fear of negative evaluation scale—revised. Depression and anxiety, 23(5), 297-303.
-
+//
+// Post Survey
+// - add question about post survey of not wasting when one has already invested money into a project?
+// --> this could be in the pre-survey as well but I am worried about priming and giving away the research project
 
 // Done
 // ------------------------------------------------------------------------------

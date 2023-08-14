@@ -89,14 +89,16 @@ var startPreSurveyTime = 0
 var endPreSurveyTime = 0
 
 var monetaryInstructionsString = `
-In this experiment, your earnings will depend on the decisions you make during the experiment.<br><br>
+In this experiment, your earnings will depend on the decisions you make.<br><br>
 
 You will start with $15. Depending on the decisions you make, you may win a $15 Starbucks gift card. This experiment has two stages: stage 1 and stage 2. In each stage, you will make a choice and receive a score and a multiplier, which will determine your earnings and your chance to win the $15 Starbucks gift card.<br><br>
 
 Stage 1:<br>
 <ul>
     <li> A random multiplier, called Multiplier 1, will be either $1 or $10. Both are equally likely.</li>
-    <li> You will choose a number between 0% and 50%, called Choice 1. You choose by moving your mouse.</li>
+    <li> You will choose a number between 0% and 50%, called Choice 1.</li>
+    <li> You can adjust choice 1 by moving your mouse. Choice 1 will be locked in at the end of stage 1.</li>
+    <li> Move your mouse to the right to increase choice 1. Move your mouse to the left to decrease choice 1.</li>
     <li> Score 1 will be either Choice 1 or a randomly selected number from 0% and 50%. Both are equally likely.</li>
     <li> Cost 1 will be calculated by multiplying Score 1 with Multiplier 1.</li>
 </ul>
@@ -104,8 +106,10 @@ Stage 1:<br>
 Stage 2:<br>
 <ul>
     <li> A random multiplier, called Multiplier 2, will be either $1 or $10. Both are equally likely.</li>
-    <li> You will choose a number between 0% and 50%, called Choice 2. You choose by moving your mouse.</li>
-    <li> Score 2 will always equal Choice B.</li>
+    <li> You will choose a number between 0% and 50%, called Choice 2.</li>
+    <li> You can adjust choice 2 by moving your mouse. Choice 2 will be locked in at the end of stage 2.</li>
+    <li> Move your mouse to the right to increase choice 2. Move your mouse to the left to decrease choice 2.</li>
+    <li> Score 2 will always equal Choice 2.</li>
     <li> Cost 2 will be calculated by multiplying Score 2 with Multiplier 2.</li>
 </ul>
 
@@ -113,14 +117,16 @@ Your earnings will be your initial $15 minus Cost 1 and Cost 2. Your probability
 
 
 var realEffortInstructionsString = `
-In this experiment, your earnings will depend on the decisions you make during the experiment.<br><br>
+In this experiment, your earnings will depend on the decisions you make.<br><br>
 
 You will start with $15. Depending on the decisions you make, you may win a $15 Starbucks gift card. This experiment has two stages: stage 1 and stage 2. In each stage, you will make a choice and receive a score and a multiplier, which will determine your chance to win the $15 Starbucks gift card.<br><br>
 
 Stage 1:<br>
 <ul>
     <li> A random multiplier, called Multiplier 1, will be either 200 characters or 2,000 characters. Both are equally likely.</li>
-    <li> You will choose a number between 0% and 50%, called Choice 1. You choose by moving your mouse.</li>
+    <li> You will choose a number between 0% and 50%, called Choice 1.</li>
+    <li> You can adjust choice 1 by moving your mouse. Choice 1 will be locked in at the end of stage 1.</li>
+    <li> Move your mouse to the right to increase choice 1. Move your mouse to the left to decrease choice 1.</li>
     <li> Score 1 will be either Choice 1 or a randomly selected number from 0% and 50%. Both are equally likely.</li>
     <li> Cost 1 will be calculated by multiplying Score 1 with Multiplier 1.</li>
     <li> You will type a number of characters equal to Cost 1.</li> 
@@ -129,7 +135,9 @@ Stage 1:<br>
 Stage 2:<br>
 <ul>
     <li> A random multiplier, called Multiplier 2, will be either 200 characters or 2,000 characters. Both are equally likely.</li>
-    <li> You will choose a number between 0% and 50%, called Choice 2. You choose by moving your mouse.</li>
+    <li> You will choose a number between 0% and 50%, called Choice 2.</li>
+    <li> You can adjust choice 2 by moving your mouse. Choice 2 will be locked in at the end of stage 2.</li>
+    <li> Move your mouse to the right to increase choice 2. Move your mouse to the left to decrease choice 2.</li>
     <li> Score 2 will always equal Choice 2.</li>
     <li> Cost 2 will be calculated by multiplying Score 2 with Multiplier 2.</li>
     <li> You will type a number of characters equal to Cost 2.</li>
