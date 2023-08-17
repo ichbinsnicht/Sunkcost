@@ -78,7 +78,7 @@ body {
 #instructionsTextDiv {
     display: block;
     text-align: justify;      
-    font: 2.4vmin monospace;    
+    font: 2vmin monospace;    
     border: 0;
     padding-top: 20;
     padding-left: 100;

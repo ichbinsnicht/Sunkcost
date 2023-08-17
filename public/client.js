@@ -88,10 +88,17 @@ var cost2Text = 10
 var startPreSurveyTime = 0
 var endPreSurveyTime = 0
 
+const imageStyle = `width:10%;height:10%;margin-left:auto;margin-right:auto;display:block;`
+const imageHTML = `<img src="GiftCard.png" style="${imageStyle}"/>`
+
 var monetaryInstructionsString = `
 In this experiment, your earnings will depend on the decisions you make.<br><br>
 
-You will start with $15. Depending on the decisions you make, you may win a $15 Starbucks gift card. This experiment has two stages: stage 1 and stage 2. In each stage, you will make a choice and receive a score and a multiplier, which will determine your earnings and your chance to win the $15 Starbucks gift card.<br><br>
+You will start with $15. Depending on the decisions you make, you may win a $15 Starbucks gift card. <br><br>
+
+${imageHTML} <br>
+
+This experiment has two stages: stage 1 and stage 2. In each stage, you will make a choice and receive a score and a multiplier, which will determine your earnings and your chance to win the $15 Starbucks gift card.<br><br>
 
 Stage 1:<br>
 <ul>
@@ -119,7 +126,11 @@ Your earnings will be your initial $15 minus Cost 1 and Cost 2. Your probability
 var realEffortInstructionsString = `
 In this experiment, your earnings will depend on the decisions you make.<br><br>
 
-You will start with $15. Depending on the decisions you make, you may win a $15 Starbucks gift card. This experiment has two stages: stage 1 and stage 2. In each stage, you will make a choice and receive a score and a multiplier, which will determine your chance to win the $15 Starbucks gift card.<br><br>
+You will start with $15. Depending on the decisions you make, you may win a $15 Starbucks gift card. <br><br>
+
+${imageHTML} <br><br>
+
+This experiment has two stages: stage 1 and stage 2. In each stage, you will make a choice and receive a score and a multiplier, which will determine your chance to win the $15 Starbucks gift card.<br><br>
 
 Stage 1:<br>
 <ul>
