@@ -32,9 +32,9 @@ var arange = x => [...Array(x).keys()]
 var choose = x => x[Math.floor(Math.random()*x.length)]
 
 // parameters
-const numPracticePeriods  = 1 // 5 practice periods
+const numPracticePeriods  = 5 // 5 practice periods
 const numPeriods  = 1    // 1 period, numPeriods > numPracticePeriods
-const practiceTypingLength = 25 // pilot: 25, realexperiment: 200 characters per minute
+const practiceTypingLength = 100 // pilot: 25, realexperiment: 200 characters per minute
 const step1Length = 15   // 15 secs choice1
 const step2Length = 15   // 15 secs feedback1
 const step3Length = 15  // 15 secs typingTask1
@@ -88,7 +88,6 @@ console.log("guestlist Links", linkList)
 // "DO SUNK COSTS MATTER?
 // R. PRESTON MCAFEE, HUGO M. MIALON, SUE H. MIALON"
 //
-// --> update audio
 //
 // TODO Real PILOT: one pilot subjects at VCU
 //

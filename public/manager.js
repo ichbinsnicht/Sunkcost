@@ -38,10 +38,8 @@ socket.on("serverUpdateManager", function(msg){
     typingPracticeAllComplete = msg.typingPracticeAllComplete
     practicePeriodsComplete = msg.practicePeriodsComplete
     experimentStarted = msg.experimentStarted
-    realEffort = msg.realEffort
+    realEffort =  realEffortCheckbox.checked
     audio = realEffort ? audioRealEffort : audioMonetary
-//    realEffortCheckbox.disabled = true
-//    realEffortCheckbox.checked = msg.realEffort
     var infoString = ""
     infoString += `${numSubjects} Subjects <br>`
     infoDiv.innerHTML = infoString

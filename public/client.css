@@ -159,7 +159,7 @@ input[type=number] {
 .surveyInput {
     text-align: center;
     margin: 2vh;
-    width: 40vh;
+    width: 50vh;
     font: 2.5vmin monospace;
 }
 .postSurveySubmit {
