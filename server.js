@@ -32,15 +32,15 @@ var arange = x => [...Array(x).keys()]
 var choose = x => x[Math.floor(Math.random()*x.length)]
 
 // parameters
-const numPracticePeriods  = 5 // 5 practice periods
+const numPracticePeriods  = 2 // 5 practice periods
 const numPeriods  = 1    // 1 period, numPeriods > numPracticePeriods
 const practiceTypingLength = 100 // pilot: 25, realexperiment: 200 characters per minute
-const step1Length = 15   // 15 secs choice1
-const step2Length = 15   // 15 secs feedback1
-const step3Length = 15  // 15 secs typingTask1
-const step4Length = 15   // 15 secs choice2
-const step5Length = 15   // 15 secs typingTask2 
-const step6Length = 15   // 15 secs feedback2 
+const step1Length = 3   // 15 secs choice1
+const step2Length = 3   // 15 secs feedback1
+const step3Length = 3  // 15 secs typingTask1
+const step4Length = 3   // 15 secs choice2
+const step5Length = 3   // 15 secs typingTask2 
+const step6Length = 3   // 15 secs feedback2 
 const endowment = 15
 const multiplier1Low = 1    // marginal cost of the score in period 1
 const multiplier1High = 10  // marginal cost of the score in period 1
@@ -84,6 +84,7 @@ console.log("guestlist Links", linkList)
  
 // TODO EXPERIMENT
 // - issue with last line of outcome draw: "Period 1 was randomly selected"
+// - issue: I selected zero in real experiment choice 1 and did not get zero and still did not have to type anything
 // - test on VCU computers
 //
 // Should we store the time for real typing task? 
@@ -144,7 +145,7 @@ console.log("guestlist Links", linkList)
 // Reputational Concerns (Fear of Negative Evaluation):
 // Leary, M. R. (1983). A brief version of the Fear of Negative Evaluation Scale. Personality and social psychology bulletin, 9(3), 371-375.
 // Carleton, R. N., McCreary, D. R., Norton, P. J., & Asmundson, G. J. (2006). Brief fear of negative evaluation scale—revised. Depression and anxiety, 23(5), 297-303.
-/
+
 
 app.use(express.static(__dirname + "/public"))
 app.get("/client:id",function(req,res){

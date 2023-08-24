@@ -335,7 +335,7 @@ const update = function(){
         interfaceDiv.style.display = "none"
         outcomeDiv.style.display = "block"
         const line1 = "The experiment is complete"
-        const line2 = `Period ${outcomePeriod} was randomly selected`
+        //const line2 = `Period ${outcomePeriod} was randomly selected`
         const line3A = "You won the $15 Starbucks gift card"
         const line3B = "You did not win the $15 Starbucks gift card"
         const line3 = winPrize == 1 ? line3A : line3B
@@ -345,7 +345,7 @@ const update = function(){
         const line5 = "Please wait while your payment is prepared"
         outcomeDiv.innerHTML = ""
         outcomeDiv.innerHTML += line1 + "<br><br>"
-        outcomeDiv.innerHTML += line2 + "<br>"
+        //outcomeDiv.innerHTML += line2 + "<br>"
         outcomeDiv.innerHTML += line3 + "<br>"
         outcomeDiv.innerHTML += line4 + "<br><br>"
         outcomeDiv.innerHTML += line5
