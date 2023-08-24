@@ -102,8 +102,7 @@ Stage 1:<br>
 <ul>
     <li> A random multiplier, called Multiplier 1, will be either $1 or $10. Both are equally likely.</li>
     <li> You will choose a number between 0% and 50%, called Choice 1.</li>
-    <li> You can adjust Choice 1 by moving your mouse. Choice 1 will be locked in at the end of Stage 1.</li>
-    <li> Move your mouse to the right to increase Choice 1. Move your mouse to the left to decrease Choice 1.</li>
+    <li> You can adjust Choice 1 by moving your mouse left or right. Choice 1 will be locked in at the end of Stage 1.</li>
     <li> Score 1 will be either Choice 1 or a randomly selected number from 0% to 50%. Both are equally likely.</li>
     <li> Cost 1 will be calculated by multiplying Score 1 with Multiplier 1.</li>
 </ul>
@@ -112,8 +111,7 @@ Stage 2:<br>
 <ul>
     <li> A random multiplier, called Multiplier 2, will be either $1 or $10. Both are equally likely.</li>
     <li> You will choose a number between 0% and 50%, called Choice 2.</li>
-    <li> You can adjust Choice 2 by moving your mouse. Choice 2 will be locked in at the end of Stage 2.</li>
-    <li> Move your mouse to the right to increase Choice 2. Move your mouse to the left to decrease Choice 2.</li>
+    <li> You can adjust Choice 2 by moving your mouse left or right. Choice 2 will be locked in at the end of Stage 2.</li>
     <li> Score 2 will always equal Choice 2.</li>
     <li> Cost 2 will be calculated by multiplying Score 2 with Multiplier 2.</li>
 </ul>
@@ -132,8 +130,7 @@ Stage 1:<br>
 <ul>
     <li> A random multiplier, called Multiplier 1, will be either 200 letters or 2,000 letters. Both are equally likely.</li>
     <li> You will choose a number between 0% and 50%, called Choice 1.</li>
-    <li> You can adjust Choice 1 by moving your mouse. Choice 1 will be locked in at the end of Stage 1.</li>
-    <li> Move your mouse to the right to increase Choice 1. Move your mouse to the left to decrease Choice 1.</li>
+    <li> You can adjust Choice 1 by moving your mouse left or right. Choice 1 will be locked in at the end of Stage 1.</li>
     <li> Score 1 will be either Choice 1 or a randomly selected number from 0% to 50%. Both are equally likely.</li>
     <li> Cost 1 will be calculated by multiplying Score 1 with Multiplier 1.</li>
     <li> You will type a number of letters equal to Cost 1.</li> 
@@ -143,8 +140,7 @@ Stage 2:<br>
 <ul>
     <li> A random multiplier, called Multiplier 2, will be either 200 letters or 2,000 letters. Both are equally likely.</li>
     <li> You will choose a number between 0% and 50%, called Choice 2.</li>
-    <li> You can adjust Choice 2 by moving your mouse. Choice 2 will be locked in at the end of Stage 2.</li>
-    <li> Move your mouse to the right to increase Choice 2. Move your mouse to the left to decrease Choice 2.</li>
+    <li> You can adjust Choice 2 by moving your mouse left or right. Choice 2 will be locked in at the end of Stage 2.</li>
     <li> Score 2 will always equal Choice 2.</li>
     <li> Cost 2 will be calculated by multiplying Score 2 with Multiplier 2.</li>
     <li> You will type a number of letters equal to Cost 2.</li>
