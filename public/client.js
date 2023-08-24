@@ -577,7 +577,7 @@ const drawBottom = function(){
         var line3A = `You would have had to type ${((cost[1]+cost[2])*cost2Text).toFixed(0)} letters.`
         var line3B = `Your total cost would have been $${(cost[1]+cost[2]).toFixed(2)}`
         var line3 = realEffort ? line3A : line3B
-        var line4A = `Your endowment would have been $${endowment.toFixed(2)}`
+        var line4A = `Your earnings would have been $${endowment.toFixed(2)}`
         var line4B = `Your earnings would have been $${earnings.toFixed(2)}`
         var line4 = realEffort ? line4A : line4B
         if(experimentStarted){
@@ -586,7 +586,7 @@ const drawBottom = function(){
             var line3A = `You had to type ${((cost[1]+cost[2])*cost2Text).toFixed(0)} letters.`
             var line3B = `Your total cost was $${(cost[1]+cost[2]).toFixed(2)}`
             var line3 = realEffort ? line3A : line3B
-            var line4A = `Your endowment is $${endowment.toFixed(2)}`
+            var line4A = `Your earnings is $${endowment.toFixed(2)}`
             var line4B = `Your earnings are $${earnings.toFixed(2)}`
             var line4 = realEffort ? line4A : line4B      
         }
@@ -747,7 +747,7 @@ const drawOutcome = function(){
     context.font = feedbackFont
     context.lineWidth = 0.25
     const line1 = "The experiment is complete"
-    const line2 = `Period ${outcomePeriod} was randomly selected`
+    //const line2 = `Period ${outcomePeriod} was randomly selected`
     const line3A = "You won the $15 Starbucks gift card"
     const line3B = "You did not win the $15 Starbucks gift card"
     const line3 = winPrize == 1 ? line3A : line3B
@@ -756,7 +756,7 @@ const drawOutcome = function(){
     const line4 = realEffort ? line4A : line4B 
     const line5 = "Please wait while your payment is prepared"
     context.fillText(line1,graphX+0.5*graphWidth,lineY1+14)
-    context.fillText(line2,graphX+0.5*graphWidth,lineY1+22)
+    //context.fillText(line2,graphX+0.5*graphWidth,lineY1+22)
     context.fillText(line3,graphX+0.5*graphWidth,lineY1+42)
     context.fillText(line4,graphX+0.5*graphWidth,lineY1+50)
     context.fillText(line5,graphX+0.5*graphWidth,lineY1+58)

@@ -83,25 +83,13 @@ const linkList = guestList.map(guest => {
 console.log("guestlist Links", linkList)
  
 // TODO EXPERIMENT
+// - issue with last line of outcome draw: "Period 1 was randomly selected"
+// - test on VCU computers
+//
 // Should we store the time for real typing task? 
 // Discussion section: explanations for treatment effect: motivation, responsibility - ownership
 //
-// --> presurvey questions on informational content, reputational concerns, or financial and time constraints
-// reputational concern
-// "DO SUNK COSTS MATTER?
-// R. PRESTON MCAFEE, HUGO M. MIALON, SUE H. MIALON"
-//
-// TODO Real PILOT: one pilot subjects at VCU
-//
-// Pre-Survey Questions
-// Memory: https://www.slackbooks.com/content/42490/42490_2P.pdf
-// Idea based on paper from Baliga, Sandeep, and Jeffrey C. Ely. 2011. "Mnemonomics: The Sunk Cost Fallacy as a Memory Kludge." American Economic Journal: Microeconomics, 3 (4): 35-67.
-// Cognitive Reflection: Toplak, M. E., West, R. F., & Stanovich, K. E. (2014). Assessing miserly information processing: An expansion of the Cognitive Reflection Test. Thinking & reasoning, 20(2), 147-168.
-//
-// Reputational Concerns (Fear of Negative Evaluation):
-// Leary, M. R. (1983). A brief version of the Fear of Negative Evaluation Scale. Personality and social psychology bulletin, 9(3), 371-375.
-// Carleton, R. N., McCreary, D. R., Norton, P. J., & Asmundson, G. J. (2006). Brief fear of negative evaluation scale—revised. Depression and anxiety, 23(5), 297-303.
-//
+/
 // Done
 // ------------------------------------------------------------------------------
 // - Web deployment for piloting: https://sunkcost.onrender.com
@@ -141,6 +129,22 @@ console.log("guestlist Links", linkList)
 // --> this could be in the pre-survey as well but I am worried about priming and giving away the research project
 // --> conclusion: No - not distinct from our choice-based measure!
 //
+// --> presurvey questions on informational content, reputational concerns, or financial and time constraints
+// reputational concern
+// "DO SUNK COSTS MATTER?
+// R. PRESTON MCAFEE, HUGO M. MIALON, SUE H. MIALON"
+//
+// TODO Real PILOT: one pilot subjects at VCU
+//
+// Pre-Survey Questions
+// Memory: https://www.slackbooks.com/content/42490/42490_2P.pdf
+// Idea based on paper from Baliga, Sandeep, and Jeffrey C. Ely. 2011. "Mnemonomics: The Sunk Cost Fallacy as a Memory Kludge." American Economic Journal: Microeconomics, 3 (4): 35-67.
+// Cognitive Reflection: Toplak, M. E., West, R. F., & Stanovich, K. E. (2014). Assessing miserly information processing: An expansion of the Cognitive Reflection Test. Thinking & reasoning, 20(2), 147-168.
+//
+// Reputational Concerns (Fear of Negative Evaluation):
+// Leary, M. R. (1983). A brief version of the Fear of Negative Evaluation Scale. Personality and social psychology bulletin, 9(3), 371-375.
+// Carleton, R. N., McCreary, D. R., Norton, P. J., & Asmundson, G. J. (2006). Brief fear of negative evaluation scale—revised. Depression and anxiety, 23(5), 297-303.
+/
 
 app.use(express.static(__dirname + "/public"))
 app.get("/client:id",function(req,res){
