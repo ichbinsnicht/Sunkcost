@@ -92,9 +92,7 @@ const imageStyle = `width:10%;height:10%;margin-left:auto;margin-right:auto;disp
 const imageHTML = `<img src="GiftCard.png" style="${imageStyle}"/>`
 
 var monetaryInstructionsString = `
-In this experiment, your earnings will depend on the decisions you make.<br><br>
-
-You will start with $15. Depending on the decisions you make, you may win a $15 Starbucks gift card. <br><br>
+In this experiment you will start with $15. Depending on the decisions you make, you may win a $15 Starbucks gift card. <br><br>
 
 ${imageHTML} <br>
 
@@ -124,9 +122,7 @@ Your earnings will be your initial $15 minus Cost 1 and Cost 2. Your probability
 
 
 var realEffortInstructionsString = `
-In this experiment, your earnings will depend on the decisions you make.<br><br>
-
-You will start with $15. Depending on the decisions you make, you may win a $15 Starbucks gift card. <br><br>
+In this experiment you will start with $15. Depending on the decisions you make, you may win a $15 Starbucks gift card. <br><br>
 
 ${imageHTML} <br>
 
