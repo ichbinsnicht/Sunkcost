@@ -15,7 +15,6 @@ var typingDiv = document.getElementById("typingDiv")
 var typingHeader = document.getElementById("typingHeader")
 var targetTextbox = document.getElementById("targetTextbox")
 var countdownDiv = document.getElementById("countdownDiv")
-var outcomeDiv = document.getElementById("outcomeDiv")
 var idInput = document.getElementById("idInput")
 var canvas = document.getElementById("canvas")
 
@@ -63,7 +62,6 @@ var stage = 1
 var typingPracticeComplete = false
 var experimentStarted = false
 var practicePeriodsComplete = false
-var experimentComplete = false
 var numPracticePeriods = 0
 var choice = {1:0,2:0}
 var score = {1:0,2:0}
@@ -240,7 +238,6 @@ socket.on("serverUpdateClient", function(msg){
     experimentStarted = msg.experimentStarted
     typingPracticeComplete = msg.typingPracticeComplete
     practicePeriodsComplete = msg.practicePeriodsComplete
-    experimentComplete = msg.experimentComplete
     numPracticePeriods = msg.numPracticePeriods
     countdown = msg.countdown
     period = msg.period
@@ -285,7 +282,6 @@ const update = function(){
     pleaseWaitDiv.style.display = "none"
     preSurveyDiv.style.display = "none"
     interfaceDiv.style.display = "none"
-    outcomeDiv.style.display = "none" 
     typingDiv.style.display = "none"
     postSurveyDiv.style.display = "none"
 
@@ -332,23 +328,7 @@ const update = function(){
         postSurveyDiv.style.display = "block"
     }
     if(joined&&state=="experimentComplete"){
-        interfaceDiv.style.display = "none"
-        outcomeDiv.style.display = "block"
-        const line1 = "The experiment is complete"
-        //const line2 = `Period ${outcomePeriod} was randomly selected`
-        const line3A = "You won the $15 Starbucks gift card"
-        const line3B = "You did not win the $15 Starbucks gift card"
-        const line3 = winPrize == 1 ? line3A : line3B
-        const line4A = `You earned $${endowment.toFixed(2)}`
-        const line4B = `You earned $${earnings.toFixed(2)}`
-        const line4 = realEffort ? line4A : line4B
-        const line5 = "Please wait while your payment is prepared"
-        outcomeDiv.innerHTML = ""
-        outcomeDiv.innerHTML += line1 + "<br><br>"
-        //outcomeDiv.innerHTML += line2 + "<br>"
-        outcomeDiv.innerHTML += line3 + "<br>"
-        outcomeDiv.innerHTML += line4 + "<br><br>"
-        outcomeDiv.innerHTML += line5
+        interfaceDiv.style.display = "block"
     }
 }
 
@@ -382,8 +362,8 @@ const draw = function(){
     requestAnimationFrame(draw)
     setupCanvas()
     context.clearRect(0,0,canvas.width,canvas.height)   
-    if(state=="interface") drawInterface() 
-    if(experimentComplete) drawOutcome()
+    if(joined&&state=="interface") drawInterface() 
+    if(joined&&state=="experimentComplete") drawOutcome()
 }
 const setupCanvas = function(){
     xScale = 1*window.innerWidth
@@ -757,8 +737,8 @@ const drawOutcome = function(){
     const line5 = "Please wait while your payment is prepared"
     context.fillText(line1,graphX+0.5*graphWidth,lineY1+14)
     //context.fillText(line2,graphX+0.5*graphWidth,lineY1+22)
-    context.fillText(line3,graphX+0.5*graphWidth,lineY1+42)
-    context.fillText(line4,graphX+0.5*graphWidth,lineY1+50)
-    context.fillText(line5,graphX+0.5*graphWidth,lineY1+58)
+    context.fillText(line3,graphX+0.5*graphWidth,lineY1+32)
+    context.fillText(line4,graphX+0.5*graphWidth,lineY1+40)
+    context.fillText(line5,graphX+0.5*graphWidth,lineY1+48)
 }
 draw()

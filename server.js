@@ -32,15 +32,16 @@ var arange = x => [...Array(x).keys()]
 var choose = x => x[Math.floor(Math.random()*x.length)]
 
 // parameters
-const numPracticePeriods  = 2 // 5 practice periods
+const numPracticePeriods  = 5 // 5 practice periods
 const numPeriods  = 1    // 1 period, numPeriods > numPracticePeriods
-const practiceTypingLength = 100 // pilot: 25, realexperiment: 200 characters per minute
-const step1Length = 3   // 15 secs choice1
-const step2Length = 3   // 15 secs feedback1
-const step3Length = 3  // 15 secs typingTask1
-const step4Length = 3   // 15 secs choice2
-const step5Length = 3   // 15 secs typingTask2 
-const step6Length = 3   // 15 secs feedback2 
+const practiceTypingLength = 100 // pilot: 25, realexperiment: 100 characters per minute
+const step1Length = 15   // 15 secs choice1
+const step2Length = 15   // 15 secs feedback1
+const step3Length = 15  // 15 secs typingTask1
+const step4Length = 15   // 15 secs choice2
+const step5Length = 15   // 15 secs typingTask2 
+const step6Length = 15   // 15 secs feedback2 
+const zeroTypingWait = 2 // 
 const endowment = 15
 const multiplier1Low = 1    // marginal cost of the score in period 1
 const multiplier1High = 10  // marginal cost of the score in period 1
@@ -83,14 +84,8 @@ const linkList = guestList.map(guest => {
 console.log("guestlist Links", linkList)
  
 // TODO EXPERIMENT
-// - issue with last line of outcome draw: "Period 1 was randomly selected"
-// - issue: I selected zero in real experiment choice 1 and did not get zero and still did not have to type anything
 // - test on VCU computers
 //
-// Should we store the time for real typing task? 
-// Discussion section: explanations for treatment effect: motivation, responsibility - ownership
-//
-/
 // Done
 // ------------------------------------------------------------------------------
 // - Web deployment for piloting: https://sunkcost.onrender.com
@@ -322,7 +317,6 @@ io.on("connection",function(socket){
         state: subject.state,
         experimentStarted: subject.experimentStarted, 
         practicePeriodsComplete: subject.practicePeriodsComplete,
-        experimentComplete: subject.experimentComplete,
         numPracticePeriods,
         typingTarget: subject.typingPracticeComplete ? subject.typingTarget : practiceTypingTarget,
         endowment,
@@ -395,7 +389,6 @@ const createSubject = function(id, socket){
     typingPracticeComplete: false,
     practiceTypingDuration: 0,
     experimentStarted: false,
-    experimentComplete: false,
     practicePeriodsComplete: false,
     typingTarget: "",
     typingProgress: 0,
@@ -450,7 +443,7 @@ const update = function(subject){ //add presurvey
         const currentCost = subject.hist[subject.period].cost[subject.stage]
         const currentLength = Math.round(currentCost*cost2Text)
         subject.typingTarget = genRandomString(currentLength)
-        subject.countdown = step3Length
+        subject.countdown = subject.experimentStarted ? zeroTypingWait : step3Length 
         subject.step = 3
         console.log("subject.step", subject.id, subject.step)
       } else {
@@ -461,7 +454,7 @@ const update = function(subject){ //add presurvey
     }    
     if(subject.step == 3) { // end subject.step3 typingTask1 
       var practiceTimerComplete = !subject.experimentStarted && subject.countdown <= 0
-      var typingComplete = subject.experimentStarted && subject.typingProgress==subject.typingTarget.length
+      var typingComplete = subject.experimentStarted && subject.typingProgress==subject.typingTarget.length && subject.countdown <= 0
       if(typingComplete || practiceTimerComplete){
         subject.countdown = step4Length
         subject.step = 4
@@ -474,7 +467,7 @@ const update = function(subject){ //add presurvey
         const currentCost = subject.hist[subject.period].cost[subject.stage]
         const currentLength = Math.round(currentCost*cost2Text)
         subject.typingTarget = genRandomString(currentLength)
-        subject.countdown = step5Length
+        subject.countdown = subject.experimentStarted ? zeroTypingWait : step5Length
         subject.step = 5 
         console.log("subject.step", subject.id, subject.step)
       } else {
@@ -485,7 +478,7 @@ const update = function(subject){ //add presurvey
     }
     if(subject.step == 5) { // end subject.step5 typingTask2 
       var feedbackComplete = !subject.experimentStarted && subject.countdown <= 0
-      var typingComplete = subject.experimentStarted && subject.typingProgress==subject.typingTarget.length
+      var typingComplete = subject.experimentStarted && subject.typingProgress==subject.typingTarget.length && subject.countdown <= 0
       if(typingComplete || feedbackComplete){
         subject.countdown = step6Length
         subject.step = 6
@@ -502,7 +495,6 @@ const update = function(subject){ //add presurvey
           console.log("subject.step", subject.id, subject.step)
           writePaymentFile(subject)
           subject.dataStream.end()
-          subject.experimentComplete = true
           subject.state = "postSurvey"
           console.log("Experiment for Subject", subject.id, "Complete")
         } else{
