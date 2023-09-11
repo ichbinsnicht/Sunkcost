@@ -21,6 +21,7 @@ var canvas = document.getElementById("canvas")
 var context = canvas.getContext("2d")
 
 // graphical parameters
+const remoteVersion = false
 const yMax = 10
 const graphWidth = 70
 const graphX = 0.5*(100-graphWidth)
@@ -29,7 +30,7 @@ const graphY = -22
 const lineY1 = -90
 const lineY2 = -65
 const tickFont = "1.5pt monospace"
-const labelFont = "2pt monospace"
+const labelFont = "1.5pt monospace"
 const feedbackFont = "3pt monospace"
 const titleFont = "3pt monospace"
 const fullRange = true
@@ -43,7 +44,7 @@ const blue = "rgb(0,50,256)"
 // variables
 var realEffort = false
 var state   = "startup"
-var id      = null
+var id      = 0
 var numPeriods = 0
 var joined  = false
 var xScale  = 1
@@ -86,7 +87,7 @@ var cost2Text = 10
 var startPreSurveyTime = 0
 var endPreSurveyTime = 0
 
-const imageStyle = `width:10%;height:10%;margin-left:auto;margin-right:auto;display:block;`
+const imageStyle = `width:14.2vh;height:9vh;margin-left:auto;margin-right:auto;display:block;`
 const imageHTML = `<img src="GiftCard.png" style="${imageStyle}"/>`
 
 var monetaryInstructionsString = `
@@ -153,10 +154,15 @@ var arange = n => [...Array(n).keys()]
 
 joinGame()
 function joinGame(){
-    id = document.location.pathname.substring(7)
-    if(id){
-        console.log("id:",id)
-        console.log(`joinGame`)
+    if(remoteVersion) {
+        id = document.location.pathname.substring(7)
+        if(id){
+            console.log("id:",id)
+            console.log(`joinGame`)
+            msg = {id}
+            socket.emit("joinGame",msg)
+        }
+    }else{
         msg = {id}
         socket.emit("joinGame",msg)
     }
@@ -205,6 +211,7 @@ socket.on("connected", function(msg){
 socket.on("clientJoined",function(msg){
     console.log(`client ${msg.id} joined`)
     joined = true 
+    if(!remoteVersion) id = msg.id
     period = msg.period
     hist = msg.hist
     choice = hist[period].choice
@@ -291,15 +298,15 @@ const update = function(){
     countdownDiv.innerHTML = ""
     if(joined&&showTyping){
         typingDiv.style.display = "block"
-        typingHeader.innerHTML = `Please type the following ${typingTarget.length} letters on your keyboard:`
+        typingHeader.innerHTML = `Please type the following ${typingTarget.length} letters:`
         if(typingPracticeComplete&&!experimentStarted){
-            typingHeader.innerHTML = `This is a practice period. <br>
-                                      If you were in the real period, these are the letters you would type.`
+            typingHeader.innerHTML = `This is a practice period. <br><br>
+                                      In the real period, you would type the following ${typingTarget.length} letters:`
             countdownDiv.innerHTML = `Countdown: ${countdown}`
             console.log("typingProgress",typingProgress)
         }
         if(experimentStarted){
-            typingHeader.innerHTML = `Please type the following ${typingTarget.length} letters on your keyboard:`
+            typingHeader.innerHTML = `Please type the following ${typingTarget.length} letters:`
             console.log("typingProgress",typingProgress)            
         }
         completeText = typingTarget.slice(0,typingProgress)
@@ -366,8 +373,8 @@ const draw = function(){
     if(joined&&state=="experimentComplete") drawOutcome()
 }
 const setupCanvas = function(){
-    xScale = 1*window.innerWidth
-    yScale = 1*window.innerHeight                                  
+    xScale = 1.33*window.innerHeight
+    yScale = 1*window.innerHeight                                 
     canvas.width = xScale
     canvas.height = yScale
     var xTranslate = xScale/2 - yScale/2 - .1*xScale
@@ -377,9 +384,10 @@ const setupCanvas = function(){
 const updateChoice = function(){
     const x0 = canvas.width/2-canvas.height/2 - .1*canvas.width
     const y0 = canvas.height
-    mouseX = (mouseEvent.pageX-x0)*100/canvas.height
+    const canvasRect = canvas.getBoundingClientRect()
+    mouseX = (mouseEvent.pageX-x0-canvasRect.left)*100/canvas.height
     mouseY = (y0 - mouseEvent.pageY)*100/canvas.height
-    const mouseGraphX = (mouseX - graphX)/graphWidth 
+    const mouseGraphX = (mouseX-graphX)/graphWidth 
     if(step==1 || step==4){
         choice[stage] = Math.round(0.5*Math.max(0,Math.min(1,mouseGraphX))*100)/100
         score[stage] = forced[stage]*forcedScore[stage] + (1-forced[stage])*choice[stage]
@@ -553,7 +561,7 @@ const drawBottom = function(){
     context.textBaseline = "top"
     if(step==6){
         var line1 = "This was a practice period"
-        var line2 = `Chance of winning the $15 Starbucks gift card: ${((score[1]+score[2])*100).toFixed(0)}%`
+        var line2 = `Chance of winning the $15 gift card: ${((score[1]+score[2])*100).toFixed(0)}%`
         var line3A = `You would have had to type ${((cost[1]+cost[2])*cost2Text).toFixed(0)} letters.`
         var line3B = `Your total cost would have been $${(cost[1]+cost[2]).toFixed(2)}`
         var line3 = realEffort ? line3A : line3B
@@ -562,18 +570,18 @@ const drawBottom = function(){
         var line4 = realEffort ? line4A : line4B
         if(experimentStarted){
             var line1 = ""
-            var line2 = `Chance of winning the $15 Starbucks gift card: ${((score[1]+score[2])*100).toFixed(0)}%`
+            var line2 = `Chance of winning the $15 gift card: ${((score[1]+score[2])*100).toFixed(0)}%`
             var line3A = `You had to type ${((cost[1]+cost[2])*cost2Text).toFixed(0)} letters.`
             var line3B = `Your total cost was $${(cost[1]+cost[2]).toFixed(2)}`
             var line3 = realEffort ? line3A : line3B
-            var line4A = `Your earnings is $${endowment.toFixed(2)}`
+            var line4A = `Your earnings are $${endowment.toFixed(2)}`
             var line4B = `Your earnings are $${earnings.toFixed(2)}`
             var line4 = realEffort ? line4A : line4B      
         }
-        context.fillText(line1,graphX+graphWidth+10,lineY2+21) 
-        context.fillText(line2,graphX+graphWidth+10,lineY2+29) 
-        context.fillText(line3,graphX+graphWidth+10,lineY2+33) 
-        context.fillText(line4,graphX+graphWidth+10,lineY2+37) 
+        context.fillText(line1,graphX+graphWidth+0,lineY2+21) 
+        context.fillText(line2,graphX+graphWidth+0,lineY2+29) 
+        context.fillText(line3,graphX+graphWidth+0,lineY2+33) 
+        context.fillText(line4,graphX+graphWidth+0,lineY2+37) 
         context.textAlign = "center"         
         context.fillStyle = "green"
         const lineComplete = `Stage 2 Complete`

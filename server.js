@@ -32,15 +32,16 @@ var arange = x => [...Array(x).keys()]
 var choose = x => x[Math.floor(Math.random()*x.length)]
 
 // parameters
-const numPracticePeriods  = 5 // 5 practice periods
+const remoteVersion = false // false - lab, true - online
+const numPracticePeriods  = 1 // 5 practice periods
 const numPeriods  = 1    // 1 period, numPeriods > numPracticePeriods
-const practiceTypingLength = 100 // pilot: 25, realexperiment: 100 characters per minute
+const practiceTypingLength = 1 // pilot: 25, realexperiment: 100 characters per minute
 const step1Length = 15   // 15 secs choice1
-const step2Length = 15   // 15 secs feedback1
-const step3Length = 15  // 15 secs typingTask1
+const step2Length = 5   // 5 secs feedback1
+const step3Length = 10  // 10 secs typingTask1
 const step4Length = 15   // 15 secs choice2
-const step5Length = 15   // 15 secs typingTask2 
-const step6Length = 15   // 15 secs feedback2 
+const step5Length = 10   // 10 secs typingTask2 
+const step6Length = 10   // 10 secs feedback2 
 const zeroTypingWait = 2 // 
 const endowment = 15
 const multiplier1Low = 1    // marginal cost of the score in period 1
@@ -71,8 +72,6 @@ const guestList = process.env.RENDER
     return (i).toString()
   })
 
-console.log("guestList:", guestList)
-
 seedrandom(randomSeed, {global: true})
 
 const linkList = guestList.map(guest => {
@@ -81,7 +80,7 @@ const linkList = guestList.map(guest => {
     : "http://localhost:3000/client"+guest
 
 })
-console.log("guestlist Links", linkList)
+if(remoteVersion) console.log("guestlist Links", linkList)
  
 // TODO EXPERIMENT
 // - test on VCU computers
@@ -143,12 +142,19 @@ console.log("guestlist Links", linkList)
 
 
 app.use(express.static(__dirname + "/public"))
-app.get("/client:id",function(req,res){
-  res.sendFile(__dirname + "/public/client.html")
-})
+
 app.get("/manager",function(req,res){ 
   res.sendFile(__dirname + "/public/manager.html")
 })
+if(remoteVersion){
+  app.get("/client:id",function(req,res){
+    res.sendFile(__dirname + "/public/client.html")
+  })
+}else{
+  app.get("/",function(req,res){
+    res.sendFile(__dirname + "/public/client.html")
+  })
+}
 
 function genRandomString(length){
   var numbers = Array.from(Array(26)).map((e,i) => i )
@@ -181,7 +187,7 @@ const writePreSurveyFile = function(msg){
   var logError = (ERR) => { if(ERR) console.log(ERR)}
   const fileName = `${dateString}-preSurvey-${msg.id}.csv`
   fs.writeFile(`data/${fileName}`,csvString,logError)
-  uploadFiles([fileName])
+  if(remoteVersion) uploadFiles([fileName])
 }
 // within-period data
 const createDataFile = function(subject){
@@ -213,7 +219,7 @@ const writePostSurveyFile = function(msg){
   var logError = (ERR) => { if(ERR) console.log(ERR)}
   const fileName = `${dateString}-postSurvey-${msg.id}.csv`
   fs.writeFile(`data/${fileName}`,csvString,logError)
-  uploadFiles([fileName,`${dateString}-data-${msg.id}.csv`])
+  if(remoteVersion) uploadFiles([fileName,`${dateString}-data-${msg.id}.csv`])
 }
 const writePaymentFile = function(subject){
   var csvString = "id,earnings,winPrize\n"
@@ -222,11 +228,30 @@ const writePaymentFile = function(subject){
   var logError = (ERR) => { if(ERR) console.log(ERR)}
   const fileName = `${dateString}-payment-${subject.id}.csv`
   fs.writeFile(`data/${fileName}`,csvString,logError)
-  uploadFiles([fileName])
+  if(remoteVersion) uploadFiles([fileName])
 }
 
 io.on("connection",function(socket){
   socket.emit("connected")
+  if(remoteVersion){
+    socket.on("joinGame", function(msg){  
+      if(guestList.includes(msg.id)){
+        console.log("joinGame",msg.id)
+        if(!subjects[msg.id]) createSubject(msg.id,socket) // restart client: client joins but server has record
+        socket.emit("clientJoined",{id: msg.id, hist: subjects[msg.id].hist, period: subjects[msg.id].period})
+        console.log("Object.keys(subjects)", Object.keys(subjects))
+      }
+    })
+  }else{
+    socket.on("joinGame", function(msg){
+      console.log("msg",msg)
+      const id = msg.id == 0 ? Object.values(subjects).length + 1 : msg.id 
+      console.log("joinGame",id)
+      if(!subjects[id]) createSubject(id,socket) // restart client: client joins but server has record
+      socket.emit("clientJoined",{id: id, hist: subjects[id].hist, period: subjects[id].period})
+      console.log("Object.keys(subjects)", Object.keys(subjects))
+    })
+  }
   socket.on("preSurvey", function(msg){
     if(subject.state == "startup") subject.state = "preSurvey"
   })
@@ -334,18 +359,10 @@ io.on("connection",function(socket){
       } 
       socket.emit("serverUpdateClient",reply)
     } else { // restart server: solving issue that client does not know that
-      if(!subject && guestList.includes(msg.id)) {
+      if(!subject && guestList.includes(msg.id) && remoteVersion) {
         createSubject(msg.id,socket)
         socket.emit("clientJoined",{id: msg.id})
       }
-    }
-  })
-  socket.on("joinGame", function(msg){  
-    if(guestList.includes(msg.id)){
-      console.log("joinGame",msg.id)
-      if(!subjects[msg.id]) createSubject(msg.id,socket) // restart client: client joins but server has record
-      socket.emit("clientJoined",{id: msg.id, hist: subjects[msg.id].hist, period: subjects[msg.id].period})
-      console.log("Object.keys(subjects)", Object.keys(subjects))
     }
   })
 })
