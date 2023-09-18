@@ -8,95 +8,102 @@
         <div id="pleaseWaitDiv">Please Wait</div>
         <div id="preSurveyDiv"><b>Pre Survey</b><br><br>
             <form onSubmit="return submitPreSurvey();" id="preSurveyForm">
-                <div class="surveyQuestionDiv">
-                  <label for="typingExperience">How many hours do you typically spend typing on a daily basis?</label> <br>
-                  <input class="surveyNumber" type="number" min="0" max="24" name="typingExperience" id="typingExperience" required>
+                <div id="preSurveyDivPage1">
+                    <div class="surveyQuestionDiv">
+                    <label for="typingExperience">How many hours do you typically spend typing on a daily basis?</label> <br>
+                    <input class="surveyNumber" type="number" min="0" max="24" name="typingExperience" id="typingExperience" required>
+                    </div>
+                    <div class="surveyQuestionDiv">
+                        <label for="risk">In comparison with others, are you a person who is generally willing to take risks?</label> <br>
+                        <select name="risk" id="risk" class="surveyInput" required>
+                            <option value="" selected=""></option>>Please select</option>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                    </div>
+                    <div class="surveyQuestionDiv">
+                        <label for="time">In comparison with others, are you a person who is generally willing to give up something today in order to benefit in the future?</label> <br>
+                        <select name="time" id="time" class="surveyInput" required>
+                            <option value="" selected=""></option>>Please select</option>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                    </div>
+                    <div class="surveyQuestionDiv">
+                        <label for="memory1">How often do you forget the names of people minutes after being introduced?</label> <br>
+                        <select name="memory1" id="memory1" class="surveyInput" required>
+                            <option value="" selected=""></option>>Please select</option>
+                            <option value="1">More than Once per day</option>
+                            <option value="2">2 to 6 times a week</option>
+                            <option value="3">A few times a month</option>
+                            <option value="4">A few times a year</option>
+                            <option value="5">Never</option>
+                        </select>
+                    </div>
+                    <div class="surveyQuestionDiv">
+                        <label for="memory2">How often do you discover when you have gone out that you must return for something that you left behind?</label> <br>
+                        <select name="memory2" id="memory2" class="surveyInput" required>
+                            <option value="" selected=""></option>>Please select</option>
+                            <option value="1">More than Once per day</option>
+                            <option value="2">2 to 6 times a week</option>
+                            <option value="3">A few times a month</option>
+                            <option value="4">A few times a year</option>
+                            <option value="5">Never</option>
+                        </select>
+                    </div>
+                    <div class="surveyQuestionDiv">
+                        <label for="cognitiveReflectionTask1">If it takes 5 machines 5 minutes to make 5 widgets, how many minutes would it take 100 machines to make 100 widgets? </label> <br>
+                        <input class="surveyInput" type="number" min="0" name="cognitiveReflectionTask1" id="cognitiveReflectionTask1" required>
+                    </div>
+                    <div> <br>
+                        <button type="button" onclick="nextPreSurveyPage()" id="nextPreSurveyPageButton" class="preSurveyButton">Next Page</button>
+                    </div>
                 </div>
-                <div class="surveyQuestionDiv">
-                    <label for="risk">In comparison with others, are you a person who is generally willing to take risks?</label> <br>
-                    <select name="risk" id="risk" class="surveyInput" required>
-                        <option value="" selected=""></option>>Please select</option>
-                        <option value="yes">Yes</option>
-                        <option value="no">No</option>
-                    </select>
-                </div>
-                <div class="surveyQuestionDiv">
-                    <label for="time">In comparison with others, are you a person who is generally willing to give up something today in order to benefit in the future?</label> <br>
-                    <select name="time" id="time" class="surveyInput" required>
-                        <option value="" selected=""></option>>Please select</option>
-                        <option value="yes">Yes</option>
-                        <option value="no">No</option>
-                    </select>
-                </div>
-                <div class="surveyQuestionDiv">
-                    <label for="memory1">How often do you forget the names of people minutes after being introduced?</label> <br>
-                    <select name="memory1" id="memory1" class="surveyInput" required>
-                        <option value="" selected=""></option>>Please select</option>
-                        <option value="1">More than Once per day</option>
-                        <option value="2">2 to 6 times a week</option>
-                        <option value="3">A few times a month</option>
-                        <option value="4">A few times a year</option>
-                        <option value="5">Never</option>
-                    </select>
-                </div>
-                <div class="surveyQuestionDiv">
-                    <label for="memory2">How often do you discover when you have gone out that you must return for something that you left behind?</label> <br>
-                    <select name="memory2" id="memory2" class="surveyInput" required>
-                        <option value="" selected=""></option>>Please select</option>
-                        <option value="1">More than Once per day</option>
-                        <option value="2">2 to 6 times a week</option>
-                        <option value="3">A few times a month</option>
-                        <option value="4">A few times a year</option>
-                        <option value="5">Never</option>
-                    </select>
-                </div>
-                <div class="surveyQuestionDiv">
-                    <label for="cognitiveReflectionTask1">If it takes 5 machines 5 minutes to make 5 widgets, how many minutes would it take 100 machines to make 100 widgets? </label> <br>
-                    <input class="surveyInput" type="number" min="0" name="cognitiveReflectionTask1" id="cognitiveReflectionTask1" required>
-                </div>
-                <div class="surveyQuestionDiv">
-                    <label for="cognitiveReflectionTask2">Simon decided to invest $8,000 in the stock market one day early in 2008. Six months after he invested, on July 17, the stocks he had purchased were down 50%. Fortunately for Simon, from July 17 to October 17, the stocks he had purchased went up 75%. At this point, Simon has</label> <br>
-                    <select name="surveyInput" id="cognitiveReflectionTask2" class="surveyInput" required>
-                        <option value="" selected=""></option>>Please select</option>
-                        <option value="even">broken even in the stock market</option>
-                        <option value="up"> is ahead of where he began</option>
-                        <option value="down">has lost money</option>
-                    </select>
-                </div>
-                <div class="surveyQuestionDiv">
-                    <label for="reputation1">Do you worry about what other people will think of you even when you know it doesn’t make any difference?</label> <br>
-                    <select name="reputation1" id="reputation1" class="surveyInput" required>
-                        <option value="" selected=""></option>>Please select</option>
-                        <option value="yes">Yes</option>
-                        <option value="no">No</option>
-                    </select>
-                </div>
-                <div class="surveyQuestionDiv">
-                    <label for="reputation2">Are you frequently afraid of other people noticing your shortcomings?</label> <br>
-                    <select name="reputation2" id="reputation2" class="surveyInput" required>
-                        <option value="" selected=""></option>>Please select</option>
-                        <option value="yes">Yes</option>
-                        <option value="no">No</option>
-                    </select>
-                </div> 
-                <div class="surveyQuestionDiv">
-                    <label for="ruleOfThumb">Are you a person who tends to finish what you started?</label> <br>
-                    <select name="ruleOfThumb" id="ruleOfThumb" class="surveyInput" required>
-                        <option value="" selected=""></option>>Please select</option>
-                        <option value="yes">Yes</option>
-                        <option value="no">No</option>
-                    </select>
-                </div>
-                <div class="surveyQuestionDiv">
-                    <label for="BehavioralInertia1">Do you tend to use short-cuts to achieve your goals?</label> <br>
-                    <select name="BehavioralInertia1" id="BehavioralInertia1" class="surveyInput" required>
-                        <option value="" selected=""></option>>Please select</option>
-                        <option value="yes">Yes</option>
-                        <option value="no">No</option>
-                    </select>
-                </div>                
-                <div> <br>
-                  <input class="preSurveySubmit" type="submit" value="Submit" id="preSurveySubmitButton">
+                <div id="preSurveyDivPage2">
+                    <div class="surveyQuestionDiv">
+                        <label for="cognitiveReflectionTask2">Simon decided to invest $8,000 in the stock market one day early in 2008. Six months after he invested, on July 17, the stocks he had purchased were down 50%. Fortunately for Simon, from July 17 to October 17, the stocks he had purchased went up 75%. At this point, Simon has</label> <br>
+                        <select name="surveyInput" id="cognitiveReflectionTask2" class="surveyInput" required>
+                            <option value="" selected=""></option>>Please select</option>
+                            <option value="even">broken even in the stock market</option>
+                            <option value="up"> is ahead of where he began</option>
+                            <option value="down">has lost money</option>
+                        </select>
+                    </div>
+                    <div class="surveyQuestionDiv">
+                        <label for="reputation1">Do you worry about what other people will think of you even when you know it doesn’t make any difference?</label> <br>
+                        <select name="reputation1" id="reputation1" class="surveyInput" required>
+                            <option value="" selected=""></option>>Please select</option>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                    </div>
+                    <div class="surveyQuestionDiv">
+                        <label for="reputation2">Are you frequently afraid of other people noticing your shortcomings?</label> <br>
+                        <select name="reputation2" id="reputation2" class="surveyInput" required>
+                            <option value="" selected=""></option>>Please select</option>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                    </div> 
+                    <div class="surveyQuestionDiv">
+                        <label for="ruleOfThumb">Are you a person who tends to finish what you started?</label> <br>
+                        <select name="ruleOfThumb" id="ruleOfThumb" class="surveyInput" required>
+                            <option value="" selected=""></option>>Please select</option>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                    </div>
+                    <div class="surveyQuestionDiv">
+                        <label for="BehavioralInertia1">Do you tend to use short-cuts to achieve your goals?</label> <br>
+                        <select name="BehavioralInertia1" id="BehavioralInertia1" class="surveyInput" required>
+                            <option value="" selected=""></option>>Please select</option>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                    </div>                
+                    <div> <br>
+                    <input class="preSurveyButton" type="submit" value="Submit" id="preSurveySubmitButton">
+                    </div>
                 </div>
               </form>              
         </div>

@@ -5,6 +5,8 @@ var idInput = document.getElementById("idInput")
 var loginDiv  = document.getElementById("loginDiv")
 var pleaseWaitDiv = document.getElementById("pleaseWaitDiv")
 var preSurveyDiv = document.getElementById("preSurveyDiv")
+var preSurveyDivPage1 = document.getElementById("preSurveyDivPage1")
+var preSurveyDivPage2 = document.getElementById("preSurveyDivPage2")
 var preSurveyForm = document.getElementById("preSurveyForm")
 var postSurveyDiv = document.getElementById("postSurveyDiv")
 var postSurveyForm = document.getElementById("postSurveyForm")
@@ -341,6 +343,7 @@ const update = function(){
 
 
 const submitPreSurvey = function(){
+    console.log("submitPreSurvey")
     endPreSurveyTime = Date.now()
     const msg = {
         id,
@@ -354,6 +357,11 @@ const beginPracticePeriods = function(){
     const msg = {id}
     socket.emit("beginPracticePeriods",msg)
 }
+const nextPreSurveyPage = function(){
+    preSurveyDivPage1.style.display = "none"
+    preSurveyDivPage2.style.display = "block"
+}
+
 const beginExperiment = function(){
     const msg = {id}
     socket.emit("beginExperiment",msg)
@@ -376,7 +384,7 @@ const setupCanvas = function(){
     xScale = 1.33*window.innerHeight
     yScale = 1*window.innerHeight                                 
     canvas.width = xScale
-    canvas.height = yScale
+    canvas.height = yScale*0.92
     var xTranslate = xScale/2 - yScale/2 - .1*xScale
     var yTranslate = yScale                                                                          
     context.setTransform(yScale/100,0,0,yScale/100,xTranslate,yTranslate)
@@ -610,9 +618,9 @@ const drawBarTotalCost = function(){
     context.lineWidth = 0.25
     context.beginPath() 
     const barX = 30
-    const baseY = -10
+    const baseY = -15
     const barWidth = 10
-    const barHeight = 25
+    const barHeight = 20
     context.moveTo(barX-0.5*barWidth,baseY-barHeight)
     context.lineTo(barX-0.5*barWidth,baseY)
     context.lineTo(barX+0.5*barWidth,baseY)
@@ -675,9 +683,9 @@ const drawBarWinProb = function(){
     context.lineWidth = 0.25
     context.beginPath() 
     const barX = 70
-    const baseY = -10
+    const baseY = -15
     const barWidth = 10
-    const barHeight = 25
+    const barHeight = 20
     context.moveTo(barX-0.5*barWidth,baseY-barHeight)
     context.lineTo(barX-0.5*barWidth,baseY)
     context.lineTo(barX+0.5*barWidth,baseY)
