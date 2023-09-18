@@ -83,8 +83,10 @@ const linkList = guestList.map(guest => {
 if(remoteVersion) console.log("guestlist Links", linkList)
  
 // TODO EXPERIMENT
+// - multiple pages and no scroll bar anywhere
+//
 // We probably need to add some space at the top of the screen to accommodate the full screen interface in the lab.
-
+//
 // The margins should be decreased slightly in the instructions.
 // 
 // To avoid technical difficulties, we need to let the client specify their id during the login process, as in the original version of the program.
