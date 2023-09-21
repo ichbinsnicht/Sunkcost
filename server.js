@@ -36,10 +36,10 @@ const remoteVersion = false // false - lab, true - online
 const numPracticePeriods  = 1 // 5 practice periods
 const numPeriods  = 1    // 1 period, numPeriods > numPracticePeriods
 const practiceTypingLength = 1 // pilot: 25, realexperiment: 100 characters per minute
-const step1Length = 3   // 15 secs choice1
+const step1Length = 15   // 15 secs choice1
 const step2Length = 3   // 5 secs feedback1
 const step3Length = 3  // 10 secs typingTask1
-const step4Length = 3   // 15 secs choice2
+const step4Length = 15   // 15 secs choice2
 const step5Length = 3   // 10 secs typingTask2 
 const step6Length = 3   // 10 secs feedback2 
 const zeroTypingWait = 2 // 
@@ -83,16 +83,9 @@ const linkList = guestList.map(guest => {
 if(remoteVersion) console.log("guestlist Links", linkList)
  
 // TODO EXPERIMENT
-// - multiple pages and no scroll bar anywhere
 //
-// We probably need to add some space at the top of the screen to accommodate the full screen interface in the lab.
-//
-// The margins should be decreased slightly in the instructions.
+// Login: To avoid technical difficulties, we need to let the client specify their id during the login process, as in the original version of the program.
 // 
-// To avoid technical difficulties, we need to let the client specify their id during the login process, as in the original version of the program.
-// 
-// 
-//
 // PUSH:
 // adjust parameters to the true values
 // - It seems that the length of the practice typing is too short in the current version. 

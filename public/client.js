@@ -9,6 +9,8 @@ var preSurveyDivPage1 = document.getElementById("preSurveyDivPage1")
 var preSurveyDivPage2 = document.getElementById("preSurveyDivPage2")
 var preSurveyForm = document.getElementById("preSurveyForm")
 var postSurveyDiv = document.getElementById("postSurveyDiv")
+var postSurveyDivPage1 = document.getElementById("postSurveyDivPage1")
+var postSurveyDivPage2 = document.getElementById("postSurveyDivPage2")
 var postSurveyForm = document.getElementById("postSurveyForm")
 var beginPracticePeriodsButton = document.getElementById("beginPracticePeriodsButton")
 var beginExperimentButton = document.getElementById("beginExperimentButton")
@@ -361,12 +363,17 @@ const nextPreSurveyPage = function(){
     preSurveyDivPage1.style.display = "none"
     preSurveyDivPage2.style.display = "block"
 }
+const nextPostSurveyPage = function(){
+    postSurveyDivPage1.style.display = "none"
+    postSurveyDivPage2.style.display = "block"
+}
 
 const beginExperiment = function(){
     const msg = {id}
     socket.emit("beginExperiment",msg)
 }
 const submitPostSurvey = function(){
+    console.log("submitPostSurvey")
     const msg = {id}
     Array.from(postSurveyForm.elements).forEach(element => msg[element.id] = element.value)
     socket.emit("submitPostSurvey",msg)
@@ -381,10 +388,10 @@ const draw = function(){
     if(joined&&state=="experimentComplete") drawOutcome()
 }
 const setupCanvas = function(){
-    xScale = 1.33*window.innerHeight
+    xScale = 1*window.innerWidth
     yScale = 1*window.innerHeight                                 
     canvas.width = xScale
-    canvas.height = yScale*0.92
+    canvas.height = yScale
     var xTranslate = xScale/2 - yScale/2 - .1*xScale
     var yTranslate = yScale                                                                          
     context.setTransform(yScale/100,0,0,yScale/100,xTranslate,yTranslate)
@@ -569,7 +576,7 @@ const drawBottom = function(){
     context.textBaseline = "top"
     if(step==6){
         var line1 = "This was a practice period"
-        var line2 = `Chance of winning the $15 gift card: ${((score[1]+score[2])*100).toFixed(0)}%`
+        var line2 = `Chance of winning the $15 Starbucks gift card: ${((score[1]+score[2])*100).toFixed(0)}%`
         var line3A = `You would have had to type ${((cost[1]+cost[2])*cost2Text).toFixed(0)} letters.`
         var line3B = `Your total cost would have been $${(cost[1]+cost[2]).toFixed(2)}`
         var line3 = realEffort ? line3A : line3B
@@ -578,7 +585,7 @@ const drawBottom = function(){
         var line4 = realEffort ? line4A : line4B
         if(experimentStarted){
             var line1 = ""
-            var line2 = `Chance of winning the $15 gift card: ${((score[1]+score[2])*100).toFixed(0)}%`
+            var line2 = `Chance of winning the $15 Starbucks gift card: ${((score[1]+score[2])*100).toFixed(0)}%`
             var line3A = `You had to type ${((cost[1]+cost[2])*cost2Text).toFixed(0)} letters.`
             var line3B = `Your total cost was $${(cost[1]+cost[2]).toFixed(2)}`
             var line3 = realEffort ? line3A : line3B
@@ -751,10 +758,10 @@ const drawOutcome = function(){
     const line4B = `You earned $${earnings.toFixed(2)}`
     const line4 = realEffort ? line4A : line4B 
     const line5 = "Please wait while your payment is prepared"
-    context.fillText(line1,graphX+0.5*graphWidth,lineY1+14)
+    context.fillText(line1,60,lineY1+14)
     //context.fillText(line2,graphX+0.5*graphWidth,lineY1+22)
-    context.fillText(line3,graphX+0.5*graphWidth,lineY1+32)
-    context.fillText(line4,graphX+0.5*graphWidth,lineY1+40)
-    context.fillText(line5,graphX+0.5*graphWidth,lineY1+48)
+    context.fillText(line3,60,lineY1+32)
+    context.fillText(line4,60,lineY1+40)
+    context.fillText(line5,60,lineY1+48)
 }
 draw()

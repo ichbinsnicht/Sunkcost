@@ -123,10 +123,8 @@ body {
     text-align: center;
 }
 #interfaceDiv {
-    width: 133vh;
-    height: 100vh;
-    margin-left: auto;
-    margin-right: auto;
+    margin-left: 0;
+    margin-right: 0;
     display: none;
     text-align: center;      
     font: 4vmin monospace; 
@@ -142,6 +140,15 @@ body {
     display: none;
     text-align: center;
     font: 2.5vmin monospace;
+}
+#postSurveyDivPage1 {
+    display: block;  
+}
+#postSurveyDivPage2 {
+    display: none;  
+}
+.postSurveyButton {
+    font: 5vmin monospace;
 }
 .surveyNumber {
     text-align: center;
@@ -174,10 +181,11 @@ input[type=number] {
 }
 #canvas {
     border-style: none;
-    width: 133vh;
+    width: 100vw;
     height: 100vh;
     border: 0;
     padding: 0;
     margin: 0;
-    float: right;
+    margin-left: auto;
+    margin-right: auto;
 }

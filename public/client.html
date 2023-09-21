@@ -10,8 +10,8 @@
             <form onSubmit="return submitPreSurvey();" id="preSurveyForm">
                 <div id="preSurveyDivPage1">
                     <div class="surveyQuestionDiv">
-                    <label for="typingExperience">How many hours do you typically spend typing on a daily basis?</label> <br>
-                    <input class="surveyNumber" type="number" min="0" max="24" name="typingExperience" id="typingExperience" required>
+                        <label for="typingExperience">How many hours do you typically spend typing on a daily basis?</label> <br>
+                        <input class="surveyNumber" type="number" min="0" max="24" name="typingExperience" id="typingExperience" required>
                     </div>
                     <div class="surveyQuestionDiv">
                         <label for="risk">In comparison with others, are you a person who is generally willing to take risks?</label> <br>
@@ -61,13 +61,8 @@
                 </div>
                 <div id="preSurveyDivPage2">
                     <div class="surveyQuestionDiv">
-                        <label for="cognitiveReflectionTask2">Simon decided to invest $8,000 in the stock market one day early in 2008. Six months after he invested, on July 17, the stocks he had purchased were down 50%. Fortunately for Simon, from July 17 to October 17, the stocks he had purchased went up 75%. At this point, Simon has</label> <br>
-                        <select name="surveyInput" id="cognitiveReflectionTask2" class="surveyInput" required>
-                            <option value="" selected=""></option>>Please select</option>
-                            <option value="even">broken even in the stock market</option>
-                            <option value="up"> is ahead of where he began</option>
-                            <option value="down">has lost money</option>
-                        </select>
+                        <label for="cognitiveReflectionTask2">A man buys a stock for $60. Then he sells it for $70. Then he buys it back for $80. Then he sells it again for $90. How much money did he make?</label> <br>
+                        <input class="surveyNumber" type="number" min="0" max="10000" name="cognitiveReflectionTask2" id="cognitiveReflectionTask2" required>
                     </div>
                     <div class="surveyQuestionDiv">
                         <label for="reputation1">Do you worry about what other people will think of you even when you know it doesn’t make any difference?</label> <br>
@@ -120,95 +115,91 @@
         </div>
         <div id="postSurveyDiv"><b>Post Survey </b><br><br>
             <form onSubmit="return submitPostSurvey();" id="postSurveyForm">
-                <div class="surveyQuestionDiv">
-                  <label for="dateOfBirth">What year were you born?</label> <br>
-                  <input class="surveyNumber" type="number" min="1900" max="2018" name="dateOfBirth" id="dateOfBirth" required>
+                <div id="postSurveyDivPage1">
+                    <div class="surveyQuestionDiv">
+                        <label for="yearsInCollege">How many years have you been a student at VCU?</label> <br>
+                        <input class="surveyNumber" type="number" min="0" max="20" name="yearsInCollege" id="yearsInCollege" required>
+                    </div>
+                    <div class="surveyQuestionDiv">
+                        <label for="dateOfBirth">What year were you born?</label> <br>
+                        <input class="surveyNumber" type="number" min="1900" max="2018" name="dateOfBirth" id="dateOfBirth" required>
+                    </div>
+                    <div class="surveyQuestionDiv">
+                        <label for="employmentStatus">What is your employment status?</label> <br>
+                        <select name="employmentStatus" id="employmentStatus" class="surveyInput" required>
+                            <option value="" selected=""></option>>Please select</option>
+                            <option value="fullTime">Full Time</option>
+                            <option value="partTime">Part Time</option>
+                            <option value="unemployed">Unemployed</option>
+                            <option value="selfemployed">Self Employed</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="surveyQuestionDiv">
+                        <label for="major">Major:</label> <br>
+                        <select name="major" id="major" class="surveyInput" required>
+                            <option value="" selected=""></option>>Please select</option>
+                            <option value="economics">Economics</option>
+                            <option value="mathematics">Mathematics</option>
+                            <option value="engineering">Engineering</option>
+                            <option value="english">English</option>
+                            <option value="biology">Biology</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="surveyQuestionDiv">
+                        <label for="religion">Religion:</label> <br>
+                        <select name="religion" id="religion" class="surveyInput" required>
+                            <option value="" selected=""></option>>Please select</option>
+                            <option value="none">None</option>
+                            <option value="christian">Christian</option>
+                            <option value="islam">Islam</option>
+                            <option value="buddhism">Buddhism</option>
+                            <option value="judaism">Judaism</option>
+                            <option value="hinduism">Hinduism</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div> <br>
+                        <button type="button" onclick="nextPostSurveyPage()" id="nextPostSurveyPageButton" class="postSurveyButton">Next Page</button>
+                    </div>
                 </div>
-                <div class="surveyQuestionDiv">
-                    <label for="yearsInCollege">How many years have you been a student at VCU?</label> <br>
-                    <input class="surveyNumber" type="number" min="0" max="20" name="yearsInCollege" id="yearsInCollege" required>
+                <div id="postSurveyDivPage2">
+                    <div class="surveyQuestionDiv">
+                        <label for="gender">Gender:</label> <br>
+                        <select name="gender" id="gender" class="surveyInput" required>
+                            <option value="" selected=""></option>>Please select</option>
+                            <option value="female">Female</option>
+                            <option value="male">Male</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="surveyQuestionDiv">
+                        <label for="race">Race:</label> <br>
+                        <select name="race" id="race" class="surveyInput" required>
+                            <option value="" selected=""></option>>Please select</option>
+                            <option value="white">White</option>
+                            <option value="black">Black or African American</option>
+                            <option value="native">American Indian or Alaska Native</option>
+                            <option value="asian">Asian</option>
+                            <option value="islander">Native Hawaiian or Other Pacific Islander</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="surveyQuestionDiv">
+                        <label for="ethnicity">Ethnicity:</label> <br>
+                        <select name="ethnicity" id="ethnicity" class="surveyInput" required>
+                            <option value="" selected=""></option>>Please select</option>
+                            <option value="hispanic">Hispanic or Latino</option>
+                            <option value="nonHispanic">Not Hispanic or Latino</option>
+                        </select>
+                    </div>
+                    <div>
+                        <br>
+                        <input class="postSurveySubmit" type="submit" value="Submit" id="postSurveySubmitButton">
+                    </div>
                 </div>
-                <div class="surveyQuestionDiv">
-                    <label for="employmentStatus">What is your employment status?</label> <br>
-                    <select name="employmentStatus" id="employmentStatus" class="surveyInput" required>
-                        <option value="" selected=""></option>>Please select</option>
-                        <option value="fullTime">Full Time</option>
-                        <option value="partTime">Part Time</option>
-                        <option value="unemployed">Unemployed</option>
-                        <option value="selfemployed">Self Employed</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
-                <div class="surveyQuestionDiv">
-                    <label for="major">Major:</label> <br>
-                    <select name="major" id="major" class="surveyInput" required>
-                        <option value="" selected=""></option>>Please select</option>
-                        <option value="economics">Economics</option>
-                        <option value="mathematics">Mathematics</option>
-                        <option value="engineering">Engineering</option>
-                        <option value="english">English</option>
-                        <option value="biology">Biology</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
-                <div class="surveyQuestionDiv">
-                    <label for="religion">Religion:</label> <br>
-                    <select name="religion" id="religion" class="surveyInput" required>
-                        <option value="" selected=""></option>>Please select</option>
-                        <option value="none">None</option>
-                        <option value="christian">Christian</option>
-                        <option value="islam">Islam</option>
-                        <option value="buddhism">Buddhism</option>
-                        <option value="judaism">Judaism</option>
-                        <option value="hinduism">Hinduism</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
-                <div class="surveyQuestionDiv">
-                    <label for="maritalStatus">Marital Status:</label> <br>
-                    <select name="maritalStatus" id="maritalStatus" class="surveyInput" required>
-                        <option value="" selected=""></option>>Please select</option>
-                        <option value="single">Single</option>
-                        <option value="married">Married</option>
-                        <option value="divorced">Divorced</option>
-                        <option value="widowed">Widowed</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
-                <div class="surveyQuestionDiv">
-                    <label for="gender">Gender:</label> <br>
-                    <select name="gender" id="gender" class="surveyInput" required>
-                        <option value="" selected=""></option>>Please select</option>
-                        <option value="female">Female</option>
-                        <option value="male">Male</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
-                <div class="surveyQuestionDiv">
-                    <label for="race">Race:</label> <br>
-                    <select name="race" id="race" class="surveyInput" required>
-                        <option value="" selected=""></option>>Please select</option>
-                        <option value="white">White</option>
-                        <option value="black">Black or African American</option>
-                        <option value="native">American Indian or Alaska Native</option>
-                        <option value="asian">Asian</option>
-                        <option value="islander">Native Hawaiian or Other Pacific Islander</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
-                <div class="surveyQuestionDiv">
-                    <label for="ethnicity">Ethnicity:</label> <br>
-                    <select name="ethnicity" id="ethnicity" class="surveyInput" required>
-                        <option value="" selected=""></option>>Please select</option>
-                        <option value="hispanic">Hispanic or Latino</option>
-                        <option value="nonHispanic">Not Hispanic or Latino</option>
-                    </select>
-                </div>
-                <div>
-                    <br>
-                    <input class="postSurveySubmit" type="submit" value="Submit" id="postSurveySubmitButton">
-                </div>
-              </form>              
+            </form>           
         </div>   
         <script src="https://cdn.socket.io/4.2.0/socket.io.min.js" type="text/javascript"></script>
         <script src="client.js" type="text/javascript"></script>
