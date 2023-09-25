@@ -33,9 +33,9 @@ var choose = x => x[Math.floor(Math.random()*x.length)]
 
 // parameters
 const remoteVersion = false // false - lab, true - online
-const numPracticePeriods  = 1 // 5 practice periods
+const numPracticePeriods  = 5 // 5 practice periods
 const numPeriods  = 1    // 1 period, numPeriods > numPracticePeriods
-const practiceTypingLength = 1 // pilot: 25, realexperiment: 100 characters per minute
+const practiceTypingLength = 100 // realexperiment: 100 characters per minute, pilot: 25
 const step1Length = 15   // 15 secs choice1
 const step2Length = 5   // 5 secs feedback1
 const step3Length = 10  // 10 secs typingTask1
@@ -83,9 +83,7 @@ const linkList = guestList.map(guest => {
 if(remoteVersion) console.log("guestlist Links", linkList)
  
 // TODO EXPERIMENT
-//
-// Login: To avoid technical difficulties, we need to let the client specify their id during the login process, as in the original version of the program.
-// 
+
 // PUSH:
 // adjust parameters to the true values
 // - It seems that the length of the practice typing is too short in the current version. 
@@ -241,27 +239,34 @@ io.on("connection",function(socket){
   socket.emit("connected")
   if(remoteVersion){
     socket.on("joinGame", function(msg){  
+      console.log("joinGame",msg.id)
+      if(!subjects[msg.id]) createSubject(msg.id,socket)
+      socket.emit("clientJoined",{id: msg.id, hist: subjects[msg.id].hist, period: subjects[msg.id].period})
+      console.log("Object.keys(subjects)", Object.keys(subjects))
+      /*
       if(guestList.includes(msg.id)){
+        console.log("joinGame",msg.id)
+        if(!subjects[msg.id]) createSubject(msg.id,socket) // restart client: client joins but server has record
+        socket.emit("clientJoined",{id: msg.id, hist: subjects[msg.id].hist, period: subjects[msg.id].period})
+        console.log("Object.keys(subjects)", Object.keys(subjects))
+      } 
+      */
+    })
+  }else{
+    socket.on("joinGame", function(msg){
+      if(msg.id>0) {
         console.log("joinGame",msg.id)
         if(!subjects[msg.id]) createSubject(msg.id,socket) // restart client: client joins but server has record
         socket.emit("clientJoined",{id: msg.id, hist: subjects[msg.id].hist, period: subjects[msg.id].period})
         console.log("Object.keys(subjects)", Object.keys(subjects))
       }
     })
-  }else{
-    socket.on("joinGame", function(msg){
-      console.log("msg",msg)
-      const id = msg.id == 0 ? Object.values(subjects).length + 1 : msg.id 
-      console.log("joinGame",id)
-      if(!subjects[id]) createSubject(id,socket) // restart client: client joins but server has record
-      socket.emit("clientJoined",{id: id, hist: subjects[id].hist, period: subjects[id].period})
-      console.log("Object.keys(subjects)", Object.keys(subjects))
-    })
   }
   socket.on("preSurvey", function(msg){
     if(subject.state == "startup") subject.state = "preSurvey"
   })
   socket.on("submitPreSurvey", function(msg){
+    console.log("submitPreSurvey")
     const subject = subjects[msg.id]
     writePreSurveyFile(msg) 
     if(subject.state == "preSurvey") {
@@ -295,6 +300,7 @@ io.on("connection",function(socket){
     } 
   })
   socket.on("submitPostSurvey", function(msg){
+    console.log("submitPostSurvey")
     const subject = subjects[msg.id]
     writePostSurveyFile(msg) 
     if(subject.state == "postSurvey") {

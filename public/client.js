@@ -7,7 +7,8 @@ var pleaseWaitDiv = document.getElementById("pleaseWaitDiv")
 var preSurveyDiv = document.getElementById("preSurveyDiv")
 var preSurveyDivPage1 = document.getElementById("preSurveyDivPage1")
 var preSurveyDivPage2 = document.getElementById("preSurveyDivPage2")
-var preSurveyForm = document.getElementById("preSurveyForm")
+var preSurveyFormPage1 = document.getElementById("preSurveyFormPage1")
+var preSurveyFormPage2 = document.getElementById("preSurveyFormPage2")
 var postSurveyDiv = document.getElementById("postSurveyDiv")
 var postSurveyDivPage1 = document.getElementById("postSurveyDivPage1")
 var postSurveyDivPage2 = document.getElementById("postSurveyDivPage2")
@@ -156,7 +157,7 @@ var readyString = `If you have any questions, raise your hand and we will come t
 socket = io()       // browser based socket
 var arange = n => [...Array(n).keys()]
 
-joinGame()
+// joinGame()
 function joinGame(){
     if(remoteVersion) {
         id = document.location.pathname.substring(7)
@@ -167,10 +168,47 @@ function joinGame(){
             socket.emit("joinGame",msg)
         }
     }else{
+        id = parseInt(idInput.value)
+        console.log("id",id)
         msg = {id}
-        socket.emit("joinGame",msg)
+        if(id>0) socket.emit("joinGame",msg)
     }
 }
+
+const submitPreSurveyPage1 = function(){
+    console.log("submitPreSurveyPage1")
+    nextPreSurveyPage()
+    return false
+}
+
+const submitPreSurveyPage2 = function(){
+    console.log("submitPreSurveyPage2")
+    endPreSurveyTime = Date.now()
+    const msg = {
+        id,
+        preSurveyDuration: (endPreSurveyTime-startPreSurveyTime)/1000
+    }
+    Array.from(preSurveyFormPage1.elements).forEach(element => msg[element.id] = element.value)
+    Array.from(preSurveyFormPage2.elements).forEach(element => msg[element.id] = element.value)
+    socket.emit("submitPreSurvey",msg)
+    return false
+}
+
+const submitPostSurveyPage1 = function(){
+    console.log("submitPostSurveyPage1")
+    nextPostSurveyPage()
+    return false
+}
+
+const submitPostSurveyPage2 = function(){
+    console.log("submitPostSurveyPage2")
+    const msg = {id}
+    Array.from(postSurveyFormPage1.elements).forEach(element => msg[element.id] = element.value)
+    Array.from(postSurveyFormPage2.elements).forEach(element => msg[element.id] = element.value)
+    socket.emit("submitPostSurvey",msg)
+    return false
+}
+
 
 document.onmousedown = function(event){
     console.log("message",message)
@@ -198,7 +236,7 @@ document.onkeydown = function(event){
 }
 
 document.onmousemove = function(e){
-    console.log("mouseEvent",e)
+    //console.log("mouseEvent",e)
     mouseEvent = e
 }
 
@@ -227,6 +265,7 @@ socket.on("clientJoined",function(msg){
     setInterval(update, 10)
 })
 socket.on("serverUpdateClient", function(msg){
+    joined = true
     if(period != msg.period || experimentStarted != msg.experimentStarted){
         cost = {1:0, 2:0}
         score = {1:0, 2:0}
@@ -344,17 +383,7 @@ const update = function(){
 }
 
 
-const submitPreSurvey = function(){
-    console.log("submitPreSurvey")
-    endPreSurveyTime = Date.now()
-    const msg = {
-        id,
-        preSurveyDuration: (endPreSurveyTime-startPreSurveyTime)/1000
-    }
-    Array.from(preSurveyForm.elements).forEach(element => msg[element.id] = element.value)
-    socket.emit("submitPreSurvey",msg)
-    return false
-}
+
 const beginPracticePeriods = function(){
     const msg = {id}
     socket.emit("beginPracticePeriods",msg)

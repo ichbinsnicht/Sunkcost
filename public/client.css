@@ -4,6 +4,9 @@ body {
     padding: 0;
     /* overflow: hidden; */
 }
+#joinGameButton{
+    font: 5vmin monospace;
+}
 #preSurveyDiv {
     width: 133vh;
     margin-top: 8vh;
@@ -131,7 +134,6 @@ body {
     border: 0;
     padding: 0;
 }
-
 #postSurveyDiv {
     width: 133vh;
     margin-top: 8vh;

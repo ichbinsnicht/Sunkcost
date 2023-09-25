@@ -4,11 +4,14 @@
         <title>Client Interface</title>
     </head>
     <body>
-        <div id="loginDiv">Logging in...</div>
+        <div id="loginDiv">
+            <input type="number" id="idInput"> <br> <br>
+            <button type="button" onclick="joinGame()" id="joinGameButton" class="joinGame">Login</button>
+        </div>
         <div id="pleaseWaitDiv">Please Wait</div>
         <div id="preSurveyDiv"><b>Pre Survey</b><br><br>
-            <form onSubmit="return submitPreSurvey();" id="preSurveyForm">
-                <div id="preSurveyDivPage1">
+            <div id="preSurveyDivPage1">
+                <form id="preSurveyFormPage1" onSubmit="return submitPreSurveyPage1();">
                     <div class="surveyQuestionDiv">
                         <label for="typingExperience">How many hours do you typically spend typing on a daily basis?</label> <br>
                         <input class="surveyNumber" type="number" min="0" max="24" name="typingExperience" id="typingExperience" required>
@@ -56,10 +59,12 @@
                         <input class="surveyInput" type="number" min="0" name="cognitiveReflectionTask1" id="cognitiveReflectionTask1" required>
                     </div>
                     <div> <br>
-                        <button type="button" onclick="nextPreSurveyPage()" id="nextPreSurveyPageButton" class="preSurveyButton">Next Page</button>
-                    </div>
-                </div>
-                <div id="preSurveyDivPage2">
+                        <input class="preSurveyButtonPage1" type="submit" value="Next Page" id="preSurveyButtonPage1">
+                    </div> 
+                </form>
+            </div>
+            <div id="preSurveyDivPage2">
+                <form id="preSurveyFormPage2" onSubmit="return submitPreSurveyPage2();">
                     <div class="surveyQuestionDiv">
                         <label for="cognitiveReflectionTask2">A man buys a stock for $60. Then he sells it for $70. Then he buys it back for $80. Then he sells it again for $90. How much money did he make?</label> <br>
                         <input class="surveyNumber" type="number" min="0" max="10000" name="cognitiveReflectionTask2" id="cognitiveReflectionTask2" required>
@@ -97,10 +102,10 @@
                         </select>
                     </div>                
                     <div> <br>
-                    <input class="preSurveyButton" type="submit" value="Submit" id="preSurveySubmitButton">
+                        <input class="preSurveyButtonPage2" type="submit" value="Submit" id="preSurveyButtonPage2">
                     </div>
-                </div>
-              </form>              
+                </form>   
+            </div>           
         </div>
         <div id="instructionsDiv"> 
             <div id="instructionsTextDiv"></div> <br>
@@ -114,8 +119,8 @@
             <div id="countdownDiv"></div>
         </div>
         <div id="postSurveyDiv"><b>Post Survey </b><br><br>
-            <form onSubmit="return submitPostSurvey();" id="postSurveyForm">
-                <div id="postSurveyDivPage1">
+            <div id="postSurveyDivPage1">
+                <form id="postSurveyFormPage1" onSubmit="return submitPostSurveyPage1();">
                     <div class="surveyQuestionDiv">
                         <label for="yearsInCollege">How many years have you been a student at VCU?</label> <br>
                         <input class="surveyNumber" type="number" min="0" max="20" name="yearsInCollege" id="yearsInCollege" required>
@@ -161,10 +166,12 @@
                         </select>
                     </div>
                     <div> <br>
-                        <button type="button" onclick="nextPostSurveyPage()" id="nextPostSurveyPageButton" class="postSurveyButton">Next Page</button>
-                    </div>
-                </div>
-                <div id="postSurveyDivPage2">
+                        <input class="postSurveyButtonPage1" type="submit" value="Next Page" id="postSurveyButtonPage1">
+                    </div> 
+                </form>
+            </div>
+            <div id="postSurveyDivPage2">
+                <form id="postSurveyFormPage2" onSubmit="return submitPostSurveyPage2();">
                     <div class="surveyQuestionDiv">
                         <label for="gender">Gender:</label> <br>
                         <select name="gender" id="gender" class="surveyInput" required>
@@ -194,12 +201,11 @@
                             <option value="nonHispanic">Not Hispanic or Latino</option>
                         </select>
                     </div>
-                    <div>
-                        <br>
-                        <input class="postSurveySubmit" type="submit" value="Submit" id="postSurveySubmitButton">
-                    </div>
-                </div>
-            </form>           
+                    <div> <br>
+                        <input class="postSurveyButtonPage2" type="submit" value="Submit" id="postSurveyButtonPage2">
+                    </div> 
+                </form>
+            </div>       
         </div>   
         <script src="https://cdn.socket.io/4.2.0/socket.io.min.js" type="text/javascript"></script>
         <script src="client.js" type="text/javascript"></script>
