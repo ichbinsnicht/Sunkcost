@@ -1,3 +1,6 @@
+// load client-side socket.io
+import {io} from "./socketIo/socket.io.esm.min.js"
+
 // getting Elements from HTML
 var instructionsDiv = document.getElementById("instructionsDiv")
 var instructionsTextDiv = document.getElementById("instructionsTextDiv")
@@ -75,6 +78,8 @@ var forcedScore = {1:0,2:0}
 var forced = {1:0,2:0}
 var cost = {1:0,2:0}
 var multiplier = {1:0,2:0}
+var endowment = 0
+var totalCost = 0
 var hist = {}
 var message = {}
 var mouseEvent = {x:0,y:0}
@@ -154,34 +159,31 @@ Your earnings will be your initial $15. Your probability of winning the $15 Star
 
 var readyString = `If you have any questions, raise your hand and we will come to assist you. Please click the button below to begin the experiment.`
 
-socket = io()       // browser based socket
+const socket = io()       // browser based socket
 var arange = n => [...Array(n).keys()]
 
-// joinGame()
-function joinGame(){
+window.joinGame = function(){
     if(remoteVersion) {
-        id = document.location.pathname.substring(7)
+        const id = document.location.pathname.substring(7)
         if(id){
             console.log("id:",id)
             console.log(`joinGame`)
-            msg = {id}
+            const msg = {id}
             socket.emit("joinGame",msg)
         }
     }else{
-        id = parseInt(idInput.value)
+        const id = parseInt(idInput.value)
         console.log("id",id)
-        msg = {id}
+        const msg = {id}
         if(id>0) socket.emit("joinGame",msg)
     }
 }
-
-const submitPreSurveyPage1 = function(){
+window.submitPreSurveyPage1 = function(){
     console.log("submitPreSurveyPage1")
     nextPreSurveyPage()
     return false
 }
-
-const submitPreSurveyPage2 = function(){
+window.submitPreSurveyPage2 = function(){
     console.log("submitPreSurveyPage2")
     endPreSurveyTime = Date.now()
     const msg = {
@@ -193,18 +195,39 @@ const submitPreSurveyPage2 = function(){
     socket.emit("submitPreSurvey",msg)
     return false
 }
-
-const submitPostSurveyPage1 = function(){
+window.submitPostSurveyPage1 = function(){
     console.log("submitPostSurveyPage1")
     nextPostSurveyPage()
     return false
 }
-
-const submitPostSurveyPage2 = function(){
+window.submitPostSurveyPage2 = function(){
     console.log("submitPostSurveyPage2")
     const msg = {id}
     Array.from(postSurveyFormPage1.elements).forEach(element => msg[element.id] = element.value)
     Array.from(postSurveyFormPage2.elements).forEach(element => msg[element.id] = element.value)
+    socket.emit("submitPostSurvey",msg)
+    return false
+}
+window.beginPracticePeriods = function(){
+    const msg = {id}
+    socket.emit("beginPracticePeriods",msg)
+}
+window.nextPreSurveyPage = function(){
+    preSurveyDivPage1.style.display = "none"
+    preSurveyDivPage2.style.display = "block"
+}
+window.nextPostSurveyPage = function(){
+    postSurveyDivPage1.style.display = "none"
+    postSurveyDivPage2.style.display = "block"
+}
+window.beginExperiment = function(){
+    const msg = {id}
+    socket.emit("beginExperiment",msg)
+}
+window.submitPostSurvey = function(){
+    console.log("submitPostSurvey")
+    const msg = {id}
+    Array.from(postSurveyForm.elements).forEach(element => msg[element.id] = element.value)
     socket.emit("submitPostSurvey",msg)
     return false
 }
@@ -220,8 +243,8 @@ document.onkeydown = function(event){
     console.log("showTyping",showTyping)
     const interactiveTyping = practicePeriodsComplete || !typingPracticeComplete
     if(joined && showTyping && interactiveTyping){
-        targetLetter = incompleteText.slice(0,1)
-        eventLetter = event.key.toLowerCase()
+        const targetLetter = incompleteText.slice(0,1)
+        const eventLetter = event.key.toLowerCase()
         console.log("eventLetter",eventLetter)
         console.log("targetLetter",targetLetter)
         if(targetLetter == eventLetter) typingProgress += 1
@@ -382,32 +405,6 @@ const update = function(){
     }
 }
 
-
-
-const beginPracticePeriods = function(){
-    const msg = {id}
-    socket.emit("beginPracticePeriods",msg)
-}
-const nextPreSurveyPage = function(){
-    preSurveyDivPage1.style.display = "none"
-    preSurveyDivPage2.style.display = "block"
-}
-const nextPostSurveyPage = function(){
-    postSurveyDivPage1.style.display = "none"
-    postSurveyDivPage2.style.display = "block"
-}
-
-const beginExperiment = function(){
-    const msg = {id}
-    socket.emit("beginExperiment",msg)
-}
-const submitPostSurvey = function(){
-    console.log("submitPostSurvey")
-    const msg = {id}
-    Array.from(postSurveyForm.elements).forEach(element => msg[element.id] = element.value)
-    socket.emit("submitPostSurvey",msg)
-    return false
-}
 
 const draw = function(){
     requestAnimationFrame(draw)

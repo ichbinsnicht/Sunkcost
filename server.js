@@ -35,7 +35,7 @@ var choose = x => x[Math.floor(Math.random()*x.length)]
 const remoteVersion = false // false - lab, true - online
 const numPracticePeriods  = 5 // 5 practice periods
 const numPeriods  = 1    // 1 period, numPeriods > numPracticePeriods
-const practiceTypingLength = 100 // realexperiment: 100 characters per minute, pilot: 25
+const practiceTypingLength = 100 // 100 characters per minute, realexperiment:  pilot: 25
 const step1Length = 15   // 15 secs choice1
 const step2Length = 5   // 5 secs feedback1
 const step3Length = 10  // 10 secs typingTask1
@@ -147,6 +147,9 @@ if(remoteVersion) console.log("guestlist Links", linkList)
 
 app.use(express.static(__dirname + "/public"))
 
+app.get("/socketIo/:fileName",function(req,res){ 
+  res.sendFile(path.join(__dirname,"node_modules","socket.io","client-dist",req.params.fileName))
+})
 app.get("/manager",function(req,res){ 
   res.sendFile(__dirname + "/public/manager.html")
 })
