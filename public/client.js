@@ -16,6 +16,7 @@ var postSurveyDiv = document.getElementById("postSurveyDiv")
 var postSurveyDivPage1 = document.getElementById("postSurveyDivPage1")
 var postSurveyDivPage2 = document.getElementById("postSurveyDivPage2")
 var postSurveyForm = document.getElementById("postSurveyForm")
+var beginTypingTaskButton = document.getElementById("beginTypingTaskButton")
 var beginPracticePeriodsButton = document.getElementById("beginPracticePeriodsButton")
 var beginExperimentButton = document.getElementById("beginExperimentButton")
 var interfaceDiv = document.getElementById("interfaceDiv")
@@ -96,6 +97,8 @@ var practiceLock = true
 var cost2Text = 10
 var startPreSurveyTime = 0
 var endPreSurveyTime = 0
+var startPracticeTypingTime = 0
+var practiceTypingDuration = 0
 
 const imageStyle = `width:14.2vh;height:9vh;margin-left:auto;margin-right:auto;display:block;`
 const imageHTML = `<img src="GiftCard.png" style="${imageStyle}"/>`
@@ -208,9 +211,16 @@ window.submitPostSurveyPage2 = function(){
     socket.emit("submitPostSurvey",msg)
     return false
 }
-window.beginPracticePeriods = function(){
+window.beginTypingTask = function(){
     const msg = {id}
+    startPracticeTypingTime = Date.now()
+    socket.emit("beginTypingTask",msg)
+}
+window.beginPracticePeriods = function(){
+    const msg = {id,practiceTypingDuration}
+    beginPracticePeriodsButton.style.display = "none"
     socket.emit("beginPracticePeriods",msg)
+    console.log("beginPracticePeriods")
 }
 window.nextPreSurveyPage = function(){
     preSurveyDivPage1.style.display = "none"
@@ -250,10 +260,9 @@ document.onkeydown = function(event){
         if(targetLetter == eventLetter) typingProgress += 1
         console.log("typingProgress",typingProgress)
         if(typingProgress >= typingTarget.length && !typingPracticeComplete){
-            const practiceTypingDuration = Date.now() - endPreSurveyTime
-            var msg = {id,practiceTypingDuration}
-            socket.emit("typingPracticeComplete",msg)
-            console.log("typingPracticeComplete")
+            practiceTypingDuration = Date.now() - startPracticeTypingTime
+            console.log("practiceTypingDuration",practiceTypingDuration)
+            beginPracticePeriodsButton.style.display = "block"
         }
     }
 }
@@ -327,8 +336,8 @@ socket.on("serverUpdateClient", function(msg){
     forced = msg.hist[msg.period].forced
     cost2Text = msg.cost2Text
     if(state!=msg.state){
-        var readyPracticeString = `First, you will participate in ${numPracticePeriods} practice periods. The practice periods will not affect your final earnings. They are just for practice. <br><br> If you have any questions, raise your hand and we will come to assist you. Please click the button below to begin the practice periods.`
-        var practiceInstructionsString = instructionsString +  readyPracticeString     
+        var readyPracticeString = `First, you will complete a typing task. Next, you will participate in ${numPracticePeriods} practice periods. The practice periods will not affect your final earnings. They are just for practice. Afterwards, you will start the experiment. <br><br> If you have any questions, raise your hand and we will come to assist you. Please click the button below to begin the typing task.`
+        var practiceInstructionsString = instructionsString +  readyPracticeString
         instructionsTextDiv.innerHTML = practicePeriodsComplete ? readyInstructionsString : practiceInstructionsString
     }
     state = msg.state
@@ -348,7 +357,7 @@ const update = function(){
     }
     socket.emit("clientUpdate",msg)
     const showPracticePeriodsButton = !practiceLock && !practicePeriodsComplete
-    beginPracticePeriodsButton.style.display = showPracticePeriodsButton ? "inline" : "none"
+    beginTypingTaskButton.style.display = showPracticePeriodsButton ? "inline" : "none"
     beginExperimentButton.style.display = practicePeriodsComplete ? "inline" : "none"
     loginDiv.style.display = "none"
     instructionsDiv.style.display = "none"

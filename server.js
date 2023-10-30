@@ -35,7 +35,7 @@ var choose = x => x[Math.floor(Math.random()*x.length)]
 const remoteVersion = false // false - lab, true - online
 const numPracticePeriods  = 5 // 5 practice periods
 const numPeriods  = 1    // 1 period, numPeriods > numPracticePeriods
-const practiceTypingLength = 100 // 100 characters per minute, realexperiment:  pilot: 25
+const practiceTypingLength = 1 // 100 characters per minute, realexperiment:  pilot: 25
 const step1Length = 15   // 15 secs choice1
 const step2Length = 5   // 5 secs feedback1
 const step3Length = 10  // 10 secs typingTask1
@@ -274,24 +274,24 @@ io.on("connection",function(socket){
     writePreSurveyFile(msg) 
     if(subject.state == "preSurvey") {
       subject.preSurveySubmitted = true
-      subject.state = "typingPractice"
+      subject.state = "instructions"
     }
   })
-  socket.on("typingPracticeComplete", function(msg){
+  socket.on("beginTypingTask", function(msg){
     const subject = subjects[msg.id]
-    subject.practiceTypingDuration = msg.practiceTypingDuration
-    console.log("typingPracticeComplete",msg.id)
-    if(subject.state == "typingPractice") {
-      subject.typingPracticeComplete = true
-      subject.state = "instructions"
+    if(subject.state == "instructions"){
+      subject.instructionsComplete = true
+      subject.state = "typingPractice"
+      console.log("beginTypingTask",msg.id)
     }
   })
   socket.on("beginPracticePeriods", function(msg){
     const subject = subjects[msg.id]
-    console.log("beginPracticePeriods",msg.id)
-    if(subject.state == "instructions"){
-      subject.instructionsComplete = true
+    subject.practiceTypingDuration = msg.practiceTypingDuration
+    if(subject.state == "typingPractice") {
+      subject.typingPracticeComplete = true
       subject.state = "interface"
+      console.log("beginPracticePeriods",msg.id)
     }
   })
   socket.on("beginExperiment", function(msg){

@@ -109,7 +109,7 @@
         </div>
         <div id="instructionsDiv"> 
             <div id="instructionsTextDiv"></div> <br>
-            <button type="button" onclick="beginPracticePeriods()" id="beginPracticePeriodsButton">Begin Practice Periods</button>
+            <button type="button" onclick="beginTypingTask()" id="beginTypingTaskButton">Begin Typing Task</button>
             <button type="button" onclick="beginExperiment()" id="beginExperimentButton">Begin Experiment</button>
         </div>
         <div id="interfaceDiv"><canvas id="canvas"></canvas></div>
@@ -117,6 +117,9 @@
             <div id="typingHeader"></div>
             <div id="targetTextbox"></div>
             <div id="countdownDiv"></div>
+            <div id="beginPracticePeriodsDiv">
+                <button type="button" onclick="beginPracticePeriods()" id="beginPracticePeriodsButton">Begin Practice Periods</button>
+            </div>
         </div>
         <div id="postSurveyDiv"><b>Post Survey </b><br><br>
             <div id="postSurveyDivPage1">
@@ -144,9 +147,11 @@
                         <label for="major">Major:</label> <br>
                         <select name="major" id="major" class="surveyInput" required>
                             <option value="" selected=""></option>>Please select</option>
+                            <option value="business">Business</option>
+                            <option value="accounting">Accounting</option>
                             <option value="economics">Economics</option>
-                            <option value="mathematics">Mathematics</option>
                             <option value="engineering">Engineering</option>
+                            <option value="mathematics">Mathematics</option>
                             <option value="english">English</option>
                             <option value="biology">Biology</option>
                             <option value="other">Other</option>
@@ -156,12 +161,12 @@
                         <label for="religion">Religion:</label> <br>
                         <select name="religion" id="religion" class="surveyInput" required>
                             <option value="" selected=""></option>>Please select</option>
-                            <option value="none">None</option>
                             <option value="christian">Christian</option>
                             <option value="islam">Islam</option>
                             <option value="buddhism">Buddhism</option>
                             <option value="judaism">Judaism</option>
                             <option value="hinduism">Hinduism</option>
+                            <option value="none">None</option>
                             <option value="other">Other</option>
                         </select>
                     </div>
