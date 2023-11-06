@@ -33,9 +33,9 @@ var choose = x => x[Math.floor(Math.random()*x.length)]
 
 // parameters
 const remoteVersion = false // false - lab, true - online
-const numPracticePeriods  = 1 // 5 practice periods
+const numPracticePeriods  = 5 // 5 practice periods
 const numPeriods  = 1    // 1 period, numPeriods > numPracticePeriods
-const practiceTypingLength = 1 // 100 characters per minute, realexperiment:  pilot: 25
+const practiceTypingLength = 100 // 100 characters per minute, realexperiment:  pilot: 25
 const step1Length = 15   // 15 secs choice1
 const step2Length = 5   // 5 secs feedback1
 const step3Length = 10  // 10 secs typingTask1
