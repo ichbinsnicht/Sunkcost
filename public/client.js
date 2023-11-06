@@ -128,7 +128,7 @@ Stage 2:<br>
     <li> Cost 2 will be calculated by multiplying Score 2 with Multiplier 2.</li>
 </ul>
 
-Your earnings will be your initial $15 minus Cost 1 and Cost 2. Your probability of winning the $15 Starbucks gift card is the sum of Score 1 and Score 2. <br><br>`
+Your earnings will be your initial $15 minus Cost 1 and Cost 2. Your probability of winning the $15 Starbucks gift card will be the sum of Score 1 and Score 2. <br><br>`
 
 
 var realEffortInstructionsString = `
@@ -158,7 +158,7 @@ Stage 2:<br>
     <li> You will type a number of letters equal to Cost 2.</li>
 </ul>
 
-Your earnings will be your initial $15. Your probability of winning the $15 Starbucks gift card is the sum of Score 1 and Score 2. <br><br>`
+Your earnings will be your initial $15. Your probability of winning the $15 Starbucks gift card will be the sum of Score 1 and Score 2. <br><br>`
 
 var readyString = `If you have any questions, raise your hand and we will come to assist you. Please click the button below to begin the experiment.`
 
@@ -611,8 +611,8 @@ const drawBottom = function(){
     context.textBaseline = "top"
     if(step==6){
         var line1 = "This was a practice period"
-        var line2 = `Chance of winning the $15 Starbucks gift card: ${((score[1]+score[2])*100).toFixed(0)}%`
-        var line3A = `You would have had to type ${((cost[1]+cost[2])*cost2Text).toFixed(0)} letters.`
+        var line2 = `Your chance of winning the $15 Starbucks gift card: ${((score[1]+score[2])*100).toFixed(0)}%`
+        var line3A = `You would have had to type a total of ${((cost[1]+cost[2])*cost2Text).toFixed(0)} letters.`
         var line3B = `Your total cost would have been $${(cost[1]+cost[2]).toFixed(2)}`
         var line3 = realEffort ? line3A : line3B
         var line4A = `Your earnings would have been $${endowment.toFixed(2)}`
@@ -620,8 +620,8 @@ const drawBottom = function(){
         var line4 = realEffort ? line4A : line4B
         if(experimentStarted){
             var line1 = ""
-            var line2 = `Chance of winning the $15 Starbucks gift card: ${((score[1]+score[2])*100).toFixed(0)}%`
-            var line3A = `You had to type ${((cost[1]+cost[2])*cost2Text).toFixed(0)} letters.`
+            var line2 = `Your chance of winning the $15 Starbucks gift card: ${((score[1]+score[2])*100).toFixed(0)}%`
+            var line3A = `You had to type a total of ${((cost[1]+cost[2])*cost2Text).toFixed(0)} letters.`
             var line3B = `Your total cost was $${(cost[1]+cost[2]).toFixed(2)}`
             var line3 = realEffort ? line3A : line3B
             var line4A = `Your earnings are $${endowment.toFixed(2)}`

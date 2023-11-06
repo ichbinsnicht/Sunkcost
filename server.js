@@ -33,9 +33,9 @@ var choose = x => x[Math.floor(Math.random()*x.length)]
 
 // parameters
 const remoteVersion = false // false - lab, true - online
-const numPracticePeriods  = 5 // 5 practice periods
+const numPracticePeriods  = 1 // 5 practice periods
 const numPeriods  = 1    // 1 period, numPeriods > numPracticePeriods
-const practiceTypingLength = 100 // 100 characters per minute, realexperiment:  pilot: 25
+const practiceTypingLength = 1 // 100 characters per minute, realexperiment:  pilot: 25
 const step1Length = 15   // 15 secs choice1
 const step2Length = 5   // 5 secs feedback1
 const step3Length = 10  // 10 secs typingTask1
@@ -84,19 +84,9 @@ if(remoteVersion) console.log("guestlist Links", linkList)
  
 // TODO EXPERIMENT
 /*
+instructions, interface
 
-
-
-- In the first question on page 2 of the pre survey, we may want to say "how many dollars" instead of "how much money."
-
-In the interface, we should say "your chance of winning" instead of "chance of winning." In the  interface, we may want to say "you had to type a total of X letters" instead of "you had to type X letters."
-
-In the instructions, we may want to say "your probability will be" instead of "your probability is." Accordingly, we may want to reproduce the audio files.
-
-We may want to give subjects more time in the real period than the practice periods.
-
-
-
+- re-produce: audio files.
 - For ease of payment, each session should have a single payment file. We should also probably have one data file, one pre-survey file, and one post-survey file per session.
 
 
