@@ -32,6 +32,7 @@ const step5Length = 10   // 10 secs typingTask2
 const step6Length = 10   // 10 secs feedback2 
 const zeroTypingWait = 2 // 
 const endowment = 15
+const numberOfGuests = 100
 const multiplier1Low = 1    // marginal cost of the score in period 1
 const multiplier1High = 10  // marginal cost of the score in period 1
 const multiplier2Low = 1    // calibrate the high costs!
@@ -40,7 +41,6 @@ const cost2Text = 200      // 200 cost2Text (default)
                           // 60 letters per dollar (based on Ruixin's mellon experiment: 300 letters for 5 dollars )
                           // 170 letters per dollar according to Greiner, B., Ockenfels, A., & Werner, P. (2011). Wage transparency and performance: A real-effort experiment. Economics Letters, 111(3), 236-238.
                           // 200 characters per minute is the average typing speed (i.e. a dollar per minute)
-const numberOfGuests = 100
 
 // variables and guestList
 var realEffort = false
@@ -65,7 +65,6 @@ const guestList = process.env.RENDER
   : arange(numberOfGuests).map(i => {  
     return (i).toString()
   })
-
 seedrandom(randomSeed, {global: true})
 
 const linkList = guestList.map(guest => {
