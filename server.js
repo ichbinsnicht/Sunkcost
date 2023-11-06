@@ -83,6 +83,24 @@ const linkList = guestList.map(guest => {
 if(remoteVersion) console.log("guestlist Links", linkList)
  
 // TODO EXPERIMENT
+/*
+
+
+
+- In the first question on page 2 of the pre survey, we may want to say "how many dollars" instead of "how much money."
+
+In the interface, we should say "your chance of winning" instead of "chance of winning." In the  interface, we may want to say "you had to type a total of X letters" instead of "you had to type X letters."
+
+In the instructions, we may want to say "your probability will be" instead of "your probability is." Accordingly, we may want to reproduce the audio files.
+
+We may want to give subjects more time in the real period than the practice periods.
+
+
+
+- For ease of payment, each session should have a single payment file. We should also probably have one data file, one pre-survey file, and one post-survey file per session.
+
+
+*/
 
 // PUSH:
 // adjust parameters to the true values
