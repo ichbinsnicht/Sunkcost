@@ -1,3 +1,19 @@
+// TODO EXPERIMENT
+// - For ease of payment, each session should have a single payment file. 
+// - We should also probably have one data file, one pre-survey file, and one post-survey file per session.
+
+// PUSH:
+// adjust parameters to the true values
+// - It seems that the length of the practice typing is too short in the current version. 
+// - The number of practice periods seems to be incorrect. 
+//
+// Done
+// ------------------------------------------------------------------------------
+// - Web deployment for piloting: https://sunkcost.onrender.com
+// - FTP server: https://dash.infinityfree.com/accounts/if0_34633717
+// Unused:
+// - GDrive interfacing (https://www.section.io/engineering-education/google-drive-api-nodejs/)
+
 const express         = require("express")              // server building package
 const app             = express()
 const http            = require("http").Server(app)     // server-side socket (socket is for communication)
@@ -8,28 +24,6 @@ const path            = require('path')
 const process         = require('process')
 const FtpClient       = require('ftp')
 const ftpClient       = new FtpClient()
-
-async function uploadFiles(fileNames) {
-  ftpClient.connect({                         // named arguments: props = properties of object which is the argument
-    host: "ftpupload.net",
-    user: "if0_34633717",
-    password: "O9WuzXSdEfv"
-  })
-  ftpClient.on("ready",function(){
-    const folder = process.env.RENDER ? "onlineData" : "localData"
-    fileNames.forEach(fileName => {
-      console.log("uploadFile",folder,fileName)
-      const filePath = path.join(__dirname, 'data',fileName);
-      ftpClient.put(filePath,`${folder}/${fileName}`, err => {
-        if (err) throw err 
-      })
-    })
-    ftpClient.end()
-  })
-}
-
-var arange = x => [...Array(x).keys()] 
-var choose = x => x[Math.floor(Math.random()*x.length)]
 
 // parameters
 const remoteVersion = false // false - lab, true - online
@@ -60,6 +54,12 @@ var subjects = {}
 var numSubjects = 0
 var preSurveyLock = false
 var practiceLock = false
+var dataStream 
+var preSurveyStream
+var postSurveyStream
+var paymentStream 
+var preSurveyReady = false
+var postSurveyReady = false
 var dateString = getDateString()
 var randomSeed = Math.random()
 seedrandom("seed", {global: true})
@@ -82,76 +82,8 @@ const linkList = guestList.map(guest => {
 })
 if(remoteVersion) console.log("guestlist Links", linkList)
  
-// TODO EXPERIMENT
-/*
-instructions, interface
-
-- re-produce: audio files.
-- For ease of payment, each session should have a single payment file. We should also probably have one data file, one pre-survey file, and one post-survey file per session.
-
-
-*/
-
-// PUSH:
-// adjust parameters to the true values
-// - It seems that the length of the practice typing is too short in the current version. 
-// - The number of practice periods seems to be incorrect. 
-//
-// Done
-// ------------------------------------------------------------------------------
-// - Web deployment for piloting: https://sunkcost.onrender.com
-// - FTP server: https://dash.infinityfree.com/accounts/if0_34633717
-// Unused:
-// - GDrive interfacing (https://www.section.io/engineering-education/google-drive-api-nodejs/)
-//
-// 2) TODO WEB APP
-// - autonomous web app for piloting (no manager required)
-// - sending data to interfacing service (e.g. GDrive)
-//
-// typing task
-// - find literature on letters to dollar conversion (e.g. Ruixin, or
-// - Greiner, Ockenfels  and Werner (2011)
-// - Dickinson, D. L. (1999). An experimental examination of labor supply and work intensities. Journal of Labor Economics, 17(4), 638-670.)
-//
-// 4) TODO MACHINE LEARNING
-// --> generate fake data
-// --> how to layer?
-// ----> or attention-based models? Unlikely since it would leverage order of variables
-// ----> convulational layers? Unlikely (typically in image-reconnection, pixels are connected that are next to each other)
-// ----> sequence of fully connected layers that use relu activation functions (rectified-linear units)
-// --> objective function: mean-squared error (MSE) due to continuous outcome variable and mean-prediction
-// --> use ML model from Pytorch (pick ML model that predicts best out of sample)
-// --> open questions: # layers; size of layers; final layer linear, relu, other?
-//
-// incentives
-// - $15 physicial gift certificate from Kroger (https://giftcards.kroger.com/starbucks-gift-card). 
-// - What is the value of a $15 gift card? Literature?
-// Actually people may value a gift card less than cash. If they value the gift card at the extreme,
-// 2/3 less than cash, then they would not want to invest, otherwise they do (2/3*15)
-// In literature, we may find the (individually internal) exchange rate of gift card to money
-// - How much individuals value the gift card depends on the subjects match with the gift card
-//
-// Post Survey, 
-// - add question about post survey of not wasting when one has already invested money into a project?
-// --> this could be in the pre-survey as well but I am worried about priming and giving away the research project
-// --> conclusion: No - not distinct from our choice-based measure!
-//
-// --> presurvey questions on informational content, reputational concerns, or financial and time constraints
-// reputational concern
-// "DO SUNK COSTS MATTER?
-// R. PRESTON MCAFEE, HUGO M. MIALON, SUE H. MIALON"
-//
-// TODO Real PILOT: one pilot subjects at VCU
-//
-// Pre-Survey Questions
-// Memory: https://www.slackbooks.com/content/42490/42490_2P.pdf
-// Idea based on paper from Baliga, Sandeep, and Jeffrey C. Ely. 2011. "Mnemonomics: The Sunk Cost Fallacy as a Memory Kludge." American Economic Journal: Microeconomics, 3 (4): 35-67.
-// Cognitive Reflection: Toplak, M. E., West, R. F., & Stanovich, K. E. (2014). Assessing miserly information processing: An expansion of the Cognitive Reflection Test. Thinking & reasoning, 20(2), 147-168.
-//
-// Reputational Concerns (Fear of Negative Evaluation):
-// Leary, M. R. (1983). A brief version of the Fear of Negative Evaluation Scale. Personality and social psychology bulletin, 9(3), 371-375.
-// Carleton, R. N., McCreary, D. R., Norton, P. J., & Asmundson, G. J. (2006). Brief fear of negative evaluation scale—revised. Depression and anxiety, 23(5), 297-303.
-
+createDataFile()
+createPaymentFile()
 
 app.use(express.static(__dirname + "/public"))
 
@@ -170,6 +102,13 @@ if(remoteVersion){
     res.sendFile(__dirname + "/public/client.html")
   })
 }
+
+function arange(x){
+  return [...Array(x).keys()]
+}
+function choose(x){
+  return x[Math.floor(Math.random()*x.length)]
+} 
 
 function genRandomString(length){
   var numbers = Array.from(Array(26)).map((e,i) => i )
@@ -194,25 +133,28 @@ function getDateString(){
   return dateString
 }
 
-const writePreSurveyFile = function(msg){
-  console.log(`WritingPreSurvey ${msg.id}`)
+function createPreSurveyFile(msg){
+  preSurveyStream = fs.createWriteStream(`data/${dateString}-preSurvey.csv`)
   var csvString = Object.keys(msg).join(",")
   csvString += "\n"
-  csvString += Object.values(msg).join(",")
-  var logError = (ERR) => { if(ERR) console.log(ERR)}
-  const fileName = `${dateString}-preSurvey-${msg.id}.csv`
-  fs.writeFile(`data/${fileName}`,csvString,logError)
-  if(remoteVersion) uploadFiles([fileName])
+  preSurveyStream.write(csvString)
+  preSurveyReady = true
 }
-// within-period data
-const createDataFile = function(subject){
-  subject.dataStream = fs.createWriteStream(`data/${dateString}-data-${subject.id}.csv`)
+function updatePreSurveyFile(msg){
+  if(!preSurveyReady) createPreSurveyFile(msg)
+  var csvString = Object.values(msg).join(",")
+  csvString += "\n"
+  preSurveyStream.write(csvString)
+}
+
+function createDataFile(){
+  dataStream = fs.createWriteStream(`data/${dateString}-data.csv`)
   var csvString = "session,subjectStartTime,practiceTypingDuration, realEffort,period,practice,id,forced1,forcedScore1,multiplier1,multiplier2,"
   csvString += "choice1,choice2,score1,score2,cost1,cost2,endowment,totalScore,outcomeRandom,winPrize,totalCost,earnings"
   csvString += "\n"
-  subject.dataStream.write(csvString)
+  dataStream.write(csvString)
 }
-const updateDataFile = function(subject){
+function updateDataFile(subject){
   var csvString = ""
   csvString += `${dateString},${subject.startTime},${subject.practiceTypingDuration},${realEffort*1},${subject.period},`
   csvString += `${1-subject.practicePeriodsComplete},${subject.id},`
@@ -224,26 +166,31 @@ const updateDataFile = function(subject){
   csvString += `${endowment},${subject.totalScore},${subject.outcomeRandom},`
   csvString += `${subject.winPrize},${subject.totalCost},${subject.earnings},`
   csvString += "\n"
-  subject.dataStream.write(csvString)
+  dataStream.write(csvString)
 }
-const writePostSurveyFile = function(msg){
-  console.log(`WritingPostSurvey ${msg.id}`)
+
+function createPostSurveyFile(msg){
+  postSurveyStream = fs.createWriteStream(`data/${dateString}-postSurvey.csv`)
   var csvString = Object.keys(msg).join(",")
   csvString += "\n"
-  csvString += Object.values(msg).join(",")
-  var logError = (ERR) => { if(ERR) console.log(ERR)}
-  const fileName = `${dateString}-postSurvey-${msg.id}.csv`
-  fs.writeFile(`data/${fileName}`,csvString,logError)
-  if(remoteVersion) uploadFiles([fileName,`${dateString}-data-${msg.id}.csv`])
+  postSurveyStream.write(csvString)
+  postSurveyReady = true
 }
-const writePaymentFile = function(subject){
+function updatePostSurveyFile(msg){
+  if(!postSurveyReady) createPostSurveyFile(msg)
+  var csvString = Object.values(msg).join(",")
+  csvString += "\n"
+  postSurveyStream.write(csvString)
+}
+function createPaymentFile(){
+  paymentStream = fs.createWriteStream(`data/${dateString}-payment.csv`)
   var csvString = "id,earnings,winPrize\n"
+  paymentStream.write(csvString)
+}
+function updatePaymentFile(subject){
   calculateOutcome()
-  csvString += `${subject.id},${subject.earnings.toFixed(2)},${subject.winPrize}\n`
-  var logError = (ERR) => { if(ERR) console.log(ERR)}
-  const fileName = `${dateString}-payment-${subject.id}.csv`
-  fs.writeFile(`data/${fileName}`,csvString,logError)
-  if(remoteVersion) uploadFiles([fileName])
+  var csvString = `${subject.id},${subject.earnings.toFixed(2)},${subject.winPrize}\n`
+  paymentStream.write(csvString)
 }
 
 io.on("connection",function(socket){
@@ -279,7 +226,7 @@ io.on("connection",function(socket){
   socket.on("submitPreSurvey", function(msg){
     console.log("submitPreSurvey")
     const subject = subjects[msg.id]
-    writePreSurveyFile(msg) 
+    updatePreSurveyFile(msg) 
     if(subject.state == "preSurvey") {
       subject.preSurveySubmitted = true
       subject.state = "instructions"
@@ -313,7 +260,7 @@ io.on("connection",function(socket){
   socket.on("submitPostSurvey", function(msg){
     console.log("submitPostSurvey")
     const subject = subjects[msg.id]
-    writePostSurveyFile(msg) 
+    updatePostSurveyFile(msg) 
     if(subject.state == "postSurvey") {
       subject.preSurveySubmitted = true
       subject.state = "experimentComplete"
@@ -330,7 +277,9 @@ io.on("connection",function(socket){
         id: subject.id,
         step: subject.step,
         countdown: subject.countdown,
-        state: subject.state
+        state: subject.state,
+        earnings: subject.earnings,
+        winPrize: subject.winPrize,
       }
     })
     var reply = {
@@ -396,7 +345,7 @@ http.listen(3000,function(msg){
   console.log(`listening on port ${port}`)
 })
 
-const shuffle = function(array){
+function shuffle(array){
   var shuffled = array
     .map(x => ({value: x, priority: Math.random()}))
     .sort((a,b) => a.priority-b.priority)
@@ -404,7 +353,7 @@ const shuffle = function(array){
   return shuffled
 }
 
-const setupHist = function(subject) {
+function setupHist(subject) {
   arange(numPracticePeriods).forEach(i => {
     subject.hist[i+1] = {
       choice: {1:0,2:0},
@@ -418,7 +367,7 @@ const setupHist = function(subject) {
   })
 } 
 
-const createSubject = function(id, socket){
+function createSubject(id, socket){
   numSubjects += 1
   const subject = {
     id: id,
@@ -448,10 +397,9 @@ const createSubject = function(id, socket){
   }
   subjects[id] = subject
   setupHist(subject)
-  createDataFile(subject) 
   console.log(`subject ${id} connected`)
 }
-const calculateOutcome = function(){
+function calculateOutcome(){
   Object.values(subjects).forEach(subject => {
     const selectedHist = subject.hist[subject.period]
     subject.outcomeRandom = selectedHist.outcomeRandom
@@ -463,7 +411,7 @@ const calculateOutcome = function(){
     subject.earnings = endowment - subject.totalCost*(1-realEffort)
   })
 }
-const update = function(subject){ //add presurvey
+function update(subject){ //add presurvey
   if(subject.state == "startup" & !preSurveyLock) {
     subject.state = "preSurvey"
   }
@@ -533,8 +481,7 @@ const update = function(subject){ //add presurvey
           subject.step = 7
           console.log("subject.period", subject.id, subject.period)
           console.log("subject.step", subject.id, subject.step)
-          writePaymentFile(subject)
-          subject.dataStream.end()
+          updatePaymentFile(subject)
           subject.state = "postSurvey"
           console.log("Experiment for Subject", subject.id, "Complete")
         } else{
@@ -558,7 +505,7 @@ const update = function(subject){ //add presurvey
     subject.stage = subject.step < 4 ? 1 : 2 
   }
 }
-const updateSubjects = function(){
+function updateSubjects(){
   subjectsArray = Object.values(subjects)
   subjectsArray.forEach(subject => update(subject))
 }
