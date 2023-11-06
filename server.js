@@ -1,18 +1,12 @@
 // TODO EXPERIMENT
-// - For ease of payment, each session should have a single payment file. 
-// - We should also probably have one data file, one pre-survey file, and one post-survey file per session.
 
-// PUSH:
-// adjust parameters to the true values
-// - It seems that the length of the practice typing is too short in the current version. 
-// - The number of practice periods seems to be incorrect. 
+// PUSH: adjust parameters to the true values
 //
-// Done
+// Online-Info
 // ------------------------------------------------------------------------------
 // - Web deployment for piloting: https://sunkcost.onrender.com
 // - FTP server: https://dash.infinityfree.com/accounts/if0_34633717
-// Unused:
-// - GDrive interfacing (https://www.section.io/engineering-education/google-drive-api-nodejs/)
+// - Unused: GDrive interfacing (https://www.section.io/engineering-education/google-drive-api-nodejs/)
 
 const express         = require("express")              // server building package
 const app             = express()
