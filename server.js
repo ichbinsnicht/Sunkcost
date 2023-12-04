@@ -157,7 +157,7 @@ function updateDataFile(subject){
   csvString += `${subject.hist[subject.period].score[1]},${subject.hist[subject.period].score[2]},`
   csvString += `${subject.hist[subject.period].cost[1]},${subject.hist[subject.period].cost[2]},`
   csvString += `${endowment},${subject.totalScore},${subject.outcomeRandom},`
-  csvString += `${subject.winPrize},${subject.totalCost},${subject.earnings},`
+  csvString += `${subject.winPrize},${subject.totalCost},${subject.earnings}`
   csvString += "\n"
   dataStream.write(csvString)
 }
