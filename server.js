@@ -1,7 +1,9 @@
 // 1) Finish cost/prob forcing (clean up client.js and server.js)
-// 2) make interface more online compatible
-// 3) server install SSL (Ionos)
-// 4) analysis: ML to improve SE (barrier: can ML predict out of sample better? if so, then move forward)
+// - adjust interface with colors (Dots) and labels for stage 1 and stage 2
+// - recreate full instructions audio (w/ last lines)
+// 3) make interface more online compatible
+// 4) server install SSL (Ionos)
+// 5) analysis: ML to improve SE (barrier: can ML predict out of sample better? if so, then move forward)
 
 // TODO EXPERIMENT
 
@@ -26,21 +28,12 @@ const process = require('process')
 const remoteVersion = false // false - lab, true - online
 const numPracticePeriods = 5 // 5 practice periods
 const numPeriods = 1 // 1 period, numPeriods > numPracticePeriods
-const practiceTypingLength = 100 // 100 characters per minute, realexperiment:  pilot: 25
-const step1Length = 15 // 15 secs choice1
-const step2Length = 5 // 5 secs feedback1
-const step4Length = 15 // 15 secs choice2
-const step6Length = 10 // 10 secs feedback2
+const choice1Length = 15 // 15 secs choice1
+const feedback1Length = 5 // 5 secs feedback1
+const choice2Length = 15 // 15 secs choice2
+const feedback2Length = 10 // 10 secs feedback2
 const endowment = 15
 const numberOfGuests = 100
-const multiplier1Low = 1 // marginal cost of the score in period 1
-const multiplier1High = 10 // marginal cost of the score in period 1
-const multiplier2Low = 1 // calibrate the high costs!
-const multiplier2High = 10 // cost2 = sunk cost in period 2 (high cost shock)
-const cost2Text = 200 // 200 cost2Text (default)
-// 60 letters per dollar (based on Ruixin's mellon experiment: 300 letters for 5 dollars )
-// 170 letters per dollar according to Greiner, B., Ockenfels, A., & Werner, P. (2011). Wage transparency and performance: A real-effort experiment. Economics Letters, 111(3), 236-238.
-// 200 characters per minute is the average typing speed (i.e. a dollar per minute)
 
 // variables and guestList
 let costForcing = false
@@ -57,7 +50,6 @@ let postSurveyReady = false
 const dateString = getDateString()
 const randomSeed = Math.random()
 seedrandom('seed', { global: true })
-const practiceTypingTarget = genRandomString(practiceTypingLength)
 const guestList = process.env.RENDER
   ? arange(numberOfGuests).map(i => {
     return Math.round(Math.random() * 10 ** 7).toString(36)
@@ -98,15 +90,6 @@ if (remoteVersion) {
 function arange (x) {
   return [...Array(x).keys()]
 }
-function choose (x) {
-  return x[Math.floor(Math.random() * x.length)]
-}
-
-function genRandomString (length) {
-  const numbers = Array.from(Array(26)).map((e, i) => i)
-  const letters = numbers.map(i => String.fromCharCode(i + 97))
-  return Array.from(Array(length)).map(i => choose(letters)).join('')
-}
 
 function formatTwo (x) {
   let y = x.toFixed(0)
@@ -141,17 +124,16 @@ function updatePreSurveyFile (msg) {
 
 function createDataFile () {
   dataStream = fs.createWriteStream(`data/${dateString}-data.csv`)
-  let csvString = 'session,subjectStartTime,practiceTypingDuration, costForcing,period,practice,id,forced1,forcedScore1,multiplier1,multiplier2,'
+  let csvString = 'session,subjectStartTime, costForcing,period,practice,id,forced1,forcedScore1,'
   csvString += 'choice1,choice2,score1,score2,cost1,cost2,endowment,totalScore,outcomeRandom,winPrize,totalCost,earnings'
   csvString += '\n'
   dataStream.write(csvString)
 }
 function updateDataFile (subject) {
   let csvString = ''
-  csvString += `${dateString},${subject.startTime},${subject.practiceTypingDuration},${costForcing * 1},${subject.period},`
+  csvString += `${dateString},${subject.startTime},${costForcing * 1},${subject.period},`
   csvString += `${1 - subject.practicePeriodsComplete},${subject.id},`
   csvString += `${subject.hist[subject.period].forced[1]},${subject.hist[subject.period].forcedScore[1]},`
-  csvString += `${subject.hist[subject.period].multiplier[1]},${subject.hist[subject.period].multiplier[2]},`
   csvString += `${subject.hist[subject.period].choice[1]},${subject.hist[subject.period].choice[2]},`
   csvString += `${subject.hist[subject.period].score[1]},${subject.hist[subject.period].score[2]},`
   csvString += `${subject.hist[subject.period].cost[1]},${subject.hist[subject.period].cost[2]},`
@@ -221,23 +203,14 @@ io.on('connection', function (socket) {
       subject.state = 'instructions'
     }
   })
-  socket.on('beginTypingTask', function (msg) {
-    const subject = subjects[msg.id]
-    if (subject.state === 'instructions') {
-      subject.instructionsComplete = true
-      subject.state = 'typingPractice'
-      console.log('beginTypingTask', msg.id)
-    }
-  })
   socket.on('beginPracticePeriods', function (msg) {
     const subject = subjects[msg.id]
-    subject.practiceTypingDuration = msg.practiceTypingDuration
-    if (subject.state === 'typingPractice') {
-      subject.typingPracticeComplete = true
+    if (subject.state === 'instructions') {
       subject.state = 'interface'
       console.log('beginPracticePeriods', msg.id)
     }
   })
+
   socket.on('beginExperiment', function (msg) {
     const subject = subjects[msg.id]
     if (subject.practicePeriodsComplete && subject.state === 'instructions') {
@@ -285,15 +258,11 @@ io.on('connection', function (socket) {
       const step = subject.step
       const histPeriod = subject.hist[msg.period]
       const choosing = step === 1 || step === 4
-      const typing = step === 3 || step === 5
       if (subject.period === msg.period && step === msg.step) {
         if (choosing) {
           histPeriod.choice[msg.stage] = msg.currentChoice
           histPeriod.score[msg.stage] = msg.currentScore
           histPeriod.cost[msg.stage] = msg.currentCost
-        }
-        if (typing) {
-          subject.typingProgress = msg.typingProgress
         }
       }
       const reply = {
@@ -304,19 +273,16 @@ io.on('connection', function (socket) {
         experimentStarted: subject.experimentStarted,
         practicePeriodsComplete: subject.practicePeriodsComplete,
         numPracticePeriods,
-        typingTarget: subject.typingPracticeComplete ? subject.typingTarget : practiceTypingTarget,
         endowment,
         step: subject.step,
         stage: subject.stage,
         countdown: subject.countdown,
-        typingPracticeComplete: subject.typingPracticeComplete,
         outcomePeriod: subject.outcomePeriod,
         outcomeRandom: subject.outcomeRandom,
         winPrize: subject.winPrize,
         totalCost: subject.totalCost,
         earnings: subject.earnings,
-        hist: subject.hist,
-        cost2Text
+        hist: subject.hist
       }
       socket.emit('serverUpdateClient', reply)
     } else { // restart server: solving issue that client does not know that
@@ -343,7 +309,7 @@ function setupHist (subject) {
       forcedScore: { 1: Math.round(Math.random() * 0.5 * 100) / 100, 2: 0 },
       forced: { 1: 1 * (Math.random() > 0.5), 2: 0 },
       outcomeRandom: Math.random(),
-      multiplier: { 1: choose([multiplier1Low, multiplier1High]), 2: choose([multiplier2Low, multiplier2High]) }
+      multiplier: { 1: 10, 2: 10 }
     }
   })
 }
@@ -356,17 +322,13 @@ function createSubject (id, socket) {
     startTime: getDateString(),
     preSurveySubmitted: false,
     instructionsComplete: false,
-    typingPracticeComplete: false,
-    practiceTypingDuration: 0,
     experimentStarted: false,
     practicePeriodsComplete: false,
-    typingTarget: '',
-    typingProgress: 0,
-    step: 1,
+    step: 'choice1',
     stage: 1,
     state: 'startup',
     period: 1,
-    countdown: step1Length,
+    countdown: choice1Length,
     choice1: 0,
     investment2: 0,
     outcomePeriod: 1,
@@ -401,48 +363,29 @@ function update (subject) { // add presurvey
   }
   if (subject.state === 'interface') {
     subject.countdown = subject.countdown - 1
-    if (subject.step === 1 && subject.countdown <= 0) { // end subject.step1 choice1
-      subject.countdown = step2Length
-      subject.step = 2
+    if (subject.step === 'choice1' && subject.countdown <= 0) { // end choice1
+      subject.countdown = feedback1Length
+      subject.step = 'feedback1'
       console.log('subject.period', subject.id, subject.period)
       console.log('subject.step', subject.id, subject.step)
     }
-    if (subject.step === 2 && subject.countdown <= 0) { // end subject.step2 feedback1
-      subject.countdown = step4Length
-      subject.step = 4
+    if (subject.step === 'feedback1' && subject.countdown <= 0) { // end feedback1
+      subject.countdown = choice2Length
+      subject.step = 'choice2'
       console.log('subject.step', subject.id, subject.step)
     }
-    let typingComplete = false
-    if (subject.step === 3) { // end subject.step3 typingTask1
-      const practiceTimerComplete = !subject.experimentStarted && subject.countdown <= 0
-      typingComplete = subject.experimentStarted && subject.typingProgress === subject.typingTarget.length && subject.countdown <= 0
-      if (typingComplete || practiceTimerComplete) {
-        subject.countdown = step4Length
-        subject.step = 4
-        console.log('subject.step', subject.id, subject.step)
-      }
-    }
-    if (subject.step === 4 && subject.countdown <= 0) { // end subject.step4 choice2
+    if (subject.step === 'choice2' && subject.countdown <= 0) { // end choice2
       calculateOutcome()
-      subject.countdown = step6Length
-      subject.step = 6
+      subject.countdown = feedback2Length
+      subject.step = 'feedback2'
       console.log('subject.step', subject.id, subject.step)
     }
-    if (subject.step === 5) { // end subject.step5 typingTask2
-      const feedbackComplete = !subject.experimentStarted && subject.countdown <= 0
-      typingComplete = subject.experimentStarted && subject.typingProgress === subject.typingTarget.length && subject.countdown <= 0
-      if (typingComplete || feedbackComplete) {
-        subject.countdown = step6Length
-        subject.step = 6
-        console.log('subject.step', subject.id, subject.step)
-      }
-    }
-    if (subject.step === 6 && subject.countdown <= 0) { // end subject.step6 feedback2
+    if (subject.step === 'feedback2' && subject.countdown <= 0) { // end feedback2
       updateDataFile(subject) // change to subject-specific
       const maxPeriod = subject.experimentStarted ? numPeriods : numPracticePeriods
       if (subject.period >= maxPeriod) {
         if (subject.experimentStarted) {
-          subject.step = 7
+          subject.step = 'end'
           console.log('subject.period', subject.id, subject.period)
           console.log('subject.step', subject.id, subject.step)
           updatePaymentFile(subject)
@@ -454,19 +397,19 @@ function update (subject) { // add presurvey
           subject.practicePeriodsComplete = true
           subject.period = 1
           subject.step = 1
-          subject.countdown = step1Length
+          subject.countdown = choice1Length
           console.log('subject.period', subject.id, subject.period)
           console.log('subject.step', subject.id, subject.step)
         }
       } else {
-        subject.countdown = step1Length
+        subject.countdown = choice1Length
         subject.period += 1
-        subject.step = 1
+        subject.step = 'choice1'
         console.log('subject.period', subject.id, subject.period)
         console.log('subject.step', subject.id, subject.step)
       }
     }
-    subject.stage = subject.step < 4 ? 1 : 2
+    subject.stage = subject.step === 'choice1' || subject.step === 'feedback1' ? 1 : 2
   }
 }
 function updateSubjects () {
