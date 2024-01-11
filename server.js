@@ -1,5 +1,9 @@
-// 1) Finish cost/prob forcing (clean up client.js and server.js)
-// - adjust interface with colors (Dots) and labels for stage 1 and stage 2
+// 1) select probabilities of money ($10) and gift card ($12), exhaustive, mutually exclusive
+// you either get money or get gift card, not both 
+// Solution to get around issues of linear separability and risk preferences) 
+// 2) now there is only probability forcing , no cost forcing (clean up client.js and server.js)
+// 3) MC can be manipulated via money ($10, $12)
+// - adjust interface 
 // - recreate full instructions audio (w/ last lines)
 // 3) make interface more online compatible
 // 4) server install SSL (Ionos)
