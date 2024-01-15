@@ -1,7 +1,6 @@
 /* global io, Audio */
 const infoDiv = document.getElementById('infoDiv')
 const subjectsTable = document.getElementById('subjectsTable')
-const costForcingCheckBox = document.getElementById('costForcingCheckBox')
 const playAudioButton = document.getElementById('playAudioButton')
 const stopAudioButton = document.getElementById('stopAudioButton')
 const preSurveyLock = document.getElementById('preSurveyLock')
@@ -59,8 +58,7 @@ stopAudioButton.onclick = function () {
 const update = function () {
   const msg = {
     preSurveyLock: preSurveyLock.checked,
-    practiceLock: practiceLock.checked,
-    costForcing: costForcingCheckBox.checked
+    practiceLock: practiceLock.checked
   }
   socket.emit('managerUpdate', msg)
 }

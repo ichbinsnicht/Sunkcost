@@ -35,12 +35,10 @@ const feedbackFont = '3pt monospace'
 const black = 'rgb(0,0,0)'
 const green = 'rgb(0,200,0)'
 const darkGreen = 'rgb(0,150,0)'
-const red = 'rgb(256,0,0)'
-const darkRed = 'rgb(150,0,0)'
-const blue = 'rgb(0,50,256)'
+const blue = 'rgb(0,150,256)'
+const darkBlue = 'rgb(0,50,256)'
 
 // variables
-let costForcing = false
 let state = 'startup'
 let id = 0
 let joined = false
@@ -60,73 +58,42 @@ let forcedScore = { 1: 0, 2: 0 }
 let forced = { 1: 0, 2: 0 }
 let cost = { 1: 0, 2: 0 }
 let multiplier = { 1: 0, 2: 0 }
-let endowment = 0
 let hist = {}
 let message = {}
 let mouseEvent = { x: 0, y: 0 }
 let earnings = 0
 let winPrize = 0
-let instructionsString = ''
 let readyInstructionsString = ''
 let practiceLock = true
-let cost2Text = 10
 let startPreSurveyTime = 0
 let endPreSurveyTime = 0
 
 const imageStyle = 'width:14.2vh;height:9vh;margin-left:auto;margin-right:auto;display:block;'
 const imageHTML = `<img src="GiftCard.png" style="${imageStyle}"/>`
 
-const costForcingInstructionsString = `
-In this experiment you will start with $15. Depending on the decisions you make, you may win a $15 Starbucks gift card. <br><br>
+// probForcingInstructionsString
+const instructionsString = `
+In this experiment you will start with $5. Depending on the decisions you make, you will either win a $15 Starbucks gift card or a $10 bonus. <br><br>
 
 ${imageHTML} <br>
 
-This experiment has two stages: stage 1 and stage 2. In each stage, you will make a choice which will affect your earnings and your chance to win the $15 Starbucks gift card.<br><br>
+This experiment has two stages: stage 1 and stage 2. In each stage, you will make a choice which may affect your probability of winning the $15 Starbucks gift card and your probability of winning the $10 bonus.<br><br>
 
 Stage 1:<br>
 <ul>
-    <li> Choose a number between 0% and 50%, called Probability 1.</li>
-    <li> You can adjust Probability 1 by moving your mouse left or right. Probability 1 will be locked in at the end of Stage 1.</li>
-    <li> Charge 1 will equal Probability 1 multiplied by $10.
-    <li> Cost 1 will equal either Charge 1 or a randomly selected number from $0 to $5. Both are equally likely.</li>
+    <li> Choose a number between 0% and 50%, called Choice 1.</li>
+    <li> You can adjust Choice 1 by moving your mouse left or right. Choice 1 will be locked in at the end of Stage 1.</li>
+    <li> Score 1 will be either Choice 1 or a randomly selected number from 0% to 50%. Both are equally likely.</li>
 </ul>
 
 Stage 2:<br>
 <ul>
-    <li> You will choose a number between 0% and 50%, called Probability 2.</li>
-    <li> You can adjust Probability 2 by moving your mouse left or right. Probability 2 will be locked in at the end of Stage 2.</li>
-    <li> Cost 2 will equal Probability 2 multiplied by $10.</li>
+    <li> You will choose a number between 0% and 50%, called Choice 2.</li>
+    <li> You can adjust Choice 2 by moving your mouse left or right. Choice 2 will be locked in at the end of Stage 2.</li>
+    <li> Score 2 will equal Choice 2.</li>
 </ul>
 
-Your earnings will be your initial $15 minus Cost 1 and Cost 2. <br><br>
-
-Your chance of winning the $15 Starbucks gift card will be Probability 1 plus Probability 2. <br><br>`
-
-const probForcingInstructionsString = `
-In this experiment you will start with $15. Depending on the decisions you make, you may win a $15 Starbucks gift card. <br><br>
-
-${imageHTML} <br>
-
-This experiment has two stages: stage 1 and stage 2. In each stage, you will make a choice which will affect your earnings and your chance to win the $15 Starbucks gift card.<br><br>
-
-Stage 1:<br>
-<ul>
-    <li> You will choose a number between 0% and 50%, called Score 1.</li>
-    <li> You can adjust Score 1 by moving your mouse left or right. Score 1 will be locked in at the end of Stage 1.</li>
-    <li> Cost 1 will be Score 1 multiplied by $5.
-    <li> Probability 1 will be either Score 1 or a randomly selected number from 0% to 50%. Both are equally likely.</li>
-</ul>
-
-Stage 2:<br>
-<ul>
-    <li> You will choose a number between 0% and 50%, called Probability 2.</li>
-    <li> You can adjust Probability 2 by moving your mouse left or right. Probability 2 will be locked in at the end of Stage 2.</li>
-    <li> Cost 2 will equal Probability 2 multiplied by $10.</li>
-</ul>
-
-Your earnings will be your initial $15 minus Cost 1 and Cost 2. <br><br>
-
-Your chance of winning the $15 Starbucks gift card will be Probability 1 plus Probability 2. <br><br>`
+At the end of the experiment, you will receive either the $10 bonus or the Starbucks giftcard. Your chance of winning the $15 Starbucks gift card will be Score 1 plus Score 2. Your chance of winning the $10 bonus will be one minus your chance of winning the giftcard.<br><br>`
 
 const readyString = 'If you have any questions, raise your hand and we will come to assist you. Please click the button below to begin the experiment.'
 
@@ -251,8 +218,6 @@ socket.on('serverUpdateClient', function (msg) {
     console.log('msg.period', msg.period)
     console.log('msg.step', msg.step)
   }
-  costForcing = msg.costForcing
-  instructionsString = costForcing ? costForcingInstructionsString : probForcingInstructionsString
   readyInstructionsString = instructionsString + readyString
   message = msg
   step = msg.step
@@ -263,14 +228,12 @@ socket.on('serverUpdateClient', function (msg) {
   numPracticePeriods = msg.numPracticePeriods
   countdown = msg.countdown
   period = msg.period
-  endowment = msg.endowment
   winPrize = msg.winPrize
   earnings = msg.earnings
   hist = msg.hist
   multiplier = msg.hist[msg.period].multiplier
   forcedScore = msg.hist[msg.period].forcedScore
   forced = msg.hist[msg.period].forced
-  cost2Text = msg.cost2Text
   if (state !== msg.state) {
     const readyPracticeString = `First, you will participate in ${numPracticePeriods} practice periods. The practice periods will not affect your final earnings. They are just for practice. Afterwards, you will start the experiment. <br><br> If you have any questions, raise your hand and we will come to assist you. Please click the button below to begin the practice periods.`
     const practiceInstructionsString = instructionsString + readyPracticeString
@@ -355,8 +318,8 @@ const drawInterface = function () {
   if (step === 'feedback1') drawFeedback1Text()
   if (step === 'choice2' || step === 'feedback2') drawBottom()
   if (step !== 'choice1') {
-    drawBarTotalCost()
-    drawBarWinProb()
+    drawBarGiftCard()
+    drawBarBonus()
   }
 }
 const drawTop = function () {
@@ -376,21 +339,6 @@ const drawTop = function () {
   arange(numTicks).forEach(i => {
     const weight = i / (numTicks - 1)
     const x = (1 - weight) * graphX + weight * (graphX + graphWidth)
-    const yTop = lineY1 - tickLength
-    context.beginPath()
-    context.moveTo(x, lineY1)
-    context.lineTo(x, yTop)
-    context.stroke()
-    // cost2Text
-    const xCostLabelA = `${(0.5 * weight * multiplier[1] * cost2Text).toFixed(0)}`
-    const xCostLabelB = `$${(0.5 * weight * multiplier[1]).toFixed(2)}`
-    const xCostLabel = costForcing ? xCostLabelA : xCostLabelB
-    context.textBaseline = 'bottom'
-    context.fillText(xCostLabel, x, yTop - tickSpace)
-  })
-  arange(numTicks).forEach(i => {
-    const weight = i / (numTicks - 1)
-    const x = (1 - weight) * graphX + weight * (graphX + graphWidth)
     const yBottom = lineY1 + tickLength
     context.beginPath()
     context.moveTo(x, lineY1)
@@ -402,32 +350,22 @@ const drawTop = function () {
   })
   context.font = labelFont
   if (step !== 'choice1') {
-    context.textBaseline = 'top'
-    context.fillStyle = darkGreen
+    context.textBaseline = 'bottom'
+    context.fillStyle = darkBlue
     const score1String = `${(score[1] * 100).toFixed(0)}%`
-    context.fillText(`Score 1: ${score1String}`, graphX + graphWidth * 2 * score[1], lineY1 + tickLength + tickSpace + 2)
+    context.fillText(`Score 1: ${score1String}`, graphX + graphWidth * 2 * score[1], lineY1 - tickLength - 0.5)
     context.beginPath()
     context.arc(graphX + graphWidth * 2 * score[1], lineY1, 1.5, 0, 2 * Math.PI)
     context.fill()
-    context.fillStyle = darkRed
-    context.textBaseline = 'bottom'
-    const cost1StringA = `Cost 1: ${(cost[1] * cost2Text).toFixed(0)} Letters`
-    const cost1StringB = `Cost 1: $${cost[1].toFixed(2)}`
-    const cost1String = costForcing ? cost1StringA : cost1StringB
-    context.fillText(`${cost1String}`, graphX + graphWidth * 2 * score[1], lineY1 - tickLength - tickSpace - 2)
-    context.textBaseline = 'top'
-    context.beginPath()
-    context.arc(graphX + graphWidth * 2 * score[1], lineY1, 1.5, Math.PI, 2 * Math.PI)
-    context.fill()
   }
-  context.fillStyle = blue
-  context.textBaseline = 'top'
+  context.textBaseline = 'bottom'
+  context.fillStyle = black
   const choice1String = `${(choice[1] * 100).toFixed(0)}%`
-  context.fillText(`Choice 1: ${choice1String}`, graphX + graphWidth * 2 * choice[1], lineY1 + tickLength + tickSpace + 4.5)
+  context.fillText(`Choice 1: ${choice1String}`, graphX + graphWidth * 2 * choice[1], lineY1 - tickLength - 4)
   context.beginPath()
-  context.arc(graphX + graphWidth * 2 * choice[1], lineY1, 1, 0, 2 * Math.PI)
+  context.arc(graphX + graphWidth * 2 * choice[1], lineY1, 0.75, 0, 2 * Math.PI)
   context.fill()
-  context.fillStyle = 'black'
+  context.fillStyle = black
   context.textBaseline = 'middle'
   context.textAlign = 'left'
 }
@@ -448,20 +386,6 @@ const drawBottom = function () {
   arange(numTicks).forEach(i => {
     const weight = i / (numTicks - 1)
     const x = (1 - weight) * graphX + weight * (graphX + graphWidth)
-    const yTop = lineY2 - tickLength
-    context.beginPath()
-    context.moveTo(x, lineY2)
-    context.lineTo(x, yTop)
-    context.stroke()
-    const xCostLabelA = `${(0.5 * weight * multiplier[2] * cost2Text).toFixed(0)}`
-    const xCostLabelB = `$${(0.5 * weight * multiplier[2]).toFixed(2)}`
-    const xCostLabel = costForcing ? xCostLabelA : xCostLabelB
-    context.textBaseline = 'bottom'
-    context.fillText(xCostLabel, x, yTop - tickSpace)
-  })
-  arange(numTicks).forEach(i => {
-    const weight = i / (numTicks - 1)
-    const x = (1 - weight) * graphX + weight * (graphX + graphWidth)
     const yBottom = lineY2 + tickLength
     context.beginPath()
     context.moveTo(x, lineY2)
@@ -472,59 +396,25 @@ const drawBottom = function () {
     context.fillText(xScoreLabel, x, yBottom + tickSpace)
   })
   context.font = labelFont
-  context.textBaseline = 'top'
-  context.fillStyle = green
+  context.textBaseline = 'bottom'
+  context.fillStyle = blue
   const score2String = `${(score[2] * 100).toFixed(0)}%`
-  context.fillText(`Score 2: ${score2String}`, graphX + graphWidth * 2 * score[2], lineY2 + tickLength + tickSpace + 2)
+  context.fillText(`Score 2: ${score2String}`, graphX + graphWidth * 2 * score[2], lineY2 - tickLength - 0.5)
   context.beginPath()
+  context.fillStyle = blue
   context.arc(graphX + graphWidth * 2 * score[2], lineY2, 1.5, 0, 2 * Math.PI)
   context.fill()
-  context.fillStyle = red
   context.textBaseline = 'bottom'
-  const cost2StringA = `Cost 2: ${(cost[2] * cost2Text).toFixed(0)} Letters`
-  const cost2StringB = `Cost 2: $${cost[2].toFixed(2)}`
-  const cost2String = costForcing ? cost2StringA : cost2StringB
-  context.fillText(`${cost2String}`, graphX + graphWidth * 2 * score[2], lineY2 - tickLength - tickSpace - 2)
-  context.textBaseline = 'top'
-  context.beginPath()
-  context.arc(graphX + graphWidth * 2 * score[2], lineY2, 1.5, Math.PI, 2 * Math.PI)
-  context.fill()
-  context.fillStyle = blue
-  context.textBaseline = 'top'
+  context.fillStyle = black
   const choice2String = `${(choice[2] * 100).toFixed(0)}%`
-  context.fillText(`Choice 2: ${choice2String}`, graphX + graphWidth * 2 * choice[2], lineY2 + tickLength + tickSpace + 4.5)
+  context.fillText(`Choice 2: ${choice2String}`, graphX + graphWidth * 2 * choice[2], lineY2 - tickLength - 4)
   context.beginPath()
-  context.arc(graphX + graphWidth * 2 * choice[2], lineY2, 1, 0, 2 * Math.PI)
+  context.arc(graphX + graphWidth * 2 * choice[2], lineY2, 0.75, 0, 2 * Math.PI)
   context.fill()
-  context.fillStyle = 'black'
-  context.textBaseline = 'middle'
-  context.textAlign = 'left'
   context.textBaseline = 'top'
   if (step === 'feedback2') {
-    let line1 = 'This was a practice period'
-    let line2 = `Your chance of winning the $15 Starbucks gift card: ${((score[1] + score[2]) * 100).toFixed(0)}%`
-    let line3A = `You would have had to type a total of ${((cost[1] + cost[2]) * cost2Text).toFixed(0)} letters.`
-    let line3B = `Your total cost would have been $${(cost[1] + cost[2]).toFixed(2)}`
-    let line3 = costForcing ? line3A : line3B
-    let line4A = `Your earnings would have been $${endowment.toFixed(2)}`
-    let line4B = `Your earnings would have been $${earnings.toFixed(2)}`
-    let line4 = costForcing ? line4A : line4B
-    if (experimentStarted) {
-      line1 = ''
-      line2 = `Your chance of winning the $15 Starbucks gift card: ${((score[1] + score[2]) * 100).toFixed(0)}%`
-      line3A = `You had to type a total of ${((cost[1] + cost[2]) * cost2Text).toFixed(0)} letters.`
-      line3B = `Your total cost was $${(cost[1] + cost[2]).toFixed(2)}`
-      line3 = costForcing ? line3A : line3B
-      line4A = `Your earnings are $${endowment.toFixed(2)}`
-      line4B = `Your earnings are $${earnings.toFixed(2)}`
-      line4 = costForcing ? line4A : line4B
-    }
-    context.fillText(line1, graphX + graphWidth + 0, lineY2 + 21)
-    context.fillText(line2, graphX + graphWidth + 0, lineY2 + 29)
-    context.fillText(line3, graphX + graphWidth + 0, lineY2 + 33)
-    context.fillText(line4, graphX + graphWidth + 0, lineY2 + 37)
     context.textAlign = 'center'
-    context.fillStyle = 'green'
+    context.fillStyle = 'darkRed'
     const lineComplete = 'Stage 2 Complete'
     context.fillText(lineComplete, graphX + 0.5 * graphWidth, lineY2 + 21)
   }
@@ -538,14 +428,11 @@ const drawCountdownText = function () {
 const drawFeedback1Text = function () {
   context.textBaseline = 'top'
   context.textAlign = 'center'
-  context.fillStyle = darkRed
-  const cost1CompleteString = 'Cost 1 Implemented'
-  context.fillText(cost1CompleteString, graphX + 0.5 * graphWidth, lineY2 + 5)
-  context.fillStyle = darkGreen
+  context.fillStyle = darkBlue
   const score1CompleteString = 'Score 1 Implemented'
-  context.fillText(score1CompleteString, graphX + 0.5 * graphWidth, lineY2 + 10)
+  context.fillText(score1CompleteString, graphX + 0.5 * graphWidth, lineY2 + 5)
 }
-const drawBarTotalCost = function () {
+const drawBarGiftCard = function () {
   context.fillStyle = black
   context.strokeStyle = 'black'
   context.lineWidth = 0.25
@@ -559,13 +446,13 @@ const drawBarTotalCost = function () {
   context.lineTo(barX + 0.5 * barWidth, baseY)
   context.lineTo(barX + 0.5 * barWidth, baseY - barHeight)
   context.stroke()
-  context.fillStyle = red
-  const totalCost = cost[1] + cost[2]
-  const barLevelTotal = barHeight * totalCost / 10
+  context.fillStyle = blue
+  const winProb = (score[1] + score[2]) * 100
+  const barLevelTotal = barHeight * winProb / 100
   context.fillRect(barX - 0.5 * barWidth, baseY - barLevelTotal, barWidth, barLevelTotal)
-  context.fillStyle = darkRed
-  const cost1 = cost[1]
-  const barLevel1 = barHeight * cost1 / 10
+  context.fillStyle = darkBlue
+  const score1 = score[1] * 100
+  const barLevel1 = barHeight * score1 / 100
   context.fillRect(barX - 0.5 * barWidth, baseY - barLevel1, barWidth, barLevel1)
   const numTicks = 3
   const tickLength = 2
@@ -589,27 +476,19 @@ const drawBarTotalCost = function () {
     context.moveTo(xRight2, y)
     context.lineTo(xLeft2, y)
     context.stroke()
-    const yCostLabelA = `${(10 * weight * cost2Text).toFixed(0)}`
-    const yCostLabelB = `$${(10 * weight).toFixed(2)}`
-    const yCostLabel = costForcing ? yCostLabelA : yCostLabelB
+    const yWinProbLabel = `${100 * weight}%`
     context.textBaseline = 'middle'
     context.textAlign = 'left'
-    context.fillText(yCostLabel, barX + 0.5 * barWidth + tickLength + tickSpace, y)
+    context.fillText(yWinProbLabel, barX + 0.5 * barWidth + tickLength + tickSpace, y)
     context.textAlign = 'right'
-    context.fillText(yCostLabel, barX - 0.5 * barWidth - tickLength - tickSpace, y)
+    context.fillText(yWinProbLabel, barX - 0.5 * barWidth - tickLength - tickSpace, y)
   })
-  context.fillStyle = darkRed
+  context.fillStyle = darkBlue
   context.textAlign = 'center'
-  const costString1A = `Cost 1: ${(totalCost * cost2Text).toFixed(0)} Letters`
-  const costString1B = `Cost 1: $${totalCost.toFixed(0)}`
-  const costString1 = costForcing ? costString1A : costString1B
-  const costString2A = `Total Cost: ${(totalCost * cost2Text).toFixed(0)} Letters`
-  const costString2B = `Total Cost: $${totalCost.toFixed(0)}`
-  const costString2 = costForcing ? costString2A : costString2B
-  const costString = step === 'choice1' || step === 'feedback1' ? costString1 : costString2
-  context.fillText(costString, barX, baseY + 5)
+  const winProbString = `$15 Gift Card: ${winProb.toFixed(0)}%`
+  context.fillText(winProbString, barX, baseY + 5)
 }
-const drawBarWinProb = function () {
+const drawBarBonus = function () {
   context.fillStyle = black
   context.strokeStyle = 'black'
   context.lineWidth = 0.25
@@ -624,11 +503,13 @@ const drawBarWinProb = function () {
   context.lineTo(barX + 0.5 * barWidth, baseY - barHeight)
   context.stroke()
   context.fillStyle = green
-  const winProb = (score[1] + score[2]) * 100
-  const barLevelTotal = barHeight * winProb / 100
-  context.fillRect(barX - 0.5 * barWidth, baseY - barLevelTotal, barWidth, barLevelTotal)
+  const winProb = 100 - (score[1] + score[2]) * 100
+  if (stage === 2) {
+    const barLevelTotal = barHeight * winProb / 100
+    context.fillRect(barX - 0.5 * barWidth, baseY - barLevelTotal, barWidth, barLevelTotal)
+  }
   context.fillStyle = darkGreen
-  const score1 = score[1] * 100
+  const score1 = 50 - score[1] * 100
   const barLevel1 = barHeight * score1 / 100
   context.fillRect(barX - 0.5 * barWidth, baseY - barLevel1, barWidth, barLevel1)
   const numTicks = 3
@@ -662,8 +543,8 @@ const drawBarWinProb = function () {
   })
   context.fillStyle = darkGreen
   context.textAlign = 'center'
-  const winProbString1 = `Score 1: ${winProb.toFixed(0)}%`
-  const winProbString2 = `Win Prob: ${winProb.toFixed(0)}%`
+  const winProbString1 = `$10 Bonus: ${score1.toFixed(0)}%`
+  const winProbString2 = `$10 Bonus: ${winProb.toFixed(0)}%`
   const winProbString = step === 'choice1' || step === 'feedback1' ? winProbString1 : winProbString2
   context.fillText(winProbString, barX, baseY + 5)
 }
@@ -679,10 +560,13 @@ const drawOutcome = function () {
   const line3A = 'You won the $15 Starbucks gift card'
   const line3B = 'You did not win the $15 Starbucks gift card'
   const line3 = winPrize === 1 ? line3A : line3B
-  const line4A = `You earned $${endowment.toFixed(2)}`
-  const line4B = `You earned $${earnings.toFixed(2)}`
-  const line4 = costForcing ? line4A : line4B
-  const line5 = 'Please wait while your payment is prepared'
+  const line4A = 'You did not win the $10 bonus'
+  const line4B = 'You won the $10 bonus'
+  const line4 = winPrize === 1 ? line4A : line4B
+  const line5A = `You will receive $${(earnings + 5).toFixed(2)}`
+  const line5B = 'and a gift card'
+  const line5 = winPrize === 1 ? (line5A + line5B) : line5A
+  const line6 = 'Please wait while your payment is prepared'
   context.fillText(line1, 60, lineY1 + 14)
   // context.fillText(line2,graphX+0.5*graphWidth,lineY1+22)
   context.fillText(line3, 60, lineY1 + 32)

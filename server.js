@@ -1,9 +1,11 @@
+// fix earnings (final outcome)
+
 // 1) select probabilities of money ($10) and gift card ($12), exhaustive, mutually exclusive
-// you either get money or get gift card, not both 
-// Solution to get around issues of linear separability and risk preferences) 
+// you either get money or get gift card, not both
+// Solution to get around issues of linear separability and risk preferences)
 // 2) now there is only probability forcing , no cost forcing (clean up client.js and server.js)
 // 3) MC can be manipulated via money ($10, $12)
-// - adjust interface 
+// - adjust interface
 // - recreate full instructions audio (w/ last lines)
 // 3) make interface more online compatible
 // 4) server install SSL (Ionos)
@@ -30,17 +32,17 @@ const process = require('process')
 
 // parameters
 const remoteVersion = false // false - lab, true - online
-const numPracticePeriods = 5 // 5 practice periods
+const numPracticePeriods = 1 // 5 practice periods
 const numPeriods = 1 // 1 period, numPeriods > numPracticePeriods
-const choice1Length = 15 // 15 secs choice1
-const feedback1Length = 5 // 5 secs feedback1
-const choice2Length = 15 // 15 secs choice2
-const feedback2Length = 10 // 10 secs feedback2
+const choice1Length = 2 // 15 secs choice1
+const feedback1Length = 2 // 5 secs feedback1
+const choice2Length = 2 // 15 secs choice2
+const feedback2Length = 2 // 10 secs feedback2
 const endowment = 15
+const bonus = 10
 const numberOfGuests = 100
 
 // variables and guestList
-let costForcing = false
 const subjects = {}
 let numSubjects = 0
 let preSurveyLock = false
@@ -128,14 +130,14 @@ function updatePreSurveyFile (msg) {
 
 function createDataFile () {
   dataStream = fs.createWriteStream(`data/${dateString}-data.csv`)
-  let csvString = 'session,subjectStartTime, costForcing,period,practice,id,forced1,forcedScore1,'
+  let csvString = 'session,subjectStartTime,period,practice,id,forced1,forcedScore1,'
   csvString += 'choice1,choice2,score1,score2,cost1,cost2,endowment,totalScore,outcomeRandom,winPrize,totalCost,earnings'
   csvString += '\n'
   dataStream.write(csvString)
 }
 function updateDataFile (subject) {
   let csvString = ''
-  csvString += `${dateString},${subject.startTime},${costForcing * 1},${subject.period},`
+  csvString += `${dateString},${subject.startTime},${subject.period},`
   csvString += `${1 - subject.practicePeriodsComplete},${subject.id},`
   csvString += `${subject.hist[subject.period].forced[1]},${subject.hist[subject.period].forcedScore[1]},`
   csvString += `${subject.hist[subject.period].choice[1]},${subject.hist[subject.period].choice[2]},`
@@ -233,7 +235,6 @@ io.on('connection', function (socket) {
     }
   })
   socket.on('managerUpdate', function (msg) {
-    costForcing = msg.costForcing
     preSurveyLock = msg.preSurveyLock
     practiceLock = msg.practiceLock
     const ids = Object.keys(subjects)
@@ -270,7 +271,6 @@ io.on('connection', function (socket) {
         }
       }
       const reply = {
-        costForcing,
         practiceLock,
         period: subject.period,
         state: subject.state,
@@ -355,7 +355,7 @@ function calculateOutcome () {
     subject.totalScore = selectedHist.score[1] + selectedHist.score[2]
     subject.winPrize = (subject.totalScore > selectedHist.outcomeRandom) * 1
     subject.totalCost = selectedHist.cost[1] + selectedHist.cost[2]
-    subject.earnings = endowment - subject.totalCost
+    subject.earnings = endowment + bonus * (1 - subject.winPrize)
   })
 }
 function update (subject) { // add presurvey
@@ -400,7 +400,7 @@ function update (subject) { // add presurvey
           subject.state = 'instructions'
           subject.practicePeriodsComplete = true
           subject.period = 1
-          subject.step = 1
+          subject.step = 'choice1'
           subject.countdown = choice1Length
           console.log('subject.period', subject.id, subject.period)
           console.log('subject.step', subject.id, subject.step)
@@ -414,6 +414,7 @@ function update (subject) { // add presurvey
       }
     }
     subject.stage = subject.step === 'choice1' || subject.step === 'feedback1' ? 1 : 2
+    console.log('Subject.step, Subject.stage', subject.step, subject.stage)
   }
 }
 function updateSubjects () {
