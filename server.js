@@ -1,9 +1,7 @@
 // fix earnings (final outcome)
 
-// 3) MC can be manipulated via money ($10, $12)
-// - recreate full instructions audio (w/ last lines)
-// 3) make interface more online compatible
-// 4) server install SSL (Ionos)
+// 3) server install SSL (Ionos)
+// 4) make interface more online compatible
 // 5) analysis: ML to improve SE (barrier: can ML predict out of sample better? if so, then move forward)
 
 // TODO EXPERIMENT
