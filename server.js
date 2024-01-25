@@ -1,11 +1,11 @@
 // fix earnings (final outcome)
 
-// 3) server install SSL (Ionos)
-// 4) make interface more online compatible
-// 5) analysis: ML to improve SE (barrier: can ML predict out of sample better? if so, then move forward)
+// 1) server install SSL (Ionos) at server.js
+// 2) make interface more online compatible
+// 4) pilot new interface at LISH and at VCU
+// 3) analysis: ML to improve SE (barrier: can ML predict out of sample better? if so, then move forward)
 
 // TODO EXPERIMENT
-
 // PUSH: adjust parameters to the true values
 //
 // Online-Info
