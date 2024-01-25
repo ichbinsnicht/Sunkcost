@@ -1,11 +1,6 @@
 // fix earnings (final outcome)
 
-// 1) select probabilities of money ($10) and gift card ($12), exhaustive, mutually exclusive
-// you either get money or get gift card, not both
-// Solution to get around issues of linear separability and risk preferences)
-// 2) now there is only probability forcing , no cost forcing (clean up client.js and server.js)
 // 3) MC can be manipulated via money ($10, $12)
-// - adjust interface
 // - recreate full instructions audio (w/ last lines)
 // 3) make interface more online compatible
 // 4) server install SSL (Ionos)
@@ -34,11 +29,11 @@ const process = require('process')
 const remoteVersion = false // false - lab, true - online
 const numPracticePeriods = 1 // 5 practice periods
 const numPeriods = 1 // 1 period, numPeriods > numPracticePeriods
-const choice1Length = 2 // 15 secs choice1
+const choice1Length = 5 // 15 secs choice1
 const feedback1Length = 2 // 5 secs feedback1
-const choice2Length = 2 // 15 secs choice2
-const feedback2Length = 2 // 10 secs feedback2
-const endowment = 15
+const choice2Length = 5 // 15 secs choice2
+const feedback2Length = 5 // 10 secs feedback2
+const endowment = 5
 const bonus = 10
 const numberOfGuests = 100
 
@@ -131,7 +126,7 @@ function updatePreSurveyFile (msg) {
 function createDataFile () {
   dataStream = fs.createWriteStream(`data/${dateString}-data.csv`)
   let csvString = 'session,subjectStartTime,period,practice,id,forced1,forcedScore1,'
-  csvString += 'choice1,choice2,score1,score2,cost1,cost2,endowment,totalScore,outcomeRandom,winPrize,totalCost,earnings'
+  csvString += 'choice1,choice2,score1,score2,endowment,totalScore,outcomeRandom,winPrize,totalCost,earnings'
   csvString += '\n'
   dataStream.write(csvString)
 }
@@ -142,7 +137,6 @@ function updateDataFile (subject) {
   csvString += `${subject.hist[subject.period].forced[1]},${subject.hist[subject.period].forcedScore[1]},`
   csvString += `${subject.hist[subject.period].choice[1]},${subject.hist[subject.period].choice[2]},`
   csvString += `${subject.hist[subject.period].score[1]},${subject.hist[subject.period].score[2]},`
-  csvString += `${subject.hist[subject.period].cost[1]},${subject.hist[subject.period].cost[2]},`
   csvString += `${endowment},${subject.totalScore},${subject.outcomeRandom},`
   csvString += `${subject.winPrize},${subject.totalCost},${subject.earnings}`
   csvString += '\n'
@@ -262,12 +256,11 @@ io.on('connection', function (socket) {
     if (subject) {
       const step = subject.step
       const histPeriod = subject.hist[msg.period]
-      const choosing = step === 1 || step === 4
+      const choosing = step === 'choice1' || step === 'choice2'
       if (subject.period === msg.period && step === msg.step) {
         if (choosing) {
           histPeriod.choice[msg.stage] = msg.currentChoice
           histPeriod.score[msg.stage] = msg.currentScore
-          histPeriod.cost[msg.stage] = msg.currentCost
         }
       }
       const reply = {
@@ -309,11 +302,9 @@ function setupHist (subject) {
     subject.hist[i + 1] = {
       choice: { 1: 0, 2: 0 },
       score: { 1: 0, 2: 0 },
-      cost: { 1: 0, 2: 0 },
       forcedScore: { 1: Math.round(Math.random() * 0.5 * 100) / 100, 2: 0 },
       forced: { 1: 1 * (Math.random() > 0.5), 2: 0 },
-      outcomeRandom: Math.random(),
-      multiplier: { 1: 10, 2: 10 }
+      outcomeRandom: Math.random()
     }
   })
 }
@@ -354,7 +345,8 @@ function calculateOutcome () {
     subject.score2 = selectedHist.score[2]
     subject.totalScore = selectedHist.score[1] + selectedHist.score[2]
     subject.winPrize = (subject.totalScore > selectedHist.outcomeRandom) * 1
-    subject.totalCost = selectedHist.cost[1] + selectedHist.cost[2]
+    console.log('subject.hist', subject.hist)
+    console.log('outcomeRandom, score[1],score[2]', selectedHist.outcomeRandom, selectedHist.score[1], selectedHist.score[2])
     subject.earnings = endowment + bonus * (1 - subject.winPrize)
   })
 }

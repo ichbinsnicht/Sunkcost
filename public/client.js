@@ -56,8 +56,6 @@ let choice = { 1: 0, 2: 0 }
 let score = { 1: 0, 2: 0 }
 let forcedScore = { 1: 0, 2: 0 }
 let forced = { 1: 0, 2: 0 }
-let cost = { 1: 0, 2: 0 }
-let multiplier = { 1: 0, 2: 0 }
 let hist = {}
 let message = {}
 let mouseEvent = { x: 0, y: 0 }
@@ -83,17 +81,17 @@ Stage 1:<br>
 <ul>
     <li> Choose a number between 0% and 50%, called Choice 1.</li>
     <li> You can adjust Choice 1 by moving your mouse left or right. Choice 1 will be locked in at the end of Stage 1.</li>
-    <li> Score 1 will be either Choice 1 or a randomly selected number from 0% to 50%. Both are equally likely.</li>
+    <li> Probability 1 will be either Choice 1 or a randomly selected number from 0% to 50%. Both are equally likely.</li>
 </ul>
 
 Stage 2:<br>
 <ul>
     <li> You will choose a number between 0% and 50%, called Choice 2.</li>
     <li> You can adjust Choice 2 by moving your mouse left or right. Choice 2 will be locked in at the end of Stage 2.</li>
-    <li> Score 2 will equal Choice 2.</li>
+    <li> Probability 2 will equal Choice 2.</li>
 </ul>
 
-At the end of the experiment, you will receive either the $10 bonus or the Starbucks giftcard. Your chance of winning the $15 Starbucks gift card will be Score 1 plus Score 2. Your chance of winning the $10 bonus will be one minus your chance of winning the giftcard.<br><br>`
+At the end of the experiment, you will receive either the $10 bonus or the Starbucks giftcard. Your chance of winning the $15 Starbucks gift card will be Probability 1 plus Probability 2. Your chance of winning the $10 bonus will be one minus your chance of winning the giftcard.<br><br>`
 
 const readyString = 'If you have any questions, raise your hand and we will come to assist you. Please click the button below to begin the experiment.'
 
@@ -198,16 +196,13 @@ socket.on('clientJoined', function (msg) {
   hist = msg.hist
   choice = hist[period].choice
   score = hist[period].score
-  cost = hist[period].cost
   forcedScore = hist[period].forcedScore
-  multiplier = hist[period].multiplier
   console.log('hist', hist)
   setInterval(update, 10)
 })
 socket.on('serverUpdateClient', function (msg) {
   joined = true
   if (period !== msg.period || experimentStarted !== msg.experimentStarted) {
-    cost = { 1: 0, 2: 0 }
     score = { 1: 0, 2: 0 }
   }
   if (state !== 'preSurvey' && msg.state === 'preSurvey') {
@@ -231,7 +226,6 @@ socket.on('serverUpdateClient', function (msg) {
   winPrize = msg.winPrize
   earnings = msg.earnings
   hist = msg.hist
-  multiplier = msg.hist[msg.period].multiplier
   forcedScore = msg.hist[msg.period].forcedScore
   forced = msg.hist[msg.period].forced
   if (state !== msg.state) {
@@ -250,8 +244,7 @@ const update = function () {
     step,
     stage,
     currentChoice: choice[stage],
-    currentScore: score[stage],
-    currentCost: cost[stage]
+    currentScore: score[stage]
   }
   socket.emit('clientUpdate', msg)
   beginPracticePeriodsButton.style.display = (!practiceLock && !practicePeriodsComplete) ? 'block' : 'none'
@@ -295,12 +288,12 @@ const setupCanvas = function () {
   yScale = 1 * window.innerHeight
   canvas.width = xScale
   canvas.height = yScale
-  const xTranslate = xScale / 2 - yScale / 2 - 0.1 * xScale
+  const xTranslate = xScale / 2 - yScale / 2
   const yTranslate = yScale
   context.setTransform(yScale / 100, 0, 0, yScale / 100, xTranslate, yTranslate)
 }
 const updateChoice = function () {
-  const x0 = canvas.width / 2 - canvas.height / 2 - 0.1 * canvas.width
+  const x0 = canvas.width / 2 - canvas.height / 2
   const canvasRect = canvas.getBoundingClientRect()
   mouseX = (mouseEvent.pageX - x0 - canvasRect.left) * 100 / canvas.height
   const mouseGraphX = (mouseX - graphX) / graphWidth
@@ -309,7 +302,6 @@ const updateChoice = function () {
     console.log('stage', stage)
     choice[stage] = Math.round(0.5 * Math.max(0, Math.min(1, mouseGraphX)) * 100) / 100
     score[stage] = forced[stage] * forcedScore[stage] + (1 - forced[stage]) * choice[stage]
-    cost[stage] = score[stage] * multiplier[stage]
   }
 }
 const drawInterface = function () {
@@ -353,7 +345,7 @@ const drawTop = function () {
     context.textBaseline = 'bottom'
     context.fillStyle = darkBlue
     const score1String = `${(score[1] * 100).toFixed(0)}%`
-    context.fillText(`Score 1: ${score1String}`, graphX + graphWidth * 2 * score[1], lineY1 - tickLength - 0.5)
+    context.fillText(`Probability 1: ${score1String}`, graphX + graphWidth * 2 * score[1], lineY1 - tickLength - 0.5)
     context.beginPath()
     context.arc(graphX + graphWidth * 2 * score[1], lineY1, 1.5, 0, 2 * Math.PI)
     context.fill()
@@ -399,7 +391,7 @@ const drawBottom = function () {
   context.textBaseline = 'bottom'
   context.fillStyle = blue
   const score2String = `${(score[2] * 100).toFixed(0)}%`
-  context.fillText(`Score 2: ${score2String}`, graphX + graphWidth * 2 * score[2], lineY2 - tickLength - 0.5)
+  context.fillText(`Probability 2: ${score2String}`, graphX + graphWidth * 2 * score[2], lineY2 - tickLength - 0.5)
   context.beginPath()
   context.fillStyle = blue
   context.arc(graphX + graphWidth * 2 * score[2], lineY2, 1.5, 0, 2 * Math.PI)
@@ -412,6 +404,14 @@ const drawBottom = function () {
   context.arc(graphX + graphWidth * 2 * choice[2], lineY2, 0.75, 0, 2 * Math.PI)
   context.fill()
   context.textBaseline = 'top'
+  const probGiftCard = (score[1] + score[2]) * 100
+  const probMoney = (1 - score[1] - score[2]) * 100
+  const giftCardChance = `You have an ${probGiftCard.toFixed(0)}% chance of winning the $15 gift card.`
+  const moneyChance = `You have an ${probMoney.toFixed(0)}% chance of winning the $10 bonus.`
+  context.fillStyle = darkBlue
+  context.fillText(giftCardChance, graphX + 0.5 * graphWidth, lineY2 + 14)
+  context.fillStyle = darkGreen
+  context.fillText(moneyChance, graphX + 0.5 * graphWidth, lineY2 + 17.5)
   if (step === 'feedback2') {
     context.textAlign = 'center'
     context.fillStyle = 'darkRed'
@@ -423,14 +423,14 @@ const drawCountdownText = function () {
   context.fillStyle = 'black'
   context.textBaseline = 'top'
   context.textAlign = 'center'
-  context.fillText(`Countdown: ${countdown}`, graphX + 0.5 * graphWidth, lineY2 + 18)
+  context.fillText(`Countdown: ${countdown}`, graphX + 0.5 * graphWidth, lineY2 + 10)
 }
 const drawFeedback1Text = function () {
   context.textBaseline = 'top'
   context.textAlign = 'center'
   context.fillStyle = darkBlue
-  const score1CompleteString = 'Score 1 Implemented'
-  context.fillText(score1CompleteString, graphX + 0.5 * graphWidth, lineY2 + 5)
+  const score1CompleteString = 'Probability 1 Implemented'
+  context.fillText(score1CompleteString, graphX + 0.5 * graphWidth, lineY2 - 10)
 }
 const drawBarGiftCard = function () {
   context.fillStyle = black
@@ -556,21 +556,21 @@ const drawOutcome = function () {
   context.font = feedbackFont
   context.lineWidth = 0.25
   const line1 = 'The experiment is complete'
-  // const line2 = `Period ${outcomePeriod} was randomly selected`
   const line3A = 'You won the $15 Starbucks gift card'
   const line3B = 'You did not win the $15 Starbucks gift card'
   const line3 = winPrize === 1 ? line3A : line3B
   const line4A = 'You did not win the $10 bonus'
   const line4B = 'You won the $10 bonus'
   const line4 = winPrize === 1 ? line4A : line4B
-  const line5A = `You will receive $${(earnings + 5).toFixed(2)}`
-  const line5B = 'and a gift card'
+  const line5A = `You will receive $${(earnings).toFixed(0)}`
+  const line5B = ' and the $15 gift card'
   const line5 = winPrize === 1 ? (line5A + line5B) : line5A
   const line6 = 'Please wait while your payment is prepared'
-  context.fillText(line1, 60, lineY1 + 14)
+  context.fillText(line1, 50, lineY1 + 14)
   // context.fillText(line2,graphX+0.5*graphWidth,lineY1+22)
-  context.fillText(line3, 60, lineY1 + 32)
-  context.fillText(line4, 60, lineY1 + 40)
-  context.fillText(line5, 60, lineY1 + 48)
+  context.fillText(line3, 50, lineY1 + 32)
+  context.fillText(line4, 50, lineY1 + 40)
+  context.fillText(line5, 50, lineY1 + 56)
+  context.fillText(line6, 50, lineY1 + 62)
 }
 draw()
