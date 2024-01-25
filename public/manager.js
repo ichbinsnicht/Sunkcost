@@ -5,7 +5,7 @@ const playAudioButton = document.getElementById('playAudioButton')
 const stopAudioButton = document.getElementById('stopAudioButton')
 const preSurveyLock = document.getElementById('preSurveyLock')
 const practiceLock = document.getElementById('practiceLock')
-const audio = new Audio('instructionsMonetary.mp3')
+const audio = new Audio('instructions.mp3')
 const socket = io()
 
 let numSubjects = 0

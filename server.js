@@ -53,8 +53,8 @@ const randomSeed = Math.random()
 seedrandom('seed', { global: true })
 const guestList = process.env.RENDER
   ? arange(numberOfGuests).map(i => {
-    return Math.round(Math.random() * 10 ** 7).toString(36)
-  })
+      return Math.round(Math.random() * 10 ** 7).toString(36)
+    })
   : arange(numberOfGuests).map(i => {
     return (i).toString()
   })
