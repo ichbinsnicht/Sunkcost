@@ -5,5 +5,8 @@
         "ftp": "^0.3.10",
         "seedrandom": "^3.0.5",
         "socket.io": "4.4.1"
+    },
+    "devDependencies": {
+        "standard": "^17.1.0"
     }
 }
