@@ -29,9 +29,8 @@ console.log(config)
 
 export const io = new Server(server)
 
-server.listen(3000, function (msg) {
-  const port = server.address().port
-  console.log(`listening on port ${port}`)
+server.listen(config.port, function () {
+  console.log(`listening on port ${config.port}`)
 })
 
 app.use(express.static(path.join(dirname, 'public')))
