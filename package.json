@@ -1,7 +1,9 @@
 {
     "name": "sunk-cost",
+    "type": "module",
     "dependencies": {
         "express": "4.17.3",
+        "fs-extra": "^11.2.0",
         "ftp": "^0.3.10",
         "seedrandom": "^3.0.5",
         "socket.io": "4.4.1"
