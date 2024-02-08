@@ -1,6 +1,8 @@
 // fix earnings (final outcome)
 
-// 1) server install SSL (Ionos) at server.js
+// middle bias and noise jointly vs mixture preferences
+// ==> use multiple periods in experiment, pay for one randomly selected period
+
 // 2) make interface more online compatible
 // 4) pilot new interface at LISH and at VCU
 // 3) analysis: ML to improve SE (barrier: can ML predict out of sample better? if so, then move forward)
@@ -16,10 +18,9 @@
 
 import { io } from './server.js'
 import fs from 'fs'
-import seedrandom from 'seedrandom'
 
 // parameters
-const remoteVersion = false // false - lab, true - online
+const subjects = {}
 const numPracticePeriods = 1 // 5 practice periods
 const numPeriods = 1 // 1 period, numPeriods > numPracticePeriods
 const choice1Length = 5 // 15 secs choice1
@@ -28,10 +29,8 @@ const choice2Length = 5 // 15 secs choice2
 const feedback2Length = 5 // 10 secs feedback2
 const endowment = 5
 const bonus = 10
-const numberOfGuests = 100
 
 // variables and guestList
-const subjects = {}
 let numSubjects = 0
 let preSurveyLock = false
 let practiceLock = false
@@ -42,23 +41,6 @@ let paymentStream
 let preSurveyReady = false
 let postSurveyReady = false
 const dateString = getDateString()
-const randomSeed = Math.random()
-seedrandom('seed', { global: true })
-const guestList = process.env.RENDER
-  ? arange(numberOfGuests).map(i => {
-    return Math.round(Math.random() * 10 ** 7).toString(36)
-  })
-  : arange(numberOfGuests).map(i => {
-    return (i).toString()
-  })
-seedrandom(randomSeed, { global: true })
-
-const linkList = guestList.map(guest => {
-  return process.env.Render
-    ? 'https://sunkcost.onrender.com/client' + guest
-    : 'http://localhost:3000/client' + guest
-})
-if (remoteVersion) console.log('guestlist Links', linkList)
 
 createDataFile()
 createPaymentFile()
@@ -144,31 +126,12 @@ function updatePaymentFile (subject) {
 
 io.on('connection', function (socket) {
   socket.emit('connected')
-  if (remoteVersion) {
-    socket.on('joinGame', function (msg) {
-      console.log('joinGame', msg.id)
-      if (!subjects[msg.id]) createSubject(msg.id, socket)
-      socket.emit('clientJoined', { id: msg.id, hist: subjects[msg.id].hist, period: subjects[msg.id].period })
-      console.log('Object.keys(subjects)', Object.keys(subjects))
-      /*
-      if(guestList.includes(msg.id)){
-        console.log("joinGame",msg.id)
-        if(!subjects[msg.id]) createSubject(msg.id,socket) // restart client: client joins but server has record
-        socket.emit("clientJoined",{id: msg.id, hist: subjects[msg.id].hist, period: subjects[msg.id].period})
-        console.log("Object.keys(subjects)", Object.keys(subjects))
-      }
-      */
-    })
-  } else {
-    socket.on('joinGame', function (msg) {
-      if (msg.id > 0) {
-        console.log('joinGame', msg.id)
-        if (!subjects[msg.id]) createSubject(msg.id, socket) // restart client: client joins but server has record
-        socket.emit('clientJoined', { id: msg.id, hist: subjects[msg.id].hist, period: subjects[msg.id].period })
-        console.log('Object.keys(subjects)', Object.keys(subjects))
-      }
-    })
-  }
+  socket.on('joinGame', function (msg) {
+    console.log('joinGame', msg.id)
+    if (!subjects[msg.id]) createSubject(msg.id, socket) // restart client: client joins but server has record
+    socket.emit('clientJoined', { id: msg.id, hist: subjects[msg.id].hist, period: subjects[msg.id].period })
+    console.log('Object.keys(subjects)', Object.keys(subjects))
+  })
   socket.on('submitPreSurvey', function (msg) {
     console.log('submitPreSurvey')
     const subject = subjects[msg.id]
@@ -258,10 +221,8 @@ io.on('connection', function (socket) {
       }
       socket.emit('serverUpdateClient', reply)
     } else { // restart server: solving issue that client does not know that
-      if (!subject && guestList.includes(msg.id) && remoteVersion) {
-        createSubject(msg.id, socket)
-        socket.emit('clientJoined', { id: msg.id })
-      }
+      createSubject(msg.id, socket)
+      socket.emit('clientJoined', { id: msg.id })
     }
   })
 })

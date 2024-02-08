@@ -24,7 +24,6 @@ const canvas = document.getElementById('canvas')
 const context = canvas.getContext('2d')
 
 // graphical parameters
-const remoteVersion = false
 const graphWidth = 70
 const graphX = 0.5 * (100 - graphWidth)
 const lineY1 = -90
@@ -99,20 +98,10 @@ const socket = io() // browser based socket
 const arange = n => [...Array(n).keys()]
 
 window.joinGame = function () {
-  if (remoteVersion) {
-    const id = document.location.pathname.substring(7)
-    if (id) {
-      console.log('id:', id)
-      console.log('joinGame')
-      const msg = { id }
-      socket.emit('joinGame', msg)
-    }
-  } else {
-    const id = parseInt(idInput.value)
-    console.log('id', id)
-    const msg = { id }
-    if (id > 0) socket.emit('joinGame', msg)
-  }
+  const id = idInput.value
+  console.log('id', id)
+  const msg = { id }
+  socket.emit('joinGame', msg)
 }
 window.submitPreSurveyPage1 = function () {
   console.log('submitPreSurveyPage1')
@@ -191,7 +180,7 @@ socket.on('connected', function (msg) {
 socket.on('clientJoined', function (msg) {
   console.log(`client ${msg.id} joined`)
   joined = true
-  if (!remoteVersion) id = msg.id
+  id = msg.id
   period = msg.period
   hist = msg.hist
   choice = hist[period].choice
