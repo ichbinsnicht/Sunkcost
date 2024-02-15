@@ -21,7 +21,7 @@ import fs from 'fs'
 
 // parameters
 const subjects = {}
-const numPracticePeriods = 1 // 3 practice periods
+const numPracticePeriods = 3 // 3 practice periods
 const numPeriods = 3 // 10 period, numPeriods > numPracticePeriods
 const choice1Length = 5 // 15 secs choice1
 const feedback1Length = 2 // 5 secs feedback1
