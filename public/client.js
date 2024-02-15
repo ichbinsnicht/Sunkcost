@@ -58,12 +58,13 @@ let forced = { 1: 0, 2: 0 }
 let hist = {}
 let message = {}
 let mouseEvent = { x: 0, y: 0 }
-let earnings = 0
-let winPrize = 0
 let readyInstructionsString = ''
 let practiceLock = true
 let startPreSurveyTime = 0
 let endPreSurveyTime = 0
+let selectedPeriod = 0
+let bonus = 0
+let endowment = 0
 
 const imageStyle = 'width:14.2vh;height:9vh;margin-left:auto;margin-right:auto;display:block;'
 const imageHTML = `<img src="GiftCard.png" style="${imageStyle}"/>`
@@ -74,7 +75,7 @@ In this experiment you will start with $5. Depending on the decisions you make, 
 
 ${imageHTML} <br>
 
-This experiment has two stages: stage 1 and stage 2. In each stage, you will make a choice which may affect your probability of winning the $15 Starbucks gift card and your probability of winning the $10 bonus.<br><br>
+This experiment will consist of several periods. Each period has two stages: stage 1 and stage 2. In each stage, you will make a choice which may affect your probability of winning the $15 Starbucks gift card and your probability of winning the $10 bonus.<br><br>
 
 Stage 1:<br>
 <ul>
@@ -90,7 +91,7 @@ Stage 2:<br>
     <li> Probability 2 will equal Choice 2.</li>
 </ul>
 
-At the end of the experiment, you will receive either the $10 bonus or the Starbucks giftcard. Your chance of winning the $15 Starbucks gift card will be Probability 1 plus Probability 2. Your chance of winning the $10 bonus will be one minus your chance of winning the giftcard.<br><br>`
+At the end of the experiment, one period will be randomly selected. You will receive either the $10 bonus or the Starbucks giftcard. Your chance of winning the $15 Starbucks gift card will be Probability 1 plus Probability 2 from the randomly selected period. Your chance of winning the $10 bonus will be one minus your chance of winning the giftcard.<br><br>`
 
 const readyString = 'If you have any questions, raise your hand and we will come to assist you. Please click the button below to begin the experiment.'
 
@@ -204,6 +205,7 @@ socket.on('serverUpdateClient', function (msg) {
   }
   readyInstructionsString = instructionsString + readyString
   message = msg
+  selectedPeriod = msg.selectedPeriod
   step = msg.step
   stage = msg.stage
   practiceLock = msg.practiceLock
@@ -212,9 +214,9 @@ socket.on('serverUpdateClient', function (msg) {
   numPracticePeriods = msg.numPracticePeriods
   countdown = msg.countdown
   period = msg.period
-  winPrize = msg.winPrize
-  earnings = msg.earnings
   hist = msg.hist
+  bonus = msg.bonus
+  endowment = msg.endowment
   forcedScore = msg.hist[msg.period].forcedScore
   forced = msg.hist[msg.period].forced
   if (state !== msg.state) {
@@ -544,22 +546,30 @@ const drawOutcome = function () {
   context.strokeStyle = 'black'
   context.font = feedbackFont
   context.lineWidth = 0.25
+  const selectedScore = hist[selectedPeriod].score[1] + hist[selectedPeriod].score[2]
+  const outcomeRandom = hist[selectedPeriod].outcomeRandom
+  const selectedWinPrize = selectedScore > outcomeRandom
+  console.log('selectedScore, outcomeRandom', selectedScore, outcomeRandom)
+  console.log('hist', hist)
   const line1 = 'The experiment is complete'
-  const line3A = 'You won the $15 Starbucks gift card'
-  const line3B = 'You did not win the $15 Starbucks gift card'
-  const line3 = winPrize === 1 ? line3A : line3B
-  const line4A = 'You did not win the $10 bonus'
-  const line4B = 'You won the $10 bonus'
-  const line4 = winPrize === 1 ? line4A : line4B
-  const line5A = `You will receive $${(earnings).toFixed(0)}`
-  const line5B = ' and the $15 gift card'
-  const line5 = winPrize === 1 ? (line5A + line5B) : line5A
-  const line6 = 'Please wait while your payment is prepared'
-  context.fillText(line1, 50, lineY1 + 14)
-  // context.fillText(line2,graphX+0.5*graphWidth,lineY1+22)
-  context.fillText(line3, 50, lineY1 + 32)
-  context.fillText(line4, 50, lineY1 + 40)
-  context.fillText(line5, 50, lineY1 + 56)
-  context.fillText(line6, 50, lineY1 + 62)
+  const line2 = `Period ${selectedPeriod} was randomly selected.`
+  const line3 = `You started with $${endowment.toFixed(0)}`
+  const line4A = `You did not win the $${bonus.toFixed(0)} bonus`
+  const line4B = `You won the $${bonus.toFixed(0)} bonus`
+  const line4 = selectedWinPrize ? line4A : line4B
+  const line5A = 'You won the $15 Starbucks gift card'
+  const line5B = 'You did not win the $15 Starbucks gift card'
+  const line5 = selectedWinPrize ? line5A : line5B
+  const line6A = `You will receive $${endowment.toFixed(0)} and the $15 gift card`
+  const line6B = `You will receive $${endowment.toFixed(0)} and the $${bonus.toFixed(0)} bonus`
+  const line6 = selectedWinPrize ? line6A : line6B
+  const line7 = 'Please wait while your payment is prepared'
+  context.fillText(line1, 50, lineY1 + 4)
+  context.fillText(line2, 50, lineY1 + 12)
+  context.fillText(line3, 50, lineY1 + 30)
+  context.fillText(line4, 50, lineY1 + 38)
+  context.fillText(line5, 50, lineY1 + 46)
+  context.fillText(line6, 50, lineY1 + 54)
+  context.fillText(line7, 50, lineY1 + 70)
 }
 draw()

@@ -1,5 +1,5 @@
 * {
-    font: 5vmin monospace;
+    font: 2vmin monospace;
     text-align: center;
 }
 button {
@@ -29,7 +29,7 @@ button {
     width: 10vw;
 }
 td {
-    font: 3vmin monospace;
+    font: 2vmin monospace;
     padding-left: 1vmin;
     padding-right: 1vmin;
 }

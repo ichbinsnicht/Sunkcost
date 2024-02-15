@@ -21,8 +21,8 @@ import fs from 'fs'
 
 // parameters
 const subjects = {}
-const numPracticePeriods = 1 // 5 practice periods
-const numPeriods = 1 // 1 period, numPeriods > numPracticePeriods
+const numPracticePeriods = 1 // 3 practice periods
+const numPeriods = 3 // 10 period, numPeriods > numPracticePeriods
 const choice1Length = 5 // 15 secs choice1
 const feedback1Length = 2 // 5 secs feedback1
 const choice2Length = 5 // 15 secs choice2
@@ -45,8 +45,12 @@ const dateString = getDateString()
 createDataFile()
 createPaymentFile()
 
-function arange (x) {
-  return [...Array(x).keys()]
+function arange (a, b) {
+  return [...Array(b - a + 1).keys()].map(i => i + a)
+}
+
+function choose (x) {
+  return x[Math.floor(Math.random() * x.length)]
 }
 
 function formatTwo (x) {
@@ -83,7 +87,8 @@ function updatePreSurveyFile (msg) {
 function createDataFile () {
   dataStream = fs.createWriteStream(`data/${dateString}-data.csv`)
   let csvString = 'session,subjectStartTime,period,practice,id,forced1,forcedScore1,'
-  csvString += 'choice1,choice2,score1,score2,endowment,totalScore,outcomeRandom,winPrize,totalCost,earnings'
+  csvString += 'choice1,choice2,score1,score2,endowment,bonus,totalScore,outcomeRandom,'
+  csvString += 'winPrize,totalCost,earnings,selectedPeriod'
   csvString += '\n'
   dataStream.write(csvString)
 }
@@ -94,8 +99,9 @@ function updateDataFile (subject) {
   csvString += `${subject.hist[subject.period].forced[1]},${subject.hist[subject.period].forcedScore[1]},`
   csvString += `${subject.hist[subject.period].choice[1]},${subject.hist[subject.period].choice[2]},`
   csvString += `${subject.hist[subject.period].score[1]},${subject.hist[subject.period].score[2]},`
-  csvString += `${endowment},${subject.totalScore},${subject.outcomeRandom},`
-  csvString += `${subject.winPrize},${subject.totalCost},${subject.earnings}`
+  csvString += `${endowment},${bonus},${subject.totalScore},${subject.outcomeRandom},`
+  csvString += `${subject.winPrize},${subject.totalCost},${subject.earnings},`
+  csvString += `${subject.selectedPeriod}`
   csvString += '\n'
   dataStream.write(csvString)
 }
@@ -119,8 +125,8 @@ function createPaymentFile () {
   paymentStream.write(csvString)
 }
 function updatePaymentFile (subject) {
-  calculateOutcome()
-  const csvString = `${subject.id},${subject.earnings.toFixed(2)},${subject.winPrize}\n`
+  calculateSelectedOutcome()
+  const csvString = `${subject.id},${subject.selectedEarnings.toFixed(0)},${subject.selectedWinPrize}\n`
   paymentStream.write(csvString)
 }
 
@@ -175,10 +181,13 @@ io.on('connection', function (socket) {
       return {
         id: subject.id,
         step: subject.step,
+        period: subject.period,
         countdown: subject.countdown,
         state: subject.state,
-        earnings: subject.earnings,
-        winPrize: subject.winPrize
+        selectedEarnings: subject.selectedEarnings,
+        selectedWinPrize: subject.selectedWinPrize,
+        practice: !subject.practicePeriodsComplete,
+        selectedPeriod: subject.selectedPeriod
       }
     })
     const reply = {
@@ -212,12 +221,13 @@ io.on('connection', function (socket) {
         step: subject.step,
         stage: subject.stage,
         countdown: subject.countdown,
-        outcomePeriod: subject.outcomePeriod,
+        selectedPeriod: subject.selectedPeriod,
         outcomeRandom: subject.outcomeRandom,
         winPrize: subject.winPrize,
         totalCost: subject.totalCost,
         earnings: subject.earnings,
-        hist: subject.hist
+        hist: subject.hist,
+        bonus
       }
       socket.emit('serverUpdateClient', reply)
     } else { // restart server: solving issue that client does not know that
@@ -228,8 +238,9 @@ io.on('connection', function (socket) {
 })
 
 function setupHist (subject) {
-  arange(numPracticePeriods).forEach(i => {
-    subject.hist[i + 1] = {
+  const nPeriods = Math.max(numPracticePeriods, numPeriods)
+  arange(1, nPeriods).forEach(i => {
+    subject.hist[i] = {
       choice: { 1: 0, 2: 0 },
       score: { 1: 0, 2: 0 },
       forcedScore: { 1: Math.round(Math.random() * 0.5 * 100) / 100, 2: 0 },
@@ -256,11 +267,13 @@ function createSubject (id, socket) {
     countdown: choice1Length,
     choice1: 0,
     investment2: 0,
-    outcomePeriod: 1,
+    selectedPeriod: choose(arange(1, numPeriods)),
     outcomeRandom: 0,
     winPrize: 0,
     totalCost: 0,
     earnings: 0,
+    selectedEarnings: 0,
+    selectedWinPrize: 0,
     hist: {}
   }
   subjects[id] = subject
@@ -269,15 +282,24 @@ function createSubject (id, socket) {
 }
 function calculateOutcome () {
   Object.values(subjects).forEach(subject => {
-    const selectedHist = subject.hist[subject.period]
-    subject.outcomeRandom = selectedHist.outcomeRandom
-    subject.score1 = selectedHist.score[1]
-    subject.score2 = selectedHist.score[2]
-    subject.totalScore = selectedHist.score[1] + selectedHist.score[2]
-    subject.winPrize = (subject.totalScore > selectedHist.outcomeRandom) * 1
-    console.log('subject.hist', subject.hist)
-    console.log('outcomeRandom, score[1],score[2]', selectedHist.outcomeRandom, selectedHist.score[1], selectedHist.score[2])
+    const currentHist = subject.hist[subject.period]
+    subject.outcomeRandom = currentHist.outcomeRandom
+    subject.score1 = currentHist.score[1]
+    subject.score2 = currentHist.score[2]
+    subject.totalScore = currentHist.score[1] + currentHist.score[2]
+    subject.winPrize = (subject.totalScore > currentHist.outcomeRandom) * 1
     subject.earnings = endowment + bonus * (1 - subject.winPrize)
+  })
+}
+function calculateSelectedOutcome () {
+  Object.values(subjects).forEach(subject => {
+    const selectedHist = subject.hist[subject.selectedPeriod]
+    const outcomeRandom = selectedHist.outcomeRandom
+    const score1 = selectedHist.score[1]
+    const score2 = selectedHist.score[2]
+    const totalScore = score1 + score2
+    subject.selectedWinPrize = (totalScore > outcomeRandom) * 1
+    subject.selectedEarnings = endowment + bonus * (1 - subject.winPrize)
   })
 }
 function update (subject) { // add presurvey
@@ -302,6 +324,7 @@ function update (subject) { // add presurvey
     }
     if (subject.step === 'choice2' && subject.countdown <= 0) { // end choice2
       calculateOutcome()
+      calculateSelectedOutcome()
       subject.countdown = feedback2Length
       subject.step = 'feedback2'
       console.log('subject.step', subject.id, subject.step)
