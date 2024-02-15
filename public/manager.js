@@ -49,7 +49,7 @@ socket.on('serverUpdateManager', function (msg) {
     const earnings = subject.selectedEarnings.toFixed(0)
     const winPrize = subject.selectedWinPrize === 1
     const experimentComplete = subject.state === 'experimentComplete' || subject.state === 'postSurvey'
-    const payReady = subject.period > subject.selectedPeriod || experimentComplete
+    const payReady = (subject.period > subject.selectedPeriod || experimentComplete) && !subject.practice
     const earningsMessage = payReady ? earnings : 'NA'
     const winPrizeMessage = payReady ? winPrize : 'NA'
     tableString += `<tr>
