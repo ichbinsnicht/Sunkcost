@@ -91,7 +91,7 @@ Stage 2:<br>
     <li> Probability 2 will equal Choice 2.</li>
 </ul>
 
-At the end of the experiment, one period will be randomly selected. You will receive either the $10 bonus or the Starbucks giftcard. Your chance of winning the $15 Starbucks gift card will be Probability 1 plus Probability 2 from the randomly selected period. Your chance of winning the $10 bonus will be one minus your chance of winning the giftcard.<br><br>`
+At the end of the experiment, one period will be randomly selected. You will receive either the $10 bonus or the Starbucks giftcard. Your chance of winning the $15 Starbucks gift card will be Probability 1 plus Probability 2 from the randomly selected period. Your chance of winning the $10 bonus will be 100% minus your chance of winning the giftcard.<br><br>`
 
 const readyString = 'If you have any questions, raise your hand and we will come to assist you. Please click the button below to begin the experiment.'
 
