@@ -1,11 +1,11 @@
-// fix earnings (final outcome)
+// Alternative version:
 
-// middle bias and noise jointly vs mixture preferences
-// ==> use multiple periods in experiment, pay for one randomly selected period
-
-// 2) make interface more online compatible
-// 4) pilot new interface at LISH and at VCU
-// 3) analysis: ML to improve SE (barrier: can ML predict out of sample better? if so, then move forward)
+// Feb 29. set up program to run server in the background (Linux tools)
+// Feb 30. pilot new interface w/ Tufts students  - Feb 30.
+// Mar 7. pick one stage at random (alternative) or adding two stages together (current)
+// Mar 7-14 pilot new interface w/ LISH
+// March 14-29. pilot new interface w/ VCU.
+// ANYTIME IN BETWEEN analysis: ML to improve SE (barrier: can ML predict out of sample better? if so, then move forward)
 
 // TODO EXPERIMENT
 // PUSH: adjust parameters to the true values
