@@ -1,6 +1,7 @@
 // Alternative version:
 
 // Feb 29. set up program to run server in the background (Linux tools)
+// https://www.howtogeek.com/804823/nohup-command-linux/
 // Feb 30. pilot new interface w/ Tufts students  - Feb 30.
 // Mar 7. pick one stage at random (alternative) or adding two stages together (current)
 // Mar 7-14 pilot new interface w/ LISH
