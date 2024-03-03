@@ -397,8 +397,8 @@ const drawBottom = function () {
   context.textBaseline = 'top'
   const probGiftCard = (score[1] + score[2]) * 100
   const probMoney = (1 - score[1] - score[2]) * 100
-  const giftCardChance = `You have an ${probGiftCard.toFixed(0)}% chance of winning the $15 gift card.`
-  const moneyChance = `You have an ${probMoney.toFixed(0)}% chance of winning the $10 bonus.`
+  const giftCardChance = `You have a ${probGiftCard.toFixed(0)}% chance of winning the $15 gift card.`
+  const moneyChance = `You have a ${probMoney.toFixed(0)}% chance of winning the $10 bonus.`
   context.fillStyle = darkBlue
   context.fillText(giftCardChance, graphX + 0.5 * graphWidth, lineY2 + 14)
   context.fillStyle = darkGreen

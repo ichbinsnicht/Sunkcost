@@ -1,7 +1,5 @@
 // Alternative version:
-
-// Feb 29. set up program to run server in the background (Linux tools)
-// https://www.howtogeek.com/804823/nohup-command-linux/
+// Adjustment: change Tufts back to VCU
 // Feb 30. pilot new interface w/ Tufts students  - Feb 30.
 // Mar 7. pick one stage at random (alternative) or adding two stages together (current)
 // Mar 7-14 pilot new interface w/ LISH
@@ -23,11 +21,11 @@ import fs from 'fs'
 // parameters
 const subjects = {}
 const numPracticePeriods = 3 // 3 practice periods
-const numPeriods = 10 // 10 period, numPeriods > numPracticePeriods
+const numPeriods = 10 // 10 period, numPeriods > numPracticePeriods (internal: 1)
 const choice1Length = 15 // 15 secs choice1 (internal: 5)
 const feedback1Length = 5 // 5 secs feedback1 (internal: 2)
 const choice2Length = 15 // 15 secs choice2 (internal: 5)
-const feedback2Length = 15 // 10 secs feedback2 (internal: 5)
+const feedback2Length = 10 // 10 secs feedback2 (internal: 5)
 const endowment = 5
 const bonus = 10
 
