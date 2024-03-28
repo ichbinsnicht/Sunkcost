@@ -1,10 +1,8 @@
 // Alternative version:
-// Adjustment: change Tufts back to VCU
-// Feb 30. pilot new interface w/ Tufts students  - Feb 30.
-// Mar 7. pick one stage at random (alternative) or adding two stages together (current)
-// Mar 7-14 pilot new interface w/ LISH
-// March 14-29. pilot new interface w/ VCU.
-// ANYTIME IN BETWEEN analysis: ML to improve SE (barrier: can ML predict out of sample better? if so, then move forward)
+// Spring 2024. Pilot at VCU.
+// Fall 2024. Full Experiment.
+// - Between Spring and Fall 2024: ML analysis to improve SE (barrier: can ML predict out of sample better? if so, then move forward)
+// - Create Firm-Employee Field Experimental Website
 
 // TODO EXPERIMENT
 // PUSH: adjust parameters to the true values
