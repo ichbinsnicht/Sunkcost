@@ -2,6 +2,7 @@
 // Spring 2024. Pilot at VCU.
 // Fall 2024. Full Experiment.
 // - Between Spring and Fall 2024: ML analysis to improve SE (barrier: can ML predict out of sample better? if so, then move forward)
+// 1) create ML repository
 // - Create Firm-Employee Field Experimental Website
 
 // TODO EXPERIMENT
@@ -23,7 +24,7 @@ const numPeriods = 10 // 10 period, numPeriods > numPracticePeriods (internal: 1
 const choice1Length = 15 // 15 secs choice1 (internal: 5)
 const feedback1Length = 5 // 5 secs feedback1 (internal: 2)
 const choice2Length = 15 // 15 secs choice2 (internal: 5)
-const feedback2Length = 10 // 10 secs feedback2 (internal: 5)
+const feedback2Length = 5 // 5 secs feedback2 (internal: 5)
 const endowment = 5
 const bonus = 10
 
@@ -290,13 +291,18 @@ function calculateOutcome () {
 }
 function calculateSelectedOutcome () {
   Object.values(subjects).forEach(subject => {
+    console.log('subject.selectedPeriod', subject.selectedPeriod)
     const selectedHist = subject.hist[subject.selectedPeriod]
+    console.log('subject.hist', subject.hist)
+    console.log('selectedHist', selectedHist)
     const outcomeRandom = selectedHist.outcomeRandom
     const score1 = selectedHist.score[1]
     const score2 = selectedHist.score[2]
     const totalScore = score1 + score2
     subject.selectedWinPrize = (totalScore > outcomeRandom) * 1
-    subject.selectedEarnings = endowment + bonus * (1 - subject.winPrize)
+    subject.selectedEarnings = endowment + bonus * (1 - subject.selectedWinPrize)
+    console.log('subject.selectedEarnings', subject.selectedEarnings)
+    console.log('subject.selectedWinPrize', subject.selectedWinPrize)
   })
 }
 function update (subject) { // add presurvey
@@ -311,20 +317,16 @@ function update (subject) { // add presurvey
     if (subject.step === 'choice1' && subject.countdown <= 0) { // end choice1
       subject.countdown = feedback1Length
       subject.step = 'feedback1'
-      console.log('subject.period', subject.id, subject.period)
-      console.log('subject.step', subject.id, subject.step)
     }
     if (subject.step === 'feedback1' && subject.countdown <= 0) { // end feedback1
       subject.countdown = choice2Length
       subject.step = 'choice2'
-      console.log('subject.step', subject.id, subject.step)
     }
     if (subject.step === 'choice2' && subject.countdown <= 0) { // end choice2
       calculateOutcome()
       calculateSelectedOutcome()
       subject.countdown = feedback2Length
       subject.step = 'feedback2'
-      console.log('subject.step', subject.id, subject.step)
     }
     if (subject.step === 'feedback2' && subject.countdown <= 0) { // end feedback2
       updateDataFile(subject) // change to subject-specific
@@ -332,31 +334,22 @@ function update (subject) { // add presurvey
       if (subject.period >= maxPeriod) {
         if (subject.experimentStarted) {
           subject.step = 'end'
-          console.log('subject.period', subject.id, subject.period)
-          console.log('subject.step', subject.id, subject.step)
           updatePaymentFile(subject)
           subject.state = 'postSurvey'
-          console.log('Experiment for Subject', subject.id, 'Complete')
         } else {
-          console.log(`endPracticePeriods ${subject.id}`)
           subject.state = 'instructions'
           subject.practicePeriodsComplete = true
           subject.period = 1
           subject.step = 'choice1'
           subject.countdown = choice1Length
-          console.log('subject.period', subject.id, subject.period)
-          console.log('subject.step', subject.id, subject.step)
         }
       } else {
         subject.countdown = choice1Length
         subject.period += 1
         subject.step = 'choice1'
-        console.log('subject.period', subject.id, subject.period)
-        console.log('subject.step', subject.id, subject.step)
       }
     }
     subject.stage = subject.step === 'choice1' || subject.step === 'feedback1' ? 1 : 2
-    console.log('Subject.step, Subject.stage', subject.step, subject.stage)
   }
 }
 function updateSubjects () {
