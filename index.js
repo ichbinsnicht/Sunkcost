@@ -1,5 +1,8 @@
+// TODO
+// update audio instructions
+// Run more pilots. Paid pilots online? Prolific students
+//
 // Alternative version:
-// Spring 2024. Pilot at VCU.
 // Fall 2024. Full Experiment.
 // - Between Spring and Fall 2024: ML analysis to improve SE (barrier: can ML predict out of sample better? if so, then move forward)
 // 1) create ML repository
@@ -20,7 +23,7 @@ import fs from 'fs'
 // parameters
 const subjects = {}
 const numPracticePeriods = 3 // 3 practice periods
-const numPeriods = 10 // 10 period, numPeriods > numPracticePeriods (internal: 1)
+const numPeriods = 1 // 1 period, numPeriods > numPracticePeriods (internal: 1)
 const choice1Length = 15 // 15 secs choice1 (internal: 5)
 const feedback1Length = 5 // 5 secs feedback1 (internal: 2)
 const choice2Length = 15 // 15 secs choice2 (internal: 5)
@@ -241,7 +244,7 @@ function setupHist (subject) {
     subject.hist[i] = {
       choice: { 1: 0, 2: 0 },
       score: { 1: 0, 2: 0 },
-      forcedScore: { 1: Math.round(Math.random() * 0.5 * 100) / 100, 2: 0 },
+      forcedScore: { 1: 0, 2: 0 },
       forced: { 1: 1 * (Math.random() > 0.5), 2: 0 },
       outcomeRandom: Math.random()
     }

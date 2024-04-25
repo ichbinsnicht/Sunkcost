@@ -79,19 +79,17 @@ This experiment will consist of several periods. Each period has two stages: sta
 
 Stage 1:<br>
 <ul>
-    <li> Choose a number between 0% and 50%, called Choice 1.</li>
-    <li> You can adjust Choice 1 by moving your mouse left or right. Choice 1 will be locked in at the end of Stage 1.</li>
-    <li> Probability 1 will be either Choice 1 or a randomly selected number from 0% to 50%. Both are equally likely.</li>
+    <li> You will choose a number between 0% and 50%, called Choice 1.</li>
+    <li> Probability 1 will equal either Choice 1 or 0%. Both are equally likely.</li>
 </ul>
 
 Stage 2:<br>
 <ul>
     <li> You will choose a number between 0% and 50%, called Choice 2.</li>
-    <li> You can adjust Choice 2 by moving your mouse left or right. Choice 2 will be locked in at the end of Stage 2.</li>
     <li> Probability 2 will equal Choice 2.</li>
 </ul>
 
-At the end of the experiment, one period will be randomly selected. You will receive either the $10 bonus or the Starbucks giftcard. Your chance of winning the $15 Starbucks gift card will be Probability 1 plus Probability 2 from the randomly selected period. Your chance of winning the $10 bonus will be 100% minus your chance of winning the giftcard.<br><br>`
+During each stage, you can adjust your choice by moving your mouse left or right. Your choice will be locked in at the end of the stage. At the end of the experiment, you will receive either the $10 bonus or the $15 Starbucks gift card. Your chance of winning the $15 Starbucks gift card will be Probability 1 plus Probability 2. Your chance of winning the $10 bonus will be 100% minus your chance of winning the $15 Starbucks gift card.<br><br>`
 
 const readyString = 'If you have any questions, raise your hand and we will come to assist you. Please click the button below to begin the experiment.'
 
