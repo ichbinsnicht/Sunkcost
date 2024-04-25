@@ -1,14 +1,18 @@
 // TODO
-// update audio instructions
-// Run more pilots. Paid pilots online? Prolific students
+// - Pilot: Prolific students
+// ---> set up URL parameters from Prolific on the website
+// ---> redirect subjects (automated completion code)
+// ---> shareable link version for a gift card.
+// - giftbit.com
+// - https://app.giftbit.com/app/order/pay/bda63b3c49eb433995fccd4996eb54e2
+// - ML analysis
 //
 // Alternative version:
 // Fall 2024. Full Experiment.
 // - Between Spring and Fall 2024: ML analysis to improve SE (barrier: can ML predict out of sample better? if so, then move forward)
 // 1) create ML repository
 // - Create Firm-Employee Field Experimental Website
-
-// TODO EXPERIMENT
+//
 // PUSH: adjust parameters to the true values
 //
 // Online-Info
