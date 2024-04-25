@@ -71,11 +71,11 @@ const imageHTML = `<img src="GiftCard.png" style="${imageStyle}"/>`
 
 // probForcingInstructionsString
 const instructionsString = `
-In this experiment you will start with $5. Depending on the decisions you make, you will either win a $15 Starbucks gift card or a $10 bonus. <br><br>
+This is an experiment about decision making. You will receive $5 in cash just for participating. Depending on the decisions you make, you will also receive either a $15 Starbucks gift card or a bonus of $10 in cash.
 
 ${imageHTML} <br>
 
-This experiment will consist of several periods. Each period has two stages: stage 1 and stage 2. In each stage, you will make a choice which may affect your probability of winning the $15 Starbucks gift card and your probability of winning the $10 bonus.<br><br>
+This experiment will have two stages: stage 1 and stage 2. In each stage, you will make a choice which may affect your probability of receiving the $15 Starbucks gift card and your probability of receiving the $10 bonus.<br><br>
 
 Stage 1:<br>
 <ul>
@@ -89,7 +89,7 @@ Stage 2:<br>
     <li> Probability 2 will equal Choice 2.</li>
 </ul>
 
-During each stage, you can adjust your choice by moving your mouse left or right. Your choice will be locked in at the end of the stage. At the end of the experiment, you will receive either the $10 bonus or the $15 Starbucks gift card. Your chance of winning the $15 Starbucks gift card will be Probability 1 plus Probability 2. Your chance of winning the $10 bonus will be 100% minus your chance of winning the $15 Starbucks gift card.<br><br>`
+During each stage, you can adjust your choice by moving your mouse left or right. Your choice will be locked in at the end of the stage. At the end of the experiment, you will receive either the $10 bonus or the $15 Starbucks gift card. Your chance of receiving the $15 Starbucks gift card will be Probability 1 plus Probability 2. Your chance of receiving the $10 bonus will be 100% minus your chance of receiving the $15 Starbucks gift card.<br><br>`
 
 const readyString = 'If you have any questions, raise your hand and we will come to assist you. Please click the button below to begin the experiment.'
 
